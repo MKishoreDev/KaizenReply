@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KaizenReply — Improve every message. One Kaizen at a time.</title>
+    <meta name="description" content="Transform rough messages into clear, confident communication in seconds. Evolve your messages step-by-step with continuous AI-powered refinements." />
+    <link rel="icon" type="image/png" href="/static/logo.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://kaizenreply.vercel.app" />
+    <meta property="og:title" content="KaizenReply — Improve every message. One Kaizen at a time." />
+    <meta property="og:description" content="Transform rough messages into clear, confident communication in seconds. Evolve your messages step-by-step with continuous AI-powered refinements." />
+    <meta property="og:image" content="/static/banner.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="KaizenReply — Improve every message. One Kaizen at a time." />
+    <meta name="twitter:description" content="Transform rough messages into clear, confident communication in seconds. Evolve your messages step-by-step with continuous AI-powered refinements." />
+    <meta name="twitter:image" content="/static/banner.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+
+    <header class="nav">
+      <div class="brand">
+        <img src="/static/logo.png" alt="KaizenReply Logo" class="logo-img-dot" />
+        <span>Kaizen<span class="grad-text">Reply</span></span>
+      </div>
+      <div class="nav-right">
+        <a href="https://github.com/MKishoreDev/KaizenReply" target="_blank" rel="noopener noreferrer" class="github-link" aria-label="GitHub Repository">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+          </svg>
+        </a>
+        <button id="themeToggle" class="theme-toggle-btn" aria-label="Toggle theme">
+          <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+        <button id="shareWebsiteBtn" class="theme-toggle-btn" aria-label="Share KaizenReply" title="Share KaizenReply">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+        </button>
+        <a href="#tool" class="btn btn-grad btn-sm">Start Improving →</a>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="hero-glow" aria-hidden="true"></div>
+      <div class="logo-big-wrap">
+        <img src="/static/logo.png" alt="KaizenReply Logo" class="logo-img-big" />
+      </div>
+      <span class="pill">✦ Messages don't get rewritten. They evolve.</span>
+      <h1>Every message deserves <span class="grad-text">one more improvement.</span></h1>
+      <p class="sub">AI-powered message evolution. Refine tone, clarity, and impact — while keeping your voice.</p>
+      <div class="hero-buttons">
+        <a href="#tool" class="btn btn-grad">Start Improving →</a>
+        <button id="heroShareBtn" class="btn btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Share
+        </button>
+      </div>
+      <div class="trust">
+        <span>✓ No signup required</span><span>✓ Free to use</span><span>✓ Powered by AI</span><span>✓ Instant results</span>
+      </div>
+    </section>
+
+    <section class="how-it-works">
+      <p class="section-eyebrow">Simple by design</p>
+      <h2>How it <span class="grad-text">works</span></h2>
+      <div class="steps">
+        <div class="step-card">
+          <div class="step-num">01</div>
+          <div class="step-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>
+          </div>
+          <h3>Paste your draft</h3>
+          <p>Drop in any message — a work email, a WhatsApp reply, or a LinkedIn DM. Raw or polished, it doesn't matter.</p>
+        </div>
+        <div class="step-connector" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </div>
+        <div class="step-card">
+          <div class="step-num">02</div>
+          <div class="step-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+          </div>
+          <h3>Pick tone & platform</h3>
+          <p>Choose from 10 tone presets and any platform — WhatsApp, LinkedIn, Email, X and more. Or let AI suggest the best fit.</p>
+        </div>
+        <div class="step-connector" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </div>
+        <div class="step-card">
+          <div class="step-num">03</div>
+          <div class="step-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+          </div>
+          <h3>Get your evolved message</h3>
+          <p>Instantly receive a refined version with a Kaizen Score breakdown — see exactly what improved and by how much.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="tool" class="tool">
+      <div class="card glass">
+        <div class="mode-tabs">
+          <button id="modeEvolve" class="mode-tab active" data-mode="evolve">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="tab-ic"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+            Evolve Draft
+          </button>
+          <button id="modeReply" class="mode-tab" data-mode="reply">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="tab-ic"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Reply Mode
+          </button>
+        </div>
+
+        <label id="textareaLabel" class="lbl" style="margin-top:16px;display:block;">Your message</label>
+        <textarea id="message" rows="4" maxlength="3000" placeholder="Paste your message here…  e.g. bro send that file asap"></textarea>
+
+        <div class="input-actions-row">
+          <div class="input-actions-left">
+            <button id="pasteBtn" class="btn-action">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+              Paste
+            </button>
+            <button id="suggestBtn" class="btn-action">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              AI Suggest
+            </button>
+          </div>
+          <div class="counter"><span id="count">0</span> / 3000</div>
+        </div>
+
+        <div id="recommendation" class="rec-banner hidden">
+          <span class="rec-content">
+            <svg class="rec-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .6 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+            <span id="recText">We recommend <strong>Professional</strong> tone.</span>
+          </span>
+          <button id="applyRecBtn" class="rec-apply-btn">Apply</button>
+        </div>
+
+        <p class="lbl mt">Tone <span class="muted">· required</span></p>
+        <div id="tones" class="chips"></div>
+        <input id="customTone" class="hidden inp" style="margin-top:8px;" placeholder="Type a custom tone…  e.g. Passive-Aggressive" />
+
+        <p class="lbl mt">Platform <span class="muted">· optional</span></p>
+        <div id="platforms" class="chips"></div>
+        <input id="customPlatform" class="hidden inp" placeholder="Type a platform…" />
+
+        <button id="ctxToggle" class="ctx-toggle mt">
+          <span><svg class="lbl-ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>Add context <span class="muted">· optional</span></span><span id="ctxArrow">▾</span>
+        </button>
+        <div id="ctxPanel" class="ctx-panel hidden">
+          <label class="lbl-sm">Conversation context</label>
+          <textarea id="conversationContext" rows="2" maxlength="1500" placeholder="What was said earlier / ongoing discussion summary…"></textarea>
+          <div class="ctx-note">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="ctx-note-ic"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span><em>Kaizen Note: More context = perfect reply. Evolve one refinement at a time.</em></span>
+          </div>
+          <label class="lbl-sm">Who are you talking to?</label>
+          <div id="recipients" class="chips"></div>
+          <input id="recipient" class="inp" placeholder="Or describe them…" />
+        </div>
+
+        <div class="action-buttons mt">
+          <button id="improve" class="btn btn-grad">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+            Evolve Message
+          </button>
+          <button id="fixGrammar" class="btn btn-secondary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+            Fix Grammar
+          </button>
+        </div>
+        <p id="error" class="error hidden"></p>
+        <p id="infoMessage" class="info-banner hidden"></p>
+
+        <p class="warning-note kaizen-note-banner">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="warn-ic"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          Kaizen Principle: More context ➔ Perfect reply. Refine your drafts continuously.
+        </p>
+
+        <div id="output"></div>
+        <div id="empty" class="empty">
+          <svg width="120" height="64" viewBox="0 0 120 64" fill="none">
+            <path d="M6 58 C30 58 30 22 54 22" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round" />
+            <path d="M30 58 C54 58 54 12 78 12" stroke="#14B8A6" stroke-width="2.5" stroke-linecap="round" opacity=".7" />
+            <path d="M54 58 C84 58 84 6 114 6" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round" opacity=".5" />
+          </svg>
+          <p class="empty-title">Start by pasting a message you'd like to improve.</p>
+          <p class="muted sm">Your evolved version and Kaizen Score appear here.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="kaizen-info">
+      <div class="kaizen-info-card glass">
+        <div class="kaizen-symbol">改善</div>
+        <div class="kaizen-text">
+          <h2>What is <span class="grad-text">Kaizen?</span></h2>
+          <p>Originating from Japan, <strong>Kaizen (改善)</strong> translates to <em>"change for the better"</em> — a philosophy of continuous improvement through small, incremental refinements.</p>
+          <p>At <strong>KaizenReply</strong>, we apply this to your daily communication. Instead of rewriting your words with generic templates, we evolve your message step-by-step — sharpening tone, clarity, and readability while keeping your voice intact.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="features">
+      <p class="section-eyebrow">Everything you need</p>
+      <h2>Built for <span class="grad-text">continuous improvement</span></h2>
+      <div class="grid">
+        <div class="feat">
+          <div class="feat-ic">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+          </div>
+          <h3>Lightning Fast AI</h3>
+          <p>Near-instant responses powered by state-of-the-art language models.</p>
+        </div>
+        <div class="feat">
+          <div class="feat-ic">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+          </div>
+          <h3>Tone & Platform Aware</h3>
+          <p>10 tones, 9 platforms. From WhatsApp to LinkedIn — every context covered.</p>
+        </div>
+        <div class="feat">
+          <div class="feat-ic">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <h3>Reply Mode</h3>
+          <p>Got a message? Get 3 distinct, ready-to-send replies in seconds.</p>
+        </div>
+        <div class="feat">
+          <div class="feat-ic">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <h3>Privacy First</h3>
+          <p>No accounts, no data storage, no tracking. Your messages stay yours.</p>
+        </div>
+        <div class="feat">
+          <div class="feat-ic">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <h3>Kaizen Score</h3>
+          <p>See exactly what improved — Clarity, Tone, Professionalism, Readability.</p>
+        </div>
+        <div class="feat">
+          <div class="feat-ic">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <h3>AI Tone Suggestion</h3>
+          <p>Not sure which tone to pick? Let AI analyse your draft and recommend.</p>
+        </div>
+        <div class="feat">
+          <div class="feat-ic">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <h3>Instant, Free</h3>
+          <p>No signup, no credit card. Open source and free forever.</p>
+        </div>
+        <div class="feat">
+          <div class="feat-ic">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </div>
+          <h3>Works Everywhere</h3>
+          <p>Fully responsive — mobile, tablet, desktop. Dark and light mode built-in.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="brand">
+          <img src="/static/logo.png" alt="KaizenReply Logo" class="logo-img-dot" />
+          <span>Kaizen<span class="grad-text">Reply</span></span>
+        </div>
+        <p class="muted footer-tagline">Improve every message. One Kaizen at a time.</p>
+      </div>
+      <p class="footer-copy muted">© 2026 KaizenReply · Built by <a href="https://github.com/MKishoreDev" target="_blank" rel="noopener noreferrer">MKishoreDev</a> · Open Source</p>
+    </footer>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
