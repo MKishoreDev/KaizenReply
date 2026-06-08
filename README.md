@@ -1,12 +1,8 @@
-# KaizenReply
-
-<p align="center">
-  <img src="static/logo.png" width="100" alt="KaizenReply Logo" />
-</p>
-
 <p align="center">
   <img src="static/banner.png" alt="KaizenReply Banner" width="100%" />
 </p>
+
+# KaizenReply
 
 <p align="center">
   <a href="https://kaizenreply.vercel.app"><img src="https://img.shields.io/badge/Live-Demo-22c55e?style=flat-square&logo=vercel" alt="Live Demo" /></a>
