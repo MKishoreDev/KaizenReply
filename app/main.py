@@ -289,20 +289,54 @@ async def reply(req: ReplyRequest, request: Request) -> ReplyResponse:
     limit_note = ""
     if req.platform and (limit := PLATFORM_LIMITS.get(req.platform)):
         limit_note = f"CRITICAL: Each suggestion MUST be under {limit} characters.\n"
-
     system_prompt = (
-        "You are KaizenReply in Reply Mode. Suggest 3 distinct, ready-to-send reply variations.\n"
-        f"Tone: {req.tone}\n"
-        f"Platform: {req.platform or 'platform-neutral'}\n"
-        f"Recipient: {req.recipient or 'general'}\n"
-        f"Context: {req.conversationContext or 'none'}\n"
-        f"{limit_note}"
-        "Use correct contractions (e.g. \"I'm\", \"don't\").\n"
-        'Respond with strict JSON only: {"suggestions": [string, string, string]}'
-    )
+    "You are KaizenReply in Reply Mode.\n\n"
 
+    "IMPORTANT:\n"
+    "The user's message is an incoming message they received from someone else.\n"
+    "Your job is to generate replies the user can send back.\n"
+    "You MUST NOT rewrite, improve, paraphrase, or grammar-correct the incoming message.\n"
+    "You MUST respond TO the message.\n\n"
+
+    "Rules:\n"
+    "- Treat the input as a received message.\n"
+    "- Generate actual responses.\n"
+    "- Never repeat the original message.\n"
+    "- Never rephrase the original message.\n"
+    "- Never explain the message.\n"
+    "- Make each reply sound natural and ready to send.\n"
+    "- Keep responses consistent with the requested tone.\n\n"
+
+    f"Tone: {req.tone}\n"
+    f"Platform: {req.platform or 'platform-neutral'}\n"
+    f"Recipient: {req.recipient or 'general'}\n"
+    f"Context: {req.conversationContext or 'none'}\n\n"
+
+    f"{limit_note}"
+
+    "Generate exactly 3 different reply options:\n"
+    "1. Short and concise\n"
+    "2. Balanced and conversational\n"
+    "3. Detailed and thoughtful\n\n"
+
+    "Examples:\n\n"
+
+    'Incoming Message: "Can you send me the report by tomorrow?"\n'
+    'Good Reply: "Sure, I\'ll send it before noon."\n'
+    'Good Reply: "Yes, I\'ll have it ready by tomorrow."\n'
+    'Bad Reply: "Could you send me the report by tomorrow?"\n\n'
+
+    'Incoming Message: "Thanks for helping me today."\n'
+    'Good Reply: "Happy to help!"\n'
+    'Good Reply: "You\'re welcome, glad I could assist."\n'
+    'Bad Reply: "Thank you for helping me today."\n\n'
+
+    'Respond with strict JSON only: {"suggestions": [string, string, string]}'
+    )
+    
     try:
-        content = await call_groq(system_prompt, req.message, temperature=0.7, max_tokens=500)
+        temperature = 0.4 if req.platform in ["LinkedIn", "Email"] else 0.7
+        content = await call_groq(system_prompt, req.message, temperature=temperature, max_tokens=500)
         parsed = json.loads(content)
         suggestions = parsed.get("suggestions", [])
         if not isinstance(suggestions, list) or not suggestions:
