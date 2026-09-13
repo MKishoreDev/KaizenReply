@@ -101,6 +101,41 @@ def build_improve_prompt(req: ImproveRequest) -> str:
             "Strictly correct grammar, spelling, and punctuation. "
             "Do NOT change vocabulary, style, tone, or phrasing."
         )
+    elif req.tone == "LinkedIn Bro":
+        tone_instruction = (
+            "CRITICAL TONE INSTRUCTION — 'LinkedIn Bro / Corporate Satire':\n"
+            "Transform the input draft into a dramatic, viral LinkedIn thought-leadership post meme! "
+            "Structure it with:\n"
+            "1) A dramatic, attention-grabbing opening line hook (e.g. 'I spent 48 hours in jail. Here is what it taught me about B2B SaaS Sales 👇').\n"
+            "2) Short single-line sentences with double line breaks for maximum readability.\n"
+            "3) 3-4 bullet points extracting profound, funny business or leadership lessons from the situation.\n"
+            "4) End with a classic call to action line like 'Agree?' or 'What did your worst mistake teach you today?' and 3 hashtags like #GrowthMindset #Leadership #B2BSales."
+        )
+    elif req.tone == "Cold Email Hook":
+        tone_instruction = (
+            "Transform the draft into a high-converting, punchy 2-3 sentence cold outreach hook. "
+            "Focus on immediate value, pain-point relief, and a frictionless low-friction question CTA."
+        )
+    elif req.tone == "Dating App Opener":
+        tone_instruction = (
+            "Transform the draft into a witty, smooth, and charming dating app opener for Hinge/Tinder/Bumble. "
+            "Keep it fun, playful, engaging, and easy to respond to."
+        )
+    elif req.tone == "ELI5":
+        tone_instruction = (
+            "Explain/rewrite the message as if explaining to a 5-year-old (ELI5). "
+            "Use crystal clear language, simple analogies, and zero jargon."
+        )
+    elif req.tone == "Passive-Aggressive":
+        tone_instruction = (
+            "Rewrite the message with razor-sharp corporate passive-aggressiveness masked in polite corporate terminology "
+            "(e.g. 'per my previous email', 'as stated earlier', 'just following up on this')."
+        )
+    elif req.tone == "Tech Twitter Thread":
+        tone_instruction = (
+            "Format the message as a viral Tech Twitter / X thread hook. "
+            "Use punchy bullet points, high-impact phrasing, and end with '🧵👇'."
+        )
     else:
         tone_instruction = f"Selected tone: {req.tone}."
 
@@ -121,7 +156,7 @@ def build_improve_prompt(req: ImproveRequest) -> str:
     if req.conversationContext:
         parts.append(f"Conversation context: {req.conversationContext}")
 
-    return f"""You are KaizenReply, a message-improvement engine. Improve the draft's clarity, tone, structure and effectiveness while strictly preserving the original meaning. Never add information not implied by the user. Return only the improved message plus a quality assessment.
+    return f"""You are KaizenReply, a message-improvement engine. Improve the draft's clarity, tone, structure and effectiveness while preserving the underlying core meaning. Return only the improved message plus a quality assessment.
 
 Ensure contractions use standard apostrophes (e.g. "I'm", "don't", "it's") — never output typos like "i;m".
 
@@ -373,7 +408,8 @@ async def analyze(req: AnalyzeRequest, request: Request) -> AnalyzeResponse:
 
     system_prompt = (
         "Analyze the user's draft message and recommend the best tone from: "
-        "Casual, Professional, Polite, Formal, Friendly, Gen Z, Persuasive, Assertive, Diplomatic, Concise.\n"
+        "Casual, Professional, Polite, Formal, Friendly, Gen Z, Persuasive, Assertive, Diplomatic, Concise, "
+        "LinkedIn Bro, Cold Email Hook, Dating App Opener, ELI5, Passive-Aggressive, Tech Twitter Thread.\n"
         "Give a short reason (max 15 words).\n\n"
         'Respond with strict JSON only: {"tone": string, "reason": string}'
     )

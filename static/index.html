@@ -136,9 +136,10 @@
 
         <div class="sample-pills-wrap" style="margin:8px 0 12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
           <span style="font-size:0.725rem;color:var(--muted);font-weight:600;">Try demo:</span>
-          <button type="button" class="sample-pill" data-text="bro send that report asap need it for client meeting">💬 "send report asap"</button>
-          <button type="button" class="sample-pill" data-text="sorry for delay in replying I was stuck in traffic earlier today">👔 "sorry for delay replying"</button>
-          <button type="button" class="sample-pill" data-text="can we reschedule our call to tomorrow 3pm? let me know if that works">📅 "reschedule call?"</button>
+          <button type="button" class="sample-pill" data-text="I spent 2 days in jail" data-tone="LinkedIn Bro">💼 "I went to jail (LinkedIn meme)"</button>
+          <button type="button" class="sample-pill" data-text="hey are you free to grab coffee this weekend?" data-tone="Dating App Opener">🔥 "coffee date opener"</button>
+          <button type="button" class="sample-pill" data-text="bro send that report asap need it for client meeting" data-tone="Casual">💬 "send report asap"</button>
+          <button type="button" class="sample-pill" data-text="sorry for delay in replying I was stuck in traffic earlier today" data-tone="Professional">👔 "sorry for delay replying"</button>
         </div>
 
         <div class="input-actions-row">
@@ -161,12 +162,22 @@
             <span id="recText">We recommend <strong>Professional</strong> tone.</span>
           </span>
           <button id="applyRecBtn" class="rec-apply-btn">Apply</button>
+        </div>
+
         <div id="modelSelectRow" class="hidden" style="margin-top:16px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
           <p class="lbl" style="margin:0;">AI Model <span class="muted">· dynamic</span></p>
           <select id="modelSelect" class="inp" style="padding:6px 12px;font-size:0.825rem;width:auto;max-width:240px;border-radius:8px;cursor:pointer;"></select>
         </div>
 
-        <p class="lbl mt">Tone <span class="muted">· required</span></p>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:20px;margin-bottom:8px;flex-wrap:wrap;gap:6px;">
+          <p class="lbl" style="margin:0;">Tone <span class="muted">· required</span></p>
+          <div id="toneCategoryFilters" class="tone-cat-filters">
+            <button type="button" class="tone-cat-btn active" data-cat="All">All</button>
+            <button type="button" class="tone-cat-btn" data-cat="Viral">🔥 Trending & Memes</button>
+            <button type="button" class="tone-cat-btn" data-cat="Work">💼 Work & Pro</button>
+            <button type="button" class="tone-cat-btn" data-cat="Social">💬 Social & Fun</button>
+          </div>
+        </div>
         <div id="tones" class="chips"></div>
         <input id="customTone" class="hidden inp" style="margin-top:8px;" placeholder="Type a custom tone…  e.g. Passive-Aggressive" />
 

@@ -1,4 +1,29 @@
-const TONES = ["Casual","Professional","Polite","Formal","Friendly","Gen Z","Persuasive","Assertive","Diplomatic","Concise"];
+const TONES = [
+  "Casual",
+  "Professional",
+  "LinkedIn Bro",
+  "Cold Email Hook",
+  "Dating App Opener",
+  "ELI5",
+  "Gen Z",
+  "Polite",
+  "Formal",
+  "Friendly",
+  "Persuasive",
+  "Passive-Aggressive",
+  "Tech Twitter Thread",
+  "Assertive",
+  "Diplomatic",
+  "Concise"
+];
+
+const TONE_CATEGORIES = {
+  "Viral": ["LinkedIn Bro", "Gen Z", "Dating App Opener", "Passive-Aggressive", "Tech Twitter Thread", "Cold Email Hook"],
+  "Work": ["Professional", "LinkedIn Bro", "Cold Email Hook", "Formal", "Diplomatic", "Concise", "Passive-Aggressive"],
+  "Social": ["Casual", "Friendly", "Dating App Opener", "ELI5", "Gen Z", "Polite"]
+};
+
+let selectedToneCategory = "All";
 const PLATFORMS = ["WhatsApp","Instagram","Facebook","Telegram","LinkedIn","Email","SMS","Discord","X (Twitter)"];
 const RECIPIENTS = ["Friend","Manager","Client","Teacher"];
 
@@ -91,10 +116,31 @@ function renderChips(container, options, key, { allowCustom = false } = {}) {
   });
 }
 
+function getFilteredTones() {
+  if (selectedToneCategory === "All") return TONES;
+  return TONE_CATEGORIES[selectedToneCategory] || TONES;
+}
+
+function renderToneChips() {
+  const container = $("tones");
+  if (!container) return;
+  const filtered = getFilteredTones();
+  renderChips(container, filtered, "tone", { allowCustom: true });
+}
+
 // Initial chip render
-renderChips($("tones"), TONES, "tone", { allowCustom: true });
+renderToneChips();
 renderChips($("platforms"), PLATFORMS, "platform", { allowCustom: true });
 renderChips($("recipients"), RECIPIENTS, "recipient");
+
+document.querySelectorAll(".tone-cat-btn").forEach((btn) => {
+  btn.onclick = () => {
+    document.querySelectorAll(".tone-cat-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    selectedToneCategory = btn.getAttribute("data-cat") || "All";
+    renderToneChips();
+  };
+});
 
 // Character Counter
 $("message").addEventListener("input", (e) => {
@@ -313,15 +359,17 @@ function renderOutput(data) {
         <div class="out-actions">
           <button id="copyBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button>
           <button id="shareBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Share</button>
+          <button id="downloadCardBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Download Card</button>
           <button id="retryBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Regenerate variations</button>
         </div>
 
         <div class="quick-refine-wrap">
           <span class="quick-refine-title">⚡ 1-Tap Micro-Refinements</span>
           <div class="quick-refine-chips">
+            <button type="button" class="quick-refine-chip" data-quick-tone="LinkedIn Bro">💼 LinkedIn Bro Meme</button>
             <button type="button" class="quick-refine-chip" data-quick-tone="Concise">⚡ Make Shorter</button>
-            <button type="button" class="quick-refine-chip" data-quick-tone="Professional">💼 More Professional</button>
-            <button type="button" class="quick-refine-chip" data-quick-tone="Friendly">😁 More Friendly</button>
+            <button type="button" class="quick-refine-chip" data-quick-tone="Professional">👔 More Professional</button>
+            <button type="button" class="quick-refine-chip" data-quick-tone="Dating App Opener">🔥 Dating Opener</button>
             <button type="button" class="quick-refine-chip" data-quick-tone="Persuasive">🔥 Add Punch & Impact</button>
           </div>
         </div>
@@ -349,6 +397,7 @@ function renderOutput(data) {
   $("improvedText").onclick = () => copyTextDirectly(improved, $("improvedText"));
   $("copyBtn").onclick = () => copyTextDirectly(improved, $("copyBtn"), true);
   $("shareBtn").onclick = () => shareText(improved);
+  $("downloadCardBtn").onclick = () => downloadEvolutionCard(original, improved, score.before, score.after, state.tone);
   $("retryBtn").onclick = () => improve();
 
   document.querySelectorAll(".quick-refine-chip").forEach((chip) => {
@@ -400,6 +449,111 @@ function renderReplyOutput(data) {
 
   $("retryBtn").onclick = () => improve();
   $("output").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+// Canvas Text Wrapping Helper
+function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight) {
+  const words = text.split(" ");
+  let line = "";
+  let currentY = y;
+  for (let n = 0; n < words.length; n++) {
+    const testLine = line + words[n] + " ";
+    const metrics = ctx.measureText(testLine);
+    const testWidth = metrics.width;
+    if (testWidth > maxWidth && n > 0) {
+      ctx.fillText(line, x, currentY);
+      line = words[n] + " ";
+      currentY += lineHeight;
+      if (currentY > y + 260) {
+        ctx.fillText("...", x, currentY);
+        return;
+      }
+    } else {
+      line = testLine;
+    }
+  }
+  ctx.fillText(line, x, currentY);
+}
+
+// Download Visual Kaizen Evolution Card (1200x630 Social Image)
+function downloadEvolutionCard(beforeText, afterText, beforeScore, afterScore, toneName) {
+  try {
+    const canvas = document.createElement("canvas");
+    canvas.width = 1200;
+    canvas.height = 630;
+    const ctx = canvas.getContext("2d");
+
+    // Background Gradient
+    const grad = ctx.createLinearGradient(0, 0, 1200, 630);
+    grad.addColorStop(0, "#080d16");
+    grad.addColorStop(1, "#111827");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 1200, 630);
+
+    // Radial Glow
+    const glow = ctx.createRadialGradient(600, 0, 10, 600, 0, 600);
+    glow.addColorStop(0, "rgba(34, 197, 94, 0.25)");
+    glow.addColorStop(1, "transparent");
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, 1200, 630);
+
+    // Border Frame
+    ctx.strokeStyle = "rgba(34, 197, 94, 0.35)";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(30, 30, 1140, 570);
+
+    // Header Title
+    ctx.font = "bold 34px Inter, system-ui, sans-serif";
+    ctx.fillStyle = "#22c55e";
+    ctx.fillText("KaizenReply — Message Evolution", 60, 85);
+
+    ctx.font = "18px Inter, system-ui, sans-serif";
+    ctx.fillStyle = "#94a3b8";
+    ctx.fillText(`Tone: ${toneName || 'Evolved'}  •  Kaizen Score: ${beforeScore} ➔ ${afterScore} (+${afterScore - beforeScore} pts)`, 60, 120);
+
+    // Before Block
+    ctx.fillStyle = "rgba(255, 255, 255, 0.04)";
+    ctx.fillRect(60, 150, 520, 380);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+    ctx.strokeRect(60, 150, 520, 380);
+
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "bold 18px Inter, system-ui, sans-serif";
+    ctx.fillText("BEFORE (Draft)", 85, 190);
+
+    ctx.fillStyle = "#cbd5e1";
+    ctx.font = "18px Inter, system-ui, sans-serif";
+    wrapCanvasText(ctx, beforeText, 85, 230, 470, 28);
+
+    // After Block
+    ctx.fillStyle = "rgba(34, 197, 94, 0.12)";
+    ctx.fillRect(620, 150, 520, 380);
+    ctx.strokeStyle = "rgba(34, 197, 94, 0.3)";
+    ctx.strokeRect(620, 150, 520, 380);
+
+    ctx.fillStyle = "#22c55e";
+    ctx.font = "bold 18px Inter, system-ui, sans-serif";
+    ctx.fillText("AFTER (Kaizen Evolved)", 645, 190);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "18px Inter, system-ui, sans-serif";
+    wrapCanvasText(ctx, afterText, 645, 230, 470, 28);
+
+    // Footer Watermark
+    ctx.font = "600 16px Inter, system-ui, sans-serif";
+    ctx.fillStyle = "#64748b";
+    ctx.fillText("kaizenreply.vercel.app  •  Improve every message. One Kaizen at a time.", 60, 570);
+
+    // Trigger Download
+    const a = document.createElement("a");
+    a.download = `kaizenreply-${toneName ? toneName.toLowerCase().replace(/\s+/g, '-') : 'evolution'}.png`;
+    a.href = canvas.toDataURL("image/png");
+    a.click();
+    showToast("Visual card downloaded! Ready to share 📸");
+  } catch (err) {
+    console.error("Card generation error:", err);
+    showToast("Could not generate visual card");
+  }
 }
 
 // Toast helper
@@ -693,10 +847,16 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".sample-pill").forEach((pill) => {
     pill.addEventListener("click", () => {
       const text = pill.getAttribute("data-text");
+      const tone = pill.getAttribute("data-tone");
       if (text) {
         $("message").value = text;
         $("count").textContent = text.length;
         userInteracted = true;
+        if (tone) {
+          state.tone = tone;
+          renderToneChips();
+          $("customTone").classList.add("hidden");
+        }
         improve(mode === "reply" ? "reply" : "evolve");
       }
     });
