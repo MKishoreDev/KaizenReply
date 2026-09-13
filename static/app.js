@@ -315,6 +315,16 @@ function renderOutput(data) {
           <button id="shareBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Share</button>
           <button id="retryBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Regenerate variations</button>
         </div>
+
+        <div class="quick-refine-wrap">
+          <span class="quick-refine-title">⚡ 1-Tap Micro-Refinements</span>
+          <div class="quick-refine-chips">
+            <button type="button" class="quick-refine-chip" data-quick-tone="Concise">⚡ Make Shorter</button>
+            <button type="button" class="quick-refine-chip" data-quick-tone="Professional">💼 More Professional</button>
+            <button type="button" class="quick-refine-chip" data-quick-tone="Friendly">😁 More Friendly</button>
+            <button type="button" class="quick-refine-chip" data-quick-tone="Persuasive">🔥 Add Punch & Impact</button>
+          </div>
+        </div>
       </div>
       <div class="evolution">
         <span class="step">Draft</span> → <span class="step">Improved</span> → <span class="step final">Refined</span>
@@ -340,6 +350,20 @@ function renderOutput(data) {
   $("copyBtn").onclick = () => copyTextDirectly(improved, $("copyBtn"), true);
   $("shareBtn").onclick = () => shareText(improved);
   $("retryBtn").onclick = () => improve();
+
+  document.querySelectorAll(".quick-refine-chip").forEach((chip) => {
+    chip.onclick = () => {
+      const targetTone = chip.getAttribute("data-quick-tone");
+      if (targetTone) {
+        state.tone = targetTone;
+        userInteracted = true;
+        renderChips($("tones"), TONES, "tone", { allowCustom: true });
+        $("customTone").classList.add("hidden");
+        improve("evolve");
+      }
+    };
+  });
+
   $("output").scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
@@ -378,15 +402,29 @@ function renderReplyOutput(data) {
   $("output").scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
+// Toast helper
+let toastTimeout = null;
+function showToast(msg) {
+  const toast = $("toast");
+  if (!toast) return;
+  if (toastTimeout) clearTimeout(toastTimeout);
+  toast.textContent = msg;
+  toast.classList.remove("hidden");
+  toastTimeout = setTimeout(() => {
+    toast.classList.add("hidden");
+  }, 2500);
+}
+
 // Copy to Clipboard Helpers
 async function copyTextDirectly(text, element, isButton = false) {
   try {
     await navigator.clipboard.writeText(text);
-    if (isButton) {
+    showToast("Copied to clipboard! Ready to send 🚀");
+    if (isButton && element) {
       const originalHTML = element.innerHTML;
       element.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><polyline points="20 6 9 17 4 12"/></svg>Copied`;
       setTimeout(() => { element.innerHTML = originalHTML; }, 1800);
-    } else {
+    } else if (element) {
       const originalBg = element.style.backgroundColor;
       element.style.backgroundColor = "rgba(34, 197, 94, 0.15)";
       setTimeout(() => { element.style.backgroundColor = originalBg; }, 400);
@@ -396,18 +434,19 @@ async function copyTextDirectly(text, element, isButton = false) {
   }
 }
 
-
 // Web Share API sharing
 async function shareText(text) {
   if (navigator.share) {
     try {
       await navigator.share({ text: text });
+      showToast("Shared successfully!");
     } catch (err) {
       await navigator.clipboard.writeText(text);
+      showToast("Copied to clipboard! 🚀");
     }
   } else {
     await navigator.clipboard.writeText(text);
-    alert("Copied to clipboard (native sharing not supported by browser).");
+    showToast("Copied to clipboard! 🚀");
   }
 }
 
@@ -602,11 +641,11 @@ async function shareWebsite() {
       await navigator.share({ title, text, url });
     } catch (err) {
       await navigator.clipboard.writeText(url);
-      alert("Website link copied to clipboard!");
+      showToast("KaizenReply link copied! 🚀");
     }
   } else {
     await navigator.clipboard.writeText(url);
-    alert("Website link copied to clipboard!");
+    showToast("KaizenReply link copied! 🚀");
   }
 }
 
@@ -632,37 +671,15 @@ async function loadDynamicModels() {
   }
 }
 
-let deferredPwaPrompt = null;
-
-window.addEventListener("beforeinstallprompt", (e) => {
-  e.preventDefault();
-  deferredPwaPrompt = e;
-  const btn = $("pwaInstallBtn");
-  if (btn) btn.classList.remove("hidden");
-});
-
 document.addEventListener("DOMContentLoaded", () => {
   const shareWebsiteBtn = $("shareWebsiteBtn");
   const heroShareBtn = $("heroShareBtn");
-  const pwaInstallBtn = $("pwaInstallBtn");
 
   if (shareWebsiteBtn) {
     shareWebsiteBtn.onclick = shareWebsite;
   }
   if (heroShareBtn) {
     heroShareBtn.onclick = shareWebsite;
-  }
-  if (pwaInstallBtn) {
-    pwaInstallBtn.onclick = async () => {
-      if (deferredPwaPrompt) {
-        deferredPwaPrompt.prompt();
-        const { outcome } = await deferredPwaPrompt.userChoice;
-        if (outcome === "accepted") {
-          pwaInstallBtn.classList.add("hidden");
-        }
-        deferredPwaPrompt = null;
-      }
-    };
   }
 
   // Register Service Worker for PWA

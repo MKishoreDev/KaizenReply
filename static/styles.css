@@ -435,25 +435,110 @@ textarea:focus, .inp:focus {
   .counter { text-align: right; }
   .rec-banner { flex-direction: column; align-items: flex-start; }
   .score-num { font-size: 20px; }
+  .sample-pills-wrap { gap: 4px; }
+  .sample-pill { font-size: 0.725rem; padding: 4px 8px; }
 }
 
-/* PWA & Sample Pills & Why Kaizen Styles */
+/* Sample Pills & Why Kaizen Styles */
 .sample-pill {
   background: var(--input-bg);
   border: 1px solid var(--border);
   color: var(--ink);
   font-size: 0.775rem;
-  padding: 4px 10px;
+  padding: 5px 12px;
   border-radius: 9999px;
   cursor: pointer;
   transition: all 0.2s ease;
   font-family: inherit;
+  white-space: nowrap;
 }
 .sample-pill:hover {
   border-color: var(--brand);
   color: var(--brand);
   background: var(--chip-bg);
   transform: translateY(-1px);
+}
+
+/* Quick Refine micro-actions pill container */
+.quick-refine-wrap {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.quick-refine-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.quick-refine-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.quick-refine-chip {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--ink);
+  font-size: 0.775rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: inherit;
+}
+.quick-refine-chip:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+  background: var(--empty-bg);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.12);
+}
+.quick-refine-chip:active {
+  transform: scale(0.96);
+}
+
+/* Floating Toast Notification */
+.toast-notification {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(16, 28, 52, 0.92);
+  color: #ffffff;
+  padding: 10px 20px;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  animation: toastSlideUp 0.3s ease-out;
+  pointer-events: none;
+}
+[data-theme="dark"] .toast-notification {
+  background: rgba(248, 250, 252, 0.95);
+  color: #0f172a;
+  border-color: rgba(0, 0, 0, 0.1);
+}
+@keyframes toastSlideUp {
+  from { opacity: 0; transform: translate(-50%, 20px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
 }
 
 .why-kaizen {
@@ -500,22 +585,4 @@ textarea:focus, .inp:focus {
   line-height: 1.5;
 }
 
-#pwaInstallBtn {
-  background: rgba(34, 197, 94, 0.12);
-  color: var(--brand);
-  border: 1px solid rgba(34, 197, 94, 0.3);
-  font-weight: 600;
-  font-size: 0.825rem;
-  padding: 6px 14px;
-  border-radius: 9999px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.2s ease;
-}
-#pwaInstallBtn:hover {
-  background: var(--brand);
-  color: #ffffff;
-}
 
