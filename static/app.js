@@ -329,6 +329,12 @@ function renderOutput(data) {
   $("empty").classList.add("hidden");
   const { improved, score } = data;
   const original = $("message").value.trim() || "Original Draft";
+  const origWords = original.split(/\s+/).filter(Boolean).length;
+  const impWords = improved.split(/\s+/).filter(Boolean).length;
+  const diffWords = impWords - origWords;
+  const wordStat = diffWords === 0 ? "Same length" : (diffWords < 0 ? `${Math.abs(diffWords)} words cut` : `+${diffWords} words added`);
+  const readTimeSec = Math.max(1, Math.round(impWords / 3.5));
+
   const rows = [
     ["Clarity", score.breakdown.clarity],
     ["Tone", score.breakdown.tone],
@@ -340,7 +346,14 @@ function renderOutput(data) {
   $("output").innerHTML = `
     <div class="out-wrap">
       <div class="out-card">
-        <span class="badge"><img src="/static/logo.png" alt="Logo" class="logo-img-badge" /> Evolved Output</span>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+          <span class="badge"><img src="/static/logo.png" alt="Logo" class="logo-img-badge" /> Evolved Output</span>
+          <div class="kaizen-metrics-row" style="font-size:0.75rem;color:var(--muted);display:flex;gap:12px;font-weight:600;">
+            <span>✦ ~${readTimeSec}s read</span>
+            <span>◈ ${wordStat}</span>
+            <span>◇ Boost: +${score.after - score.before} pts</span>
+          </div>
+        </div>
         
         <div class="comparison-container">
           <div class="comparison-block before-block">
@@ -362,19 +375,19 @@ function renderOutput(data) {
           <button id="downloadCardBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Download Card</button>
           <button id="evolveFurtherBtn" style="background: rgba(34, 197, 94, 0.12); color: var(--brand); border-color: rgba(34, 197, 94, 0.3); font-weight: 700;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-            🔄 Evolve Further (Kaizen v2)
+            改善 Evolve Further (Kaizen v2)
           </button>
           <button id="retryBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Regenerate variations</button>
         </div>
 
         <div class="quick-refine-wrap">
-          <span class="quick-refine-title">⚡ 1-Tap Micro-Refinements</span>
+          <span class="quick-refine-title">✦ 1-Tap Micro-Refinements</span>
           <div class="quick-refine-chips">
-            <button type="button" class="quick-refine-chip" data-quick-tone="LinkedIn Bro">💼 LinkedIn Bro Meme</button>
-            <button type="button" class="quick-refine-chip" data-quick-tone="Concise">⚡ Make Shorter</button>
-            <button type="button" class="quick-refine-chip" data-quick-tone="Professional">👔 More Professional</button>
-            <button type="button" class="quick-refine-chip" data-quick-tone="Dating App Opener">🔥 Dating Opener</button>
-            <button type="button" class="quick-refine-chip" data-quick-tone="Persuasive">🔥 Add Punch & Impact</button>
+            <button type="button" class="quick-refine-chip" data-quick-tone="LinkedIn Bro">◈ LinkedIn Bro Meme</button>
+            <button type="button" class="quick-refine-chip" data-quick-tone="Concise">↳ Concise Cut</button>
+            <button type="button" class="quick-refine-chip" data-quick-tone="Professional">◇ Executive Tone</button>
+            <button type="button" class="quick-refine-chip" data-quick-tone="Dating App Opener">✦ Smooth Opener</button>
+            <button type="button" class="quick-refine-chip" data-quick-tone="Persuasive">⚡ Impact Boost</button>
           </div>
         </div>
       </div>
@@ -565,7 +578,7 @@ function downloadEvolutionCard(beforeText, afterText, beforeScore, afterScore, t
     a.download = `kaizenreply-${toneName ? toneName.toLowerCase().replace(/\s+/g, '-') : 'evolution'}.png`;
     a.href = canvas.toDataURL("image/png");
     a.click();
-    showToast("Visual card downloaded! Ready to share 📸");
+    showToast("Visual Kaizen Card downloaded.");
   } catch (err) {
     console.error("Card generation error:", err);
     showToast("Could not generate visual card");
@@ -667,7 +680,7 @@ function showToast(msg) {
 async function copyTextDirectly(text, element, isButton = false) {
   try {
     await navigator.clipboard.writeText(text);
-    showToast("Copied to clipboard! Ready to send 🚀");
+    showToast("Copied to clipboard. Ready to send.");
     if (isButton && element) {
       const originalHTML = element.innerHTML;
       element.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><polyline points="20 6 9 17 4 12"/></svg>Copied`;
@@ -687,14 +700,14 @@ async function shareText(text) {
   if (navigator.share) {
     try {
       await navigator.share({ text: text });
-      showToast("Shared successfully!");
+      showToast("Shared successfully.");
     } catch (err) {
       await navigator.clipboard.writeText(text);
-      showToast("Copied to clipboard! 🚀");
+      showToast("Copied to clipboard.");
     }
   } else {
     await navigator.clipboard.writeText(text);
-    showToast("Copied to clipboard! 🚀");
+    showToast("Copied to clipboard.");
   }
 }
 
@@ -889,11 +902,11 @@ async function shareWebsite() {
       await navigator.share({ title, text, url });
     } catch (err) {
       await navigator.clipboard.writeText(url);
-      showToast("KaizenReply link copied! 🚀");
+      showToast("KaizenReply link copied.");
     }
   } else {
     await navigator.clipboard.writeText(url);
-    showToast("KaizenReply link copied! 🚀");
+    showToast("KaizenReply link copied.");
   }
 }
 

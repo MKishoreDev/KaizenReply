@@ -136,10 +136,10 @@
 
         <div class="sample-pills-wrap" style="margin:8px 0 12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
           <span style="font-size:0.725rem;color:var(--muted);font-weight:600;">Try demo:</span>
-          <button type="button" class="sample-pill" data-text="I spent 2 days in jail" data-tone="LinkedIn Bro">💼 "I went to jail (LinkedIn meme)"</button>
-          <button type="button" class="sample-pill" data-text="hey are you free to grab coffee this weekend?" data-tone="Dating App Opener">🔥 "coffee date opener"</button>
-          <button type="button" class="sample-pill" data-text="bro send that report asap need it for client meeting" data-tone="Casual">💬 "send report asap"</button>
-          <button type="button" class="sample-pill" data-text="sorry for delay in replying I was stuck in traffic earlier today" data-tone="Professional">👔 "sorry for delay replying"</button>
+          <button type="button" class="sample-pill" data-text="I spent 2 days in jail" data-tone="LinkedIn Bro">◈ "I went to jail (LinkedIn meme)"</button>
+          <button type="button" class="sample-pill" data-text="hey are you free to grab coffee this weekend?" data-tone="Dating App Opener">✦ "coffee date opener"</button>
+          <button type="button" class="sample-pill" data-text="bro send that report asap need it for client meeting" data-tone="Casual">◇ "send report asap"</button>
+          <button type="button" class="sample-pill" data-text="sorry for delay in replying I was stuck in traffic earlier today" data-tone="Professional">↳ "sorry for delay replying"</button>
         </div>
 
         <div class="input-actions-row">
@@ -172,10 +172,10 @@
         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:20px;margin-bottom:8px;flex-wrap:wrap;gap:6px;">
           <p class="lbl" style="margin:0;">Tone <span class="muted">· required</span></p>
           <div id="toneCategoryFilters" class="tone-cat-filters">
-            <button type="button" class="tone-cat-btn active" data-cat="All">All</button>
-            <button type="button" class="tone-cat-btn" data-cat="Viral">🔥 Trending & Memes</button>
-            <button type="button" class="tone-cat-btn" data-cat="Work">💼 Work & Pro</button>
-            <button type="button" class="tone-cat-btn" data-cat="Social">💬 Social & Fun</button>
+            <button type="button" class="tone-cat-btn active" data-cat="All">All Tones</button>
+            <button type="button" class="tone-cat-btn" data-cat="Viral">◈ Viral & Satire</button>
+            <button type="button" class="tone-cat-btn" data-cat="Work">◇ Corporate & Pro</button>
+            <button type="button" class="tone-cat-btn" data-cat="Social">✦ Social & Casual</button>
           </div>
         </div>
         <div id="tones" class="chips"></div>
@@ -229,7 +229,7 @@
         <div id="empty" class="empty">
           <svg width="120" height="64" viewBox="0 0 120 64" fill="none">
             <path d="M6 58 C30 58 30 22 54 22" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round" />
-            <path d="M30 58 C54 58 54 12 78 12" stroke="#14B8A6" stroke-width="2.5" stroke-linecap="round" opacity=".7" />
+            <path d="M54 58 C54 58 54 12 78 12" stroke="#14B8A6" stroke-width="2.5" stroke-linecap="round" opacity=".7" />
             <path d="M54 58 C84 58 84 6 114 6" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round" opacity=".5" />
           </svg>
           <p class="empty-title">Start by pasting a message you'd like to improve.</p>
@@ -245,6 +245,24 @@
           <h2>What is <span class="grad-text">Kaizen?</span></h2>
           <p>Originating from Japan, <strong>Kaizen (改善)</strong> translates to <em>"change for the better"</em> — a philosophy of continuous improvement through small, incremental refinements.</p>
           <p>At <strong>KaizenReply</strong>, we apply this to your daily communication. Instead of rewriting your words with generic templates, we evolve your message step-by-step — sharpening tone, clarity, and readability while keeping your voice intact.</p>
+          
+          <div class="kaizen-5s-grid" style="margin-top:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;">
+            <div class="5s-pill" style="background:var(--input-bg);border:1px solid var(--border);padding:8px 12px;border-radius:10px;font-size:0.75rem;">
+              <strong style="color:var(--brand);">整理 (Seiri)</strong><br/><span class="muted">Sort & Cut Fluff</span>
+            </div>
+            <div class="5s-pill" style="background:var(--input-bg);border:1px solid var(--border);padding:8px 12px;border-radius:10px;font-size:0.75rem;">
+              <strong style="color:var(--brand);">整頓 (Seiton)</strong><br/><span class="muted">Set in Structure</span>
+            </div>
+            <div class="5s-pill" style="background:var(--input-bg);border:1px solid var(--border);padding:8px 12px;border-radius:10px;font-size:0.75rem;">
+              <strong style="color:var(--brand);">清掃 (Seiso)</strong><br/><span class="muted">Shine & Polish Tone</span>
+            </div>
+            <div class="5s-pill" style="background:var(--input-bg);border:1px solid var(--border);padding:8px 12px;border-radius:10px;font-size:0.75rem;">
+              <strong style="color:var(--brand);">清潔 (Seiketsu)</strong><br/><span class="muted">Standardize Voice</span>
+            </div>
+            <div class="5s-pill" style="background:var(--input-bg);border:1px solid var(--border);padding:8px 12px;border-radius:10px;font-size:0.75rem;">
+              <strong style="color:var(--brand);">躾 (Shitsuke)</strong><br/><span class="muted">Sustain Quality</span>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -265,7 +283,7 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
           </div>
           <h3>Tone & Platform Aware</h3>
-          <p>10 tones, 9 platforms. From WhatsApp to LinkedIn — every context covered.</p>
+          <p>16 tones, 9 platforms. From WhatsApp to LinkedIn — every context covered.</p>
         </div>
         <div class="feat">
           <div class="feat-ic">
@@ -317,22 +335,22 @@
       <h2>Why use KaizenReply instead of <span class="grad-text">ChatGPT?</span></h2>
       <div class="why-grid">
         <div class="why-card">
-          <div class="why-icon">⚡</div>
+          <div class="why-icon" style="color:var(--brand);font-weight:900;">改善</div>
           <h3>Zero Prompting</h3>
           <p>No typing long prompts. Tap a platform (WhatsApp, LinkedIn, Email) & tone preset for instant 1-second results.</p>
         </div>
         <div class="why-card">
-          <div class="why-icon">📊</div>
+          <div class="why-icon" style="color:var(--brand);font-weight:800;">◈</div>
           <h3>Measurable Kaizen Score</h3>
           <p>Get real-time quality scores & 4-metric breakdowns (Clarity, Tone, Professionalism, Readability) before sending.</p>
         </div>
         <div class="why-card">
-          <div class="why-icon">📲</div>
+          <div class="why-icon" style="color:var(--brand);font-weight:800;">✦</div>
           <h3>Installable Web App (PWA)</h3>
           <p>Install on your phone or desktop. Share messages directly from WhatsApp or Slack into KaizenReply.</p>
         </div>
         <div class="why-card">
-          <div class="why-icon">💬</div>
+          <div class="why-icon" style="color:var(--brand);font-weight:800;">↳</div>
           <h3>Instant Reply Generator</h3>
           <p>Paste a received message to get 3 ready-to-send options (Short, Conversational, Detailed) formatted for your recipient.</p>
         </div>
