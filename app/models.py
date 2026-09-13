@@ -7,6 +7,7 @@ class ImproveRequest(BaseModel):
     platform: str = Field(default="", max_length=40)
     conversationContext: str = Field(default="", max_length=1500)
     recipient: str = Field(default="", max_length=200)
+    model: str = Field(default="", max_length=100)
 
 
 class Breakdown(BaseModel):
@@ -29,6 +30,7 @@ class ImproveResponse(BaseModel):
 
 class AnalyzeRequest(BaseModel):
     message: str = Field(min_length=1, max_length=3000)
+    model: str = Field(default="", max_length=100)
 
 
 class AnalyzeResponse(BaseModel):
@@ -43,6 +45,7 @@ class ReplyRequest(BaseModel):
     platform: str = Field(default="", max_length=40)
     conversationContext: str = Field(default="", max_length=1500)
     recipient: str = Field(default="", max_length=200)
+    model: str = Field(default="", max_length=100)
 
 
 class ReplyResponse(BaseModel):

@@ -216,6 +216,7 @@ async function improve(modeArg = "evolve") {
       ? "http://localhost:8000"
       : "";
     const endpoint = mode === "reply" ? "/api/reply" : "/api/improve";
+    const selectedModel = $("modelSelect") ? $("modelSelect").value : "";
     const res = await fetch(apiBase + endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -225,6 +226,7 @@ async function improve(modeArg = "evolve") {
         platform,
         conversationContext: context,
         recipient: finalRecipient,
+        model: selectedModel,
       }),
     });
     
@@ -608,6 +610,28 @@ async function shareWebsite() {
   }
 }
 
+async function loadDynamicModels() {
+  try {
+    const apiBase = (window.location.protocol === "file:" || window.location.hostname === "")
+      ? "http://localhost:8000"
+      : "";
+    const res = await fetch(apiBase + "/api/models");
+    if (res.ok) {
+      const data = await res.json();
+      const select = $("modelSelect");
+      const row = $("modelSelectRow");
+      if (select && data.models && data.models.length) {
+        select.innerHTML = data.models.map(m =>
+          `<option value="${m}" ${m === data.current ? 'selected' : ''}>${m}</option>`
+        ).join("");
+        if (row) row.classList.remove("hidden");
+      }
+    }
+  } catch (e) {
+    console.log("Could not load dynamic models list:", e);
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const shareWebsiteBtn = $("shareWebsiteBtn");
   const heroShareBtn = $("heroShareBtn");
@@ -618,4 +642,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (heroShareBtn) {
     heroShareBtn.onclick = shareWebsite;
   }
+
+  loadDynamicModels();
 });
