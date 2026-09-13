@@ -343,11 +343,16 @@ function renderOutput(data) {
   ];
   const max = Math.max(...rows.map((r) => r[1]), 30);
 
+  const isLinkedInMeme = state.tone === "LinkedIn Bro";
+  const beforeBadgeText = isLinkedInMeme ? "REALITY" : "Before";
+  const afterBadgeText = isLinkedInMeme ? "LINKEDIN" : "After";
+  const afterBadgeStyle = isLinkedInMeme ? 'style="background: rgba(10, 102, 194, 0.18); color: #0a66c2;"' : '';
+
   $("output").innerHTML = `
     <div class="out-wrap">
       <div class="out-card">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
-          <span class="badge"><img src="/static/logo.png" alt="Logo" class="logo-img-badge" /> Evolved Output</span>
+          <span class="badge"><img src="/static/logo.png" alt="Logo" class="logo-img-badge" /> ${isLinkedInMeme ? 'Reality vs. LinkedIn' : 'Evolved Output'}</span>
           <div class="kaizen-metrics-row" style="font-size:0.75rem;color:var(--muted);display:flex;gap:12px;font-weight:600;">
             <span>✦ ~${readTimeSec}s read</span>
             <span>◈ ${wordStat}</span>
@@ -357,14 +362,14 @@ function renderOutput(data) {
         
         <div class="comparison-container">
           <div class="comparison-block before-block">
-            <span class="comparison-badge before-badge">Before</span>
+            <span class="comparison-badge before-badge">${beforeBadgeText}</span>
             <p class="comparison-text" id="beforeText"></p>
           </div>
           <div class="comparison-arrow">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           </div>
           <div class="comparison-block after-block">
-            <span class="comparison-badge after-badge">After</span>
+            <span class="comparison-badge after-badge" ${afterBadgeStyle}>${afterBadgeText}</span>
             <p class="comparison-text" id="improvedText" style="cursor: pointer; padding: 10px; border-radius: 8px; transition: background-color 0.2s;" title="Click to copy easily"></p>
           </div>
         </div>
@@ -512,6 +517,11 @@ function downloadEvolutionCard(beforeText, afterText, beforeScore, afterScore, t
     canvas.height = 630;
     const ctx = canvas.getContext("2d");
 
+    const isLinkedInMeme = toneName === "LinkedIn Bro";
+    const beforeHeader = isLinkedInMeme ? "REALITY" : "BEFORE (Draft)";
+    const afterHeader = isLinkedInMeme ? "LINKEDIN" : "AFTER (Kaizen Evolved)";
+    const cardTitle = isLinkedInMeme ? "Reality vs. LinkedIn — KaizenReply Meme Evolution" : "KaizenReply — Message Evolution";
+
     // Background Gradient
     const grad = ctx.createLinearGradient(0, 0, 1200, 630);
     grad.addColorStop(0, "#080d16");
@@ -520,49 +530,50 @@ function downloadEvolutionCard(beforeText, afterText, beforeScore, afterScore, t
     ctx.fillRect(0, 0, 1200, 630);
 
     // Radial Glow
+    const glowColor = isLinkedInMeme ? "rgba(10, 102, 194, 0.25)" : "rgba(34, 197, 94, 0.25)";
     const glow = ctx.createRadialGradient(600, 0, 10, 600, 0, 600);
-    glow.addColorStop(0, "rgba(34, 197, 94, 0.25)");
+    glow.addColorStop(0, glowColor);
     glow.addColorStop(1, "transparent");
     ctx.fillStyle = glow;
     ctx.fillRect(0, 0, 1200, 630);
 
     // Border Frame
-    ctx.strokeStyle = "rgba(34, 197, 94, 0.35)";
+    ctx.strokeStyle = isLinkedInMeme ? "rgba(10, 102, 194, 0.4)" : "rgba(34, 197, 94, 0.35)";
     ctx.lineWidth = 3;
     ctx.strokeRect(30, 30, 1140, 570);
 
     // Header Title
     ctx.font = "bold 34px Inter, system-ui, sans-serif";
-    ctx.fillStyle = "#22c55e";
-    ctx.fillText("KaizenReply — Message Evolution", 60, 85);
+    ctx.fillStyle = isLinkedInMeme ? "#38bdf8" : "#22c55e";
+    ctx.fillText(cardTitle, 60, 85);
 
     ctx.font = "18px Inter, system-ui, sans-serif";
     ctx.fillStyle = "#94a3b8";
     ctx.fillText(`Tone: ${toneName || 'Evolved'}  •  Kaizen Score: ${beforeScore} ➔ ${afterScore} (+${afterScore - beforeScore} pts)`, 60, 120);
 
-    // Before Block
+    // Before Block (Reality)
     ctx.fillStyle = "rgba(255, 255, 255, 0.04)";
     ctx.fillRect(60, 150, 520, 380);
     ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
     ctx.strokeRect(60, 150, 520, 380);
 
-    ctx.fillStyle = "#94a3b8";
-    ctx.font = "bold 18px Inter, system-ui, sans-serif";
-    ctx.fillText("BEFORE (Draft)", 85, 190);
+    ctx.fillStyle = isLinkedInMeme ? "#f43f5e" : "#94a3b8";
+    ctx.font = "bold 20px Inter, system-ui, sans-serif";
+    ctx.fillText(beforeHeader, 85, 190);
 
     ctx.fillStyle = "#cbd5e1";
     ctx.font = "18px Inter, system-ui, sans-serif";
     wrapCanvasText(ctx, beforeText, 85, 230, 470, 28);
 
-    // After Block
-    ctx.fillStyle = "rgba(34, 197, 94, 0.12)";
+    // After Block (LinkedIn)
+    ctx.fillStyle = isLinkedInMeme ? "rgba(10, 102, 194, 0.15)" : "rgba(34, 197, 94, 0.12)";
     ctx.fillRect(620, 150, 520, 380);
-    ctx.strokeStyle = "rgba(34, 197, 94, 0.3)";
+    ctx.strokeStyle = isLinkedInMeme ? "rgba(10, 102, 194, 0.4)" : "rgba(34, 197, 94, 0.3)";
     ctx.strokeRect(620, 150, 520, 380);
 
-    ctx.fillStyle = "#22c55e";
-    ctx.font = "bold 18px Inter, system-ui, sans-serif";
-    ctx.fillText("AFTER (Kaizen Evolved)", 645, 190);
+    ctx.fillStyle = isLinkedInMeme ? "#38bdf8" : "#22c55e";
+    ctx.font = "bold 20px Inter, system-ui, sans-serif";
+    ctx.fillText(afterHeader, 645, 190);
 
     ctx.fillStyle = "#ffffff";
     ctx.font = "18px Inter, system-ui, sans-serif";
@@ -575,10 +586,10 @@ function downloadEvolutionCard(beforeText, afterText, beforeScore, afterScore, t
 
     // Trigger Download
     const a = document.createElement("a");
-    a.download = `kaizenreply-${toneName ? toneName.toLowerCase().replace(/\s+/g, '-') : 'evolution'}.png`;
+    a.download = `kaizenreply-${isLinkedInMeme ? 'reality-vs-linkedin' : 'evolution'}.png`;
     a.href = canvas.toDataURL("image/png");
     a.click();
-    showToast("Visual Kaizen Card downloaded.");
+    showToast(isLinkedInMeme ? "Reality vs. LinkedIn Meme Card downloaded." : "Visual Kaizen Card downloaded.");
   } catch (err) {
     console.error("Card generation error:", err);
     showToast("Could not generate visual card");

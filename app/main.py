@@ -103,13 +103,11 @@ def build_improve_prompt(req: ImproveRequest) -> str:
         )
     elif req.tone == "LinkedIn Bro":
         tone_instruction = (
-            "CRITICAL TONE INSTRUCTION — 'LinkedIn Bro / Corporate Satire':\n"
-            "Transform the input draft into a dramatic, viral LinkedIn thought-leadership post meme! "
-            "Structure it with:\n"
-            "1) A dramatic, attention-grabbing opening line hook (e.g. 'I spent 48 hours in jail. Here is what it taught me about B2B SaaS Sales 👇').\n"
-            "2) Short single-line sentences with double line breaks for maximum readability.\n"
-            "3) 3-4 bullet points extracting profound, funny business or leadership lessons from the situation.\n"
-            "4) End with a classic call to action line like 'Agree?' or 'What did your worst mistake teach you today?' and 3 hashtags like #GrowthMindset #Leadership #B2BSales."
+            "CRITICAL TONE INSTRUCTION — 'LinkedIn Bro / Corporate Satire (Reality vs. LinkedIn)':\n"
+            "Transform the input draft into a hilarious corporate satire post or 'Reality vs LinkedIn' translation!\n"
+            "For short drafts (e.g. 'I ate the sandwich', 'I slept late', 'I missed a meeting'), translate it into hyper-dramatic corporate jargon:\n"
+            "Example: 'Proud to announce I successfully identified and eliminated an unsecured lunch asset. This initiative reinforces my commitment to proactive resource management and rapid execution. #GrowthMindset #Leadership'\n"
+            "For longer drafts, format it as a viral LinkedIn thought-leadership post with an epic hook, short double-spaced lines, bullet points, a funny business lesson, 'Agree?', and hashtags."
         )
     elif req.tone == "Cold Email Hook":
         tone_instruction = (
