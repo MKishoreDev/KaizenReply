@@ -2,6 +2,7 @@ const TONES = [
   "Casual",
   "Professional",
   "LinkedIn Bro",
+  "🔥 Roast My Draft",
   "Cold Email Hook",
   "Dating App Opener",
   "ELI5",
@@ -18,7 +19,7 @@ const TONES = [
 ];
 
 const TONE_CATEGORIES = {
-  "Viral": ["LinkedIn Bro", "Gen Z", "Dating App Opener", "Passive-Aggressive", "Tech Twitter Thread", "Cold Email Hook"],
+  "Viral": ["LinkedIn Bro", "🔥 Roast My Draft", "Gen Z", "Dating App Opener", "Passive-Aggressive", "Tech Twitter Thread", "Cold Email Hook"],
   "Work": ["Professional", "LinkedIn Bro", "Cold Email Hook", "Formal", "Diplomatic", "Concise", "Passive-Aggressive"],
   "Social": ["Casual", "Friendly", "Dating App Opener", "ELI5", "Gen Z", "Polite"]
 };
@@ -377,6 +378,14 @@ function renderOutput(data) {
         <div class="out-actions">
           <button id="copyBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button>
           <button id="shareBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Share</button>
+          <button id="shareXBtn" style="background: rgba(29, 155, 240, 0.12); color: #1d9bf0; border-color: rgba(29, 155, 240, 0.3);">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" class="btn-ic"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            Post to 𝕏
+          </button>
+          <button id="shareLinkBtn" style="background: rgba(168, 85, 247, 0.12); color: #a855f7; border-color: rgba(168, 85, 247, 0.3);">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            Share Link
+          </button>
           <button id="downloadCardBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Download Card</button>
           <button id="evolveFurtherBtn" style="background: rgba(34, 197, 94, 0.12); color: var(--brand); border-color: rgba(34, 197, 94, 0.3); font-weight: 700;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
@@ -389,6 +398,7 @@ function renderOutput(data) {
           <span class="quick-refine-title">✦ 1-Tap Micro-Refinements</span>
           <div class="quick-refine-chips">
             <button type="button" class="quick-refine-chip" data-quick-tone="LinkedIn Bro">◈ LinkedIn Bro Meme</button>
+            <button type="button" class="quick-refine-chip" data-quick-tone="🔥 Roast My Draft">🔥 Roast My Draft</button>
             <button type="button" class="quick-refine-chip" data-quick-tone="Concise">↳ Concise Cut</button>
             <button type="button" class="quick-refine-chip" data-quick-tone="Professional">◇ Executive Tone</button>
             <button type="button" class="quick-refine-chip" data-quick-tone="Dating App Opener">✦ Smooth Opener</button>
@@ -419,6 +429,8 @@ function renderOutput(data) {
   $("improvedText").onclick = () => copyTextDirectly(improved, $("improvedText"));
   $("copyBtn").onclick = () => copyTextDirectly(improved, $("copyBtn"), true);
   $("shareBtn").onclick = () => shareText(improved);
+  if ($("shareXBtn")) $("shareXBtn").onclick = () => shareToX(original, improved, score.before, score.after, state.tone);
+  if ($("shareLinkBtn")) $("shareLinkBtn").onclick = () => shareDeepLink(original, state.tone);
   $("downloadCardBtn").onclick = () => downloadEvolutionCard(original, improved, score.before, score.after, state.tone);
   if ($("evolveFurtherBtn")) {
     $("evolveFurtherBtn").onclick = () => {
@@ -507,6 +519,37 @@ function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight) {
     }
   }
   ctx.fillText(line, x, currentY);
+}
+
+// Share Transformation Deep Link
+function shareDeepLink(draftText, toneName) {
+  const baseUrl = "https://kaizenreply.js.org";
+  const shareUrl = `${baseUrl}/?draft=${encodeURIComponent(draftText)}&tone=${encodeURIComponent(toneName || 'Casual')}`;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      showToast("🔗 Shareable Transformation Link copied to clipboard!");
+    }).catch(() => {
+      showToast("Share link: " + shareUrl);
+    });
+  } else {
+    showToast("Share link: " + shareUrl);
+  }
+}
+
+// 1-Click Viral Tweet / Post to X
+function shareToX(beforeText, afterText, beforeScore, afterScore, toneName) {
+  const isLinkedInMeme = toneName === "LinkedIn Bro";
+  const isRoast = toneName === "🔥 Roast My Draft";
+  let tweetText = "";
+  if (isLinkedInMeme) {
+    tweetText = `Reality vs. LinkedIn with @KaizenReply 改善:\n\nREALITY:\n"${beforeText.substring(0, 70)}${beforeText.length > 70 ? '...' : ''}"\n\nLINKEDIN:\n"${afterText.substring(0, 130)}${afterText.length > 130 ? '...' : ''}"\n\nKaizen Score: ${beforeScore} ➔ ${afterScore} (+${afterScore - beforeScore} pts) 🔥\nhttps://kaizenreply.js.org`;
+  } else if (isRoast) {
+    tweetText = `Just got my draft roasted by @KaizenReply 改善 🔥\n\n"${afterText.substring(0, 180)}${afterText.length > 180 ? '...' : ''}"\n\nTry it at https://kaizenreply.js.org`;
+  } else {
+    tweetText = `Evolved my message with @KaizenReply 改善:\n\n"${afterText.substring(0, 180)}${afterText.length > 180 ? '...' : ''}"\n\nKaizen Score: ${beforeScore} ➔ ${afterScore} (+${afterScore - beforeScore} pts) 🔥\nhttps://kaizenreply.js.org`;
+  }
+  const twitterIntentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
+  window.open(twitterIntentUrl, "_blank", "noopener,noreferrer");
 }
 
 // Download Visual Kaizen Evolution Card (1200x630 Social Image)
@@ -991,14 +1034,19 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Auto-fill from URL params (Share Target / Bookmarklet)
+  // Auto-fill from URL params (Share Target / Deep Links)
   try {
     const params = new URLSearchParams(window.location.search);
-    const sharedText = params.get("text") || params.get("title") || params.get("message");
+    const sharedText = params.get("draft") || params.get("text") || params.get("title") || params.get("message");
+    const sharedTone = params.get("tone");
     if (sharedText) {
       textarea.value = sharedText;
       $("count").textContent = sharedText.length;
       userInteracted = true;
+      if (sharedTone && TONES.includes(sharedTone)) {
+        state.tone = sharedTone;
+        renderToneChips();
+      }
       setTimeout(() => improve(mode === "reply" ? "reply" : "evolve"), 300);
     }
   } catch (err) {

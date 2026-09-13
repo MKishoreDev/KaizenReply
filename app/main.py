@@ -134,6 +134,16 @@ def build_improve_prompt(req: ImproveRequest) -> str:
             "Format the message as a viral Tech Twitter / X thread hook. "
             "Use punchy bullet points, high-impact phrasing, and end with '🧵👇'."
         )
+    elif req.tone == "🔥 Roast My Draft":
+        tone_instruction = (
+            "CRITICAL TONE INSTRUCTION — '🔥 Roast My Draft':\n"
+            "First, start with a hilarious, sarcastic 1-sentence roast of the original draft in quotes (e.g. 'Roast: This email has more fluff than a pillow factory.').\n"
+            "Then, provide the hyper-refined, crystal-clear Kaizen version underneath."
+        )
+    elif req.tone == "Gen Z":
+        tone_instruction = (
+            "Translate the message into authentic, funny Gen Z internet slang (e.g., 'no cap', 'lowkey', 'fr fr', 'bet', 'main character energy')."
+        )
     else:
         tone_instruction = f"Selected tone: {req.tone}."
 
