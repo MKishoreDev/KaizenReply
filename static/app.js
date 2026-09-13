@@ -328,7 +328,7 @@ async function improve(modeArg = "evolve") {
 
 function renderOutput(data) {
   $("empty").classList.add("hidden");
-  const { improved, score } = data;
+  const { improved, score, notes = [] } = data;
   const original = $("message").value.trim() || "Original Draft";
   const origWords = original.split(/\s+/).filter(Boolean).length;
   const impWords = improved.split(/\s+/).filter(Boolean).length;
@@ -345,19 +345,36 @@ function renderOutput(data) {
   const max = Math.max(...rows.map((r) => r[1]), 30);
 
   const isLinkedInMeme = state.tone === "LinkedIn Bro";
-  const beforeBadgeText = isLinkedInMeme ? "REALITY" : "Before";
-  const afterBadgeText = isLinkedInMeme ? "LINKEDIN" : "After";
+  const beforeBadgeText = isLinkedInMeme ? "REALITY" : "Draft (Original)";
+  const afterBadgeText = isLinkedInMeme ? "LINKEDIN" : "Kaizen (Evolved)";
   const afterBadgeStyle = isLinkedInMeme ? 'style="background: rgba(10, 102, 194, 0.18); color: #0a66c2;"' : '';
+
+  const notesHtml = (notes && notes.length > 0) ? `
+    <div class="kaizen-notes-card">
+      <div class="kaizen-notes-title">
+        <span class="hanko-seal">改善印</span>
+        <span>Kaizen Notes — Why changes were made</span>
+      </div>
+      ${notes.map(n => `
+        <div class="kaizen-note-item">
+          <div class="kaizen-note-diff">
+            <span class="kaizen-note-del">"${escapeHtml(n.original || '')}"</span> ➔ <span class="kaizen-note-add">"${escapeHtml(n.replacement || '')}"</span>
+          </div>
+          <div class="kaizen-note-reason">↳ ${escapeHtml(n.reason || '')}</div>
+        </div>
+      `).join("")}
+    </div>
+  ` : '';
 
   $("output").innerHTML = `
     <div class="out-wrap">
       <div class="out-card">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
-          <span class="badge"><img src="/static/logo.png" alt="Logo" class="logo-img-badge" /> ${isLinkedInMeme ? 'Reality vs. LinkedIn' : 'Evolved Output'}</span>
+        <div style="display:flex;align-items:center;justify-space:between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+          <span class="badge"><span class="hanko-seal">改善印</span> ${isLinkedInMeme ? 'Reality vs. LinkedIn' : 'Kaizen Evolved Output'}</span>
           <div class="kaizen-metrics-row" style="font-size:0.75rem;color:var(--muted);display:flex;gap:12px;font-weight:600;">
             <span>✦ ~${readTimeSec}s read</span>
             <span>◈ ${wordStat}</span>
-            <span>◇ Boost: +${score.after - score.before} pts</span>
+            <span>◇ Kaizen: +${score.after - score.before} pts</span>
           </div>
         </div>
         
@@ -375,7 +392,9 @@ function renderOutput(data) {
           </div>
         </div>
 
-        <div class="out-actions">
+        ${notesHtml}
+
+        <div class="out-actions" style="margin-top:16px;">
           <button id="copyBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button>
           <button id="shareBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Share</button>
           <button id="shareXBtn" style="background: rgba(29, 155, 240, 0.12); color: #1d9bf0; border-color: rgba(29, 155, 240, 0.3);">
@@ -387,9 +406,9 @@ function renderOutput(data) {
             Share Link
           </button>
           <button id="downloadCardBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Download Card</button>
-          <button id="evolveFurtherBtn" style="background: rgba(34, 197, 94, 0.12); color: var(--brand); border-color: rgba(34, 197, 94, 0.3); font-weight: 700;">
+          <button id="evolveFurtherBtn" style="background: rgba(22, 166, 106, 0.12); color: var(--brand); border-color: rgba(22, 166, 106, 0.3); font-weight: 700;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-            改善 Evolve Further (Kaizen v2)
+            改善 Evolve Further (Kaizen Loop v2)
           </button>
           <button id="retryBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Regenerate variations</button>
         </div>
@@ -407,12 +426,12 @@ function renderOutput(data) {
         </div>
       </div>
       <div class="evolution">
-        <span class="step">Draft</span> → <span class="step">Improved</span> → <span class="step final">Refined</span>
+        <span class="step">Draft</span> → <span class="step">Kaizen v1</span> → <span class="step final">Refined</span>
       </div>
       <div class="score">
         <div class="score-head">
-          <div><p class="lbl" style="margin:0">Kaizen Score</p><p class="muted sm">Your message evolved</p></div>
-          <p class="score-num"><span class="muted">${score.before}</span> → <span class="grad-text">${score.after}</span></p>
+          <div><p class="lbl" style="margin:0">Kaizen Score</p><p class="muted sm">Measurable improvement</p></div>
+          <p class="score-num"><span class="muted">${score.before}</span> → <span class="grad-text">${score.after}</span> <span style="font-size:0.8rem;color:var(--brand);font-weight:700;">(+${score.after - score.before})</span></p>
         </div>
         ${rows.map(([label, v]) => `
           <div class="bar-row">
@@ -561,78 +580,80 @@ function downloadEvolutionCard(beforeText, afterText, beforeScore, afterScore, t
     const ctx = canvas.getContext("2d");
 
     const isLinkedInMeme = toneName === "LinkedIn Bro";
-    const beforeHeader = isLinkedInMeme ? "REALITY" : "BEFORE (Draft)";
-    const afterHeader = isLinkedInMeme ? "LINKEDIN" : "AFTER (Kaizen Evolved)";
-    const cardTitle = isLinkedInMeme ? "Reality vs. LinkedIn — KaizenReply Meme Evolution" : "KaizenReply — Message Evolution";
+    const beforeHeader = isLinkedInMeme ? "REALITY" : "DRAFT (Original)";
+    const afterHeader = isLinkedInMeme ? "LINKEDIN" : "KAIZEN (Evolved)";
 
-    // Background Gradient
-    const grad = ctx.createLinearGradient(0, 0, 1200, 630);
-    grad.addColorStop(0, "#080d16");
-    grad.addColorStop(1, "#111827");
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 1200, 630);
-
-    // Radial Glow
-    const glowColor = isLinkedInMeme ? "rgba(10, 102, 194, 0.25)" : "rgba(34, 197, 94, 0.25)";
-    const glow = ctx.createRadialGradient(600, 0, 10, 600, 0, 600);
-    glow.addColorStop(0, glowColor);
-    glow.addColorStop(1, "transparent");
-    ctx.fillStyle = glow;
+    // Washi Background (Off-white or Dark)
+    const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+    ctx.fillStyle = isDark ? "#0d1117" : "#f7f7f3";
     ctx.fillRect(0, 0, 1200, 630);
 
     // Border Frame
-    ctx.strokeStyle = isLinkedInMeme ? "rgba(10, 102, 194, 0.4)" : "rgba(34, 197, 94, 0.35)";
-    ctx.lineWidth = 3;
+    ctx.strokeStyle = isDark ? "#30363d" : "#e3e6e2";
+    ctx.lineWidth = 2;
     ctx.strokeRect(30, 30, 1140, 570);
 
+    // Hanko Stamp Badge (改善印)
+    ctx.fillStyle = "rgba(201, 74, 54, 0.12)";
+    ctx.fillRect(60, 65, 80, 36);
+    ctx.strokeStyle = "#c94a36";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(60, 65, 80, 36);
+
+    ctx.font = "bold 16px Inter, system-ui, sans-serif";
+    ctx.fillStyle = "#c94a36";
+    ctx.fillText("改善印", 76, 89);
+
     // Header Title
-    ctx.font = "bold 34px Inter, system-ui, sans-serif";
-    ctx.fillStyle = isLinkedInMeme ? "#38bdf8" : "#22c55e";
-    ctx.fillText(cardTitle, 60, 85);
+    ctx.font = "bold 32px Inter, system-ui, sans-serif";
+    ctx.fillStyle = isDark ? "#e6edf3" : "#17201c";
+    ctx.fillText(isLinkedInMeme ? "Reality vs. LinkedIn — Kaizen Evolution" : "KaizenReply — Message Improvement", 160, 90);
 
-    ctx.font = "18px Inter, system-ui, sans-serif";
-    ctx.fillStyle = "#94a3b8";
-    ctx.fillText(`Tone: ${toneName || 'Evolved'}  •  Kaizen Score: ${beforeScore} ➔ ${afterScore} (+${afterScore - beforeScore} pts)`, 60, 120);
+    ctx.font = "600 18px Inter, system-ui, sans-serif";
+    ctx.fillStyle = "#16a66a";
+    ctx.fillText(`Kaizen Score: ${beforeScore} ➔ ${afterScore} (+${afterScore - beforeScore} pts)`, 160, 122);
 
-    // Before Block (Reality)
-    ctx.fillStyle = "rgba(255, 255, 255, 0.04)";
+    // Before Block
+    ctx.fillStyle = isDark ? "#161b22" : "#ffffff";
     ctx.fillRect(60, 150, 520, 380);
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+    ctx.strokeStyle = isDark ? "#30363d" : "#e3e6e2";
+    ctx.lineWidth = 1;
     ctx.strokeRect(60, 150, 520, 380);
 
-    ctx.fillStyle = isLinkedInMeme ? "#f43f5e" : "#94a3b8";
-    ctx.font = "bold 20px Inter, system-ui, sans-serif";
+    ctx.fillStyle = isLinkedInMeme ? "#c94a36" : (isDark ? "#8b949e" : "#737a75");
+    ctx.font = "bold 18px Inter, system-ui, sans-serif";
     ctx.fillText(beforeHeader, 85, 190);
 
-    ctx.fillStyle = "#cbd5e1";
-    ctx.font = "18px Inter, system-ui, sans-serif";
+    ctx.fillStyle = isDark ? "#cbd5e1" : "#17201c";
+    ctx.font = "17px Inter, system-ui, sans-serif";
     wrapCanvasText(ctx, beforeText, 85, 230, 470, 28);
 
-    // After Block (LinkedIn)
-    ctx.fillStyle = isLinkedInMeme ? "rgba(10, 102, 194, 0.15)" : "rgba(34, 197, 94, 0.12)";
+    // After Block
+    ctx.fillStyle = isDark ? "rgba(22, 166, 106, 0.08)" : "rgba(22, 166, 106, 0.05)";
     ctx.fillRect(620, 150, 520, 380);
-    ctx.strokeStyle = isLinkedInMeme ? "rgba(10, 102, 194, 0.4)" : "rgba(34, 197, 94, 0.3)";
+    ctx.strokeStyle = isDark ? "rgba(22, 166, 106, 0.4)" : "rgba(22, 166, 106, 0.3)";
+    ctx.lineWidth = 1.5;
     ctx.strokeRect(620, 150, 520, 380);
 
-    ctx.fillStyle = isLinkedInMeme ? "#38bdf8" : "#22c55e";
-    ctx.font = "bold 20px Inter, system-ui, sans-serif";
+    ctx.fillStyle = "#16a66a";
+    ctx.font = "bold 18px Inter, system-ui, sans-serif";
     ctx.fillText(afterHeader, 645, 190);
 
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "18px Inter, system-ui, sans-serif";
+    ctx.fillStyle = isDark ? "#ffffff" : "#17201c";
+    ctx.font = "17px Inter, system-ui, sans-serif";
     wrapCanvasText(ctx, afterText, 645, 230, 470, 28);
 
     // Footer Watermark
-    ctx.font = "600 16px Inter, system-ui, sans-serif";
-    ctx.fillStyle = "#64748b";
-    ctx.fillText("kaizenreply.js.org  •  Improve every message. One Kaizen at a time.", 60, 570);
+    ctx.font = "600 15px Inter, system-ui, sans-serif";
+    ctx.fillStyle = isDark ? "#8b949e" : "#737a75";
+    ctx.fillText("kaizenreply.js.org  •  Small improvements. Better communication.", 60, 570);
 
     // Trigger Download
     const a = document.createElement("a");
     a.download = `kaizenreply-${isLinkedInMeme ? 'reality-vs-linkedin' : 'evolution'}.png`;
     a.href = canvas.toDataURL("image/png");
     a.click();
-    showToast(isLinkedInMeme ? "Reality vs. LinkedIn Meme Card downloaded." : "Visual Kaizen Card downloaded.");
+    showToast("Minimalist Kaizen Card downloaded.");
   } catch (err) {
     console.error("Card generation error:", err);
     showToast("Could not generate visual card");

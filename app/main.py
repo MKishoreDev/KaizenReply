@@ -164,7 +164,7 @@ def build_improve_prompt(req: ImproveRequest) -> str:
     if req.conversationContext:
         parts.append(f"Conversation context: {req.conversationContext}")
 
-    return f"""You are KaizenReply, a message-improvement engine. Improve the draft's clarity, tone, structure and effectiveness while preserving the underlying core meaning. Return only the improved message plus a quality assessment.
+    return f"""You are KaizenReply, a message-improvement engine. Improve the draft's clarity, tone, structure and effectiveness while preserving the underlying core meaning. Return only the improved message plus a quality assessment and Kaizen Notes explaining 1-3 key micro-refinements.
 
 Ensure contractions use standard apostrophes (e.g. "I'm", "don't", "it's") — never output typos like "i;m".
 
@@ -178,7 +178,14 @@ Respond with strict JSON only:
   "clarity": number (0-30),
   "tone": number (0-30),
   "professionalism": number (0-30),
-  "readability": number (0-30)
+  "readability": number (0-30),
+  "notes": [
+    {{
+      "original": "phrase from original draft",
+      "replacement": "improved phrase",
+      "reason": "concise explanation of why this Kaizen change improves the message"
+    }}
+  ]
 }}"""
 
 
@@ -249,8 +256,7 @@ async def call_groq(
                         last_error_detail = err_text
                         break
 
-                if res.status_code != 200:
-                    raise HTTPException(status_code=502, detail=f"Groq API error {res.status_code}: {res.text[:300]}")
+                res.raise_for_status()
 
                 if target_model != GROQ_MODEL and not requested_model:
                     print(f"[Groq Model Switch] Automatically switched active model from '{GROQ_MODEL}' to working model '{target_model}'")
@@ -260,14 +266,11 @@ async def call_groq(
 
             except HTTPException:
                 raise
-            except (httpx.RequestError, httpx.TimeoutException) as e:
-                if attempt < retries - 1:
-                    await asyncio.sleep(delay)
-                    delay *= 2
-                    continue
+            except Exception as e:
                 last_error_detail = str(e)
-                model_failed = True
-                break
+                if attempt == retries - 1:
+                    model_failed = True
+                    break
 
         if not model_failed:
             break
@@ -385,6 +388,19 @@ async def improve(req: ImproveRequest, request: Request) -> ImproveResponse:
     if after <= before:
         after = min(100, before + 25)
 
+    raw_notes = parsed.get("notes", [])
+    parsed_notes = []
+    if isinstance(raw_notes, list):
+        for n in raw_notes:
+            if isinstance(n, dict) and "original" in n and "replacement" in n and "reason" in n:
+                parsed_notes.append(
+                    KaizenNote(
+                        original=str(n["original"]),
+                        replacement=str(n["replacement"]),
+                        reason=str(n["reason"])
+                    )
+                )
+
     result = ImproveResponse(
         improved=str(parsed.get("improved", "")).strip() or req.message,
         score=KaizenScore(
@@ -397,6 +413,7 @@ async def improve(req: ImproveRequest, request: Request) -> ImproveResponse:
                 readability=clamp(parsed.get("readability"), 0, 30, 20),
             ),
         ),
+        notes=parsed_notes,
     )
 
     set_cached(key, result)

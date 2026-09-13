@@ -1,43 +1,47 @@
 :root {
-  --brand: #22c55e;
-  --brand-2: #14b8a6;
-  --ink: #101c34;
-  --bg: #f7f8fa;
+  --brand: #16a66a;
+  --brand-dark: #087443;
+  --hanko: #c94a36;
+  --ink: #17201c;
+  --bg: #f7f7f3;
   --card: #ffffff;
-  --border: #e6e8ec;
-  --muted: #64748b;
-  --grad: linear-gradient(135deg, #22c55e, #14b8a6);
-  --radius: 16px;
-  --nav-bg: rgba(247, 248, 250, 0.75);
-  --glass-bg: rgba(255, 255, 255, 0.8);
+  --border: #e3e6e2;
+  --muted: #737a75;
+  --grad: linear-gradient(135deg, #16a66a, #087443);
+  --radius: 14px;
+  --nav-bg: rgba(247, 247, 243, 0.88);
+  --glass-bg: #ffffff;
   --input-bg: #ffffff;
-  --chip-bg: #ffffff;
-  --ctx-toggle-bg: rgba(241, 245, 249, 0.5);
-  --ctx-panel-bg: rgba(255, 255, 255, 0.6);
-  --empty-bg: rgba(241, 245, 249, 0.3);
+  --chip-bg: #f0f2ee;
+  --ctx-toggle-bg: rgba(227, 230, 226, 0.5);
+  --ctx-panel-bg: #fafaf7;
+  --empty-bg: rgba(240, 242, 238, 0.5);
   --score-bg: #ffffff;
-  --bar-bg: #eef2f6;
-  --step-bg: #eef2f6;
+  --bar-bg: #e3e6e2;
+  --step-bg: #e3e6e2;
   --feat-bg: #ffffff;
 }
 
 [data-theme="dark"] {
-  --ink: #f8fafc;
-  --bg: #080d16;
-  --card: #111827;
-  --border: #1e293b;
-  --muted: #708da9;
-  --nav-bg: rgba(8, 13, 22, 0.75);
-  --glass-bg: rgba(17, 24, 39, 0.75);
-  --input-bg: #1f2937;
-  --chip-bg: #1f2937;
-  --ctx-toggle-bg: rgba(31, 41, 55, 0.5);
-  --ctx-panel-bg: rgba(17, 24, 39, 0.6);
-  --empty-bg: rgba(31, 41, 55, 0.3);
-  --score-bg: #111827;
-  --bar-bg: #1f2937;
-  --step-bg: #1f2937;
-  --feat-bg: #111827;
+  --brand: #22c55e;
+  --brand-dark: #16a66a;
+  --hanko: #e54d38;
+  --ink: #e6edf3;
+  --bg: #0d1117;
+  --card: #161b22;
+  --border: #30363d;
+  --muted: #8b949e;
+  --nav-bg: rgba(13, 17, 23, 0.88);
+  --glass-bg: #161b22;
+  --input-bg: #0d1117;
+  --chip-bg: #21262d;
+  --ctx-toggle-bg: rgba(48, 54, 61, 0.5);
+  --ctx-panel-bg: #161b22;
+  --empty-bg: rgba(33, 38, 45, 0.5);
+  --score-bg: #161b22;
+  --bar-bg: #30363d;
+  --step-bg: #21262d;
+  --feat-bg: #161b22;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -676,6 +680,105 @@ textarea:focus, .inp:focus {
   font-size: 0.875rem;
   color: var(--muted);
   line-height: 1.5;
+}
+
+/* Hanko Seal & Red Accent (改善印) */
+.hanko-seal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  background: rgba(201, 74, 54, 0.1);
+  border: 1.5px solid var(--hanko);
+  color: var(--hanko);
+  font-weight: 800;
+  font-size: 0.725rem;
+  border-radius: 4px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-right: 8px;
+  user-select: none;
+}
+
+/* Kaizen Version Timeline */
+.kaizen-version-timeline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  margin-bottom: 16px;
+}
+.kaizen-version-pill {
+  padding: 6px 14px;
+  background: var(--chip-bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+.kaizen-version-pill:hover {
+  border-color: var(--brand);
+  color: var(--ink);
+}
+.kaizen-version-pill.active {
+  background: rgba(22, 166, 106, 0.12);
+  border-color: var(--brand);
+  color: var(--brand);
+  font-weight: 700;
+}
+
+/* Kaizen Notes ("Why?" Explainer) */
+.kaizen-notes-card {
+  background: var(--ctx-panel-bg);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--brand);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 16px;
+}
+.kaizen-notes-title {
+  font-size: 0.825rem;
+  font-weight: 700;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.kaizen-note-item {
+  font-size: 0.8rem;
+  color: var(--muted);
+  padding: 8px 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+.kaizen-note-item:last-child {
+  margin-bottom: 0;
+}
+.kaizen-note-diff {
+  font-family: monospace;
+  font-size: 0.775rem;
+  margin-bottom: 4px;
+}
+.kaizen-note-del {
+  color: var(--hanko);
+  text-decoration: line-through;
+}
+.kaizen-note-add {
+  color: var(--brand);
+  font-weight: 600;
+}
+.kaizen-note-reason {
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-style: italic;
 }
 
 

@@ -23,9 +23,16 @@ class KaizenScore(BaseModel):
     breakdown: Breakdown
 
 
+class KaizenNote(BaseModel):
+    original: str
+    replacement: str
+    reason: str
+
+
 class ImproveResponse(BaseModel):
     improved: str
     score: KaizenScore
+    notes: List[KaizenNote] = Field(default_factory=list)
 
 
 class AnalyzeRequest(BaseModel):

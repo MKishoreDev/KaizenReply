@@ -13,9 +13,16 @@
   <img src="https://img.shields.io/badge/PRs-Welcome-brightgreen?style=flat-square" alt="PRs Welcome" />
 </p>
 
-> **Messages don't get rewritten. They evolve. Improve every message, one Kaizen at a time.**
+> **Your message is good. Make it better.**
+> **Don't rewrite. Improve.**
 
-**改善** — *Kaizen* is a Japanese word meaning **"change for the better"** or **"continuous improvement"**. It's a philosophy rooted in making small, consistent refinements rather than sweeping overhauls. Applied to communication — every message you send can be a little clearer, a little more fitting, a little better than the last draft. That's the idea behind KaizenReply.
+**改善** — *Kaizen* is a Japanese philosophy of continuous improvement through repeated, practical refinements rather than dramatic overhauls. 
+
+**KaizenReply** applies this to daily communication:
+- **Japanese Precision & Washi Paper Aesthetic**: Designed with restrained editorial typography, off-white Washi background (`#F7F7F3`), Kaizen Green (`#16A66A`), and Vermilion Hanko Seal accents (`#C94A36` / `改善印`).
+- **The Kaizen Loop**: Step through version history (`v01 Original` ➔ `v02` ➔ `v03` ➔ `v04 Final`).
+- **Interactive Kaizen Notes**: Learn *why* specific words were modified with detailed educational breakdowns.
+- **Dignified Share Cards**: Export minimal 1200x630 social cards (`18 ➔ 84 | +66 Kaizen`).
 
 ---
 
