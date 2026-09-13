@@ -582,7 +582,7 @@ function downloadEvolutionCard(beforeText, afterText, beforeScore, afterScore, t
     // Footer Watermark
     ctx.font = "600 16px Inter, system-ui, sans-serif";
     ctx.fillStyle = "#64748b";
-    ctx.fillText("kaizenreply.vercel.app  •  Improve every message. One Kaizen at a time.", 60, 570);
+    ctx.fillText("kaizenreply.js.org  •  Improve every message. One Kaizen at a time.", 60, 570);
 
     // Trigger Download
     const a = document.createElement("a");

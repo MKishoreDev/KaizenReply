@@ -5,7 +5,8 @@
 # KaizenReply
 
 <p align="center">
-  <a href="https://kaizenreply.vercel.app"><img src="https://img.shields.io/badge/Live-Demo-22c55e?style=flat-square&logo=vercel" alt="Live Demo" /></a>
+  <a href="https://kaizenreply.js.org"><img src="https://img.shields.io/badge/Live-kaizenreply.js.org-22c55e?style=flat-square&logo=javascript" alt="Live Demo on JS.org" /></a>
+  <a href="https://kaizenreply.vercel.app"><img src="https://img.shields.io/badge/Vercel-kaizenreply.vercel.app-000000?style=flat-square&logo=vercel" alt="Vercel Mirror" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/MKishoreDev/KaizenReply?style=flat-square&color=22c55e" alt="License" /></a>
   <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/FastAPI-005571?style=flat-square&logo=fastapi" alt="FastAPI" /></a>
   <a href="https://groq.com/"><img src="https://img.shields.io/badge/Groq-llama--3.3--70b-f97316?style=flat-square" alt="Groq" /></a>
@@ -96,14 +97,17 @@ Open **http://localhost:8000** in your browser.
 
 ---
 
-## 🌐 Deployment
+## 🌐 Domain & Deployment (`kaizenreply.js.org`)
 
-For **Railway**, **Render**, or **Fly.io** — set env vars in the platform dashboard, no `.env` file needed. The app reads `os.getenv()` directly, with `.env` as a local-only fallback.
+KaizenReply is configured for the custom domain **`kaizenreply.js.org`** via [JS.org](https://js.org).
 
-```
-GROQ_API_KEY=your-groq-api-key-here
-GROQ_MODEL=llama-3.3-70b-versatile
-```
+### How to Claim `kaizenreply.js.org` on JS.org:
+1. Open the [js-org/js-org GitHub repository](https://github.com/js-org/js-org).
+2. Edit file `cnames_active.js` and add the entry under active CNAMEs:
+   ```js
+   "kaizenreply": "kaizenreply.vercel.app", // or "mkishoredev.github.io/KaizenReply"
+   ```
+3. Submit a Pull Request with title `Add kaizenreply.js.org`. Once merged by JS.org maintainers, `https://kaizenreply.js.org` automatically points live to your deployment!
 
 ---
 
