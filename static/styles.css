@@ -436,3 +436,86 @@ textarea:focus, .inp:focus {
   .rec-banner { flex-direction: column; align-items: flex-start; }
   .score-num { font-size: 20px; }
 }
+
+/* PWA & Sample Pills & Why Kaizen Styles */
+.sample-pill {
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  color: var(--ink);
+  font-size: 0.775rem;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+.sample-pill:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+  background: var(--chip-bg);
+  transform: translateY(-1px);
+}
+
+.why-kaizen {
+  max-width: 1040px;
+  margin: 60px auto 40px;
+  padding: 0 24px;
+  text-align: center;
+}
+.why-kaizen h2 {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-top: 6px;
+  margin-bottom: 32px;
+}
+.why-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+.why-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px 20px;
+  text-align: left;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.why-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--brand);
+}
+.why-icon {
+  font-size: 2rem;
+  margin-bottom: 12px;
+}
+.why-card h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.why-card p {
+  font-size: 0.875rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+#pwaInstallBtn {
+  background: rgba(34, 197, 94, 0.12);
+  color: var(--brand);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  font-weight: 600;
+  font-size: 0.825rem;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+#pwaInstallBtn:hover {
+  background: var(--brand);
+  color: #ffffff;
+}
+

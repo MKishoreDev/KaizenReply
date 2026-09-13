@@ -296,7 +296,18 @@ async def list_models():
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
+@app.get("/manifest.json")
+async def manifest():
+    return FileResponse("static/manifest.json", media_type="application/manifest+json")
+
+
+@app.get("/sw.js")
+async def service_worker():
+    return FileResponse("static/sw.js", media_type="application/javascript")
+
+
 @app.get("/")
+@app.get("/share-target")
 async def index():
     return FileResponse("static/index.html")
 

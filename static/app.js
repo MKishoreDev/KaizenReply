@@ -632,15 +632,82 @@ async function loadDynamicModels() {
   }
 }
 
+let deferredPwaPrompt = null;
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPwaPrompt = e;
+  const btn = $("pwaInstallBtn");
+  if (btn) btn.classList.remove("hidden");
+});
+
 document.addEventListener("DOMContentLoaded", () => {
   const shareWebsiteBtn = $("shareWebsiteBtn");
   const heroShareBtn = $("heroShareBtn");
+  const pwaInstallBtn = $("pwaInstallBtn");
 
   if (shareWebsiteBtn) {
     shareWebsiteBtn.onclick = shareWebsite;
   }
   if (heroShareBtn) {
     heroShareBtn.onclick = shareWebsite;
+  }
+  if (pwaInstallBtn) {
+    pwaInstallBtn.onclick = async () => {
+      if (deferredPwaPrompt) {
+        deferredPwaPrompt.prompt();
+        const { outcome } = await deferredPwaPrompt.userChoice;
+        if (outcome === "accepted") {
+          pwaInstallBtn.classList.add("hidden");
+        }
+        deferredPwaPrompt = null;
+      }
+    };
+  }
+
+  // Register Service Worker for PWA
+  if ("serviceWorker" in navigator && window.location.protocol.startsWith("http")) {
+    navigator.serviceWorker.register("/sw.js").catch((err) => {
+      console.log("Service Worker registration failed:", err);
+    });
+  }
+
+  // Sample pills handler
+  document.querySelectorAll(".sample-pill").forEach((pill) => {
+    pill.addEventListener("click", () => {
+      const text = pill.getAttribute("data-text");
+      if (text) {
+        $("message").value = text;
+        $("count").textContent = text.length;
+        userInteracted = true;
+        improve(mode === "reply" ? "reply" : "evolve");
+      }
+    });
+  });
+
+  // Keyboard shortcut Ctrl+Enter / Cmd+Enter
+  const textarea = $("message");
+  if (textarea) {
+    textarea.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        improve(mode === "reply" ? "reply" : "evolve");
+      }
+    });
+  }
+
+  // Auto-fill from URL params (Share Target / Bookmarklet)
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const sharedText = params.get("text") || params.get("title") || params.get("message");
+    if (sharedText) {
+      textarea.value = sharedText;
+      $("count").textContent = sharedText.length;
+      userInteracted = true;
+      setTimeout(() => improve(mode === "reply" ? "reply" : "evolve"), 300);
+    }
+  } catch (err) {
+    console.log("Error parsing URL params:", err);
   }
 
   loadDynamicModels();
