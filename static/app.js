@@ -360,6 +360,10 @@ function renderOutput(data) {
           <button id="copyBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button>
           <button id="shareBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Share</button>
           <button id="downloadCardBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Download Card</button>
+          <button id="evolveFurtherBtn" style="background: rgba(34, 197, 94, 0.12); color: var(--brand); border-color: rgba(34, 197, 94, 0.3); font-weight: 700;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            🔄 Evolve Further (Kaizen v2)
+          </button>
           <button id="retryBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Regenerate variations</button>
         </div>
 
@@ -398,7 +402,19 @@ function renderOutput(data) {
   $("copyBtn").onclick = () => copyTextDirectly(improved, $("copyBtn"), true);
   $("shareBtn").onclick = () => shareText(improved);
   $("downloadCardBtn").onclick = () => downloadEvolutionCard(original, improved, score.before, score.after, state.tone);
+  if ($("evolveFurtherBtn")) {
+    $("evolveFurtherBtn").onclick = () => {
+      $("message").value = improved;
+      $("count").textContent = improved.length;
+      userInteracted = true;
+      showToast("Evolved text loaded as new draft! Select tone & refine 🚀");
+      $("message").focus();
+      $("tool").scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+  }
   $("retryBtn").onclick = () => improve();
+
+  saveToKaizenHistory(original, improved, score, state.tone);
 
   document.querySelectorAll(".quick-refine-chip").forEach((chip) => {
     chip.onclick = () => {
@@ -553,6 +569,84 @@ function downloadEvolutionCard(beforeText, afterText, beforeScore, afterScore, t
   } catch (err) {
     console.error("Card generation error:", err);
     showToast("Could not generate visual card");
+  }
+}
+
+// Local History Management for Kaizen Evolutions
+function saveToKaizenHistory(original, improved, score, tone) {
+  try {
+    const list = JSON.parse(localStorage.getItem("kaizen_history") || "[]");
+    list.unshift({
+      id: Date.now(),
+      original,
+      improved,
+      scoreBefore: score.before,
+      scoreAfter: score.after,
+      tone,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    });
+    const trimmed = list.slice(0, 10);
+    localStorage.setItem("kaizen_history", JSON.stringify(trimmed));
+    renderKaizenHistory();
+  } catch (err) {
+    console.error("Failed to save kaizen history:", err);
+  }
+}
+
+function renderKaizenHistory() {
+  const section = $("historySection");
+  const listContainer = $("historyList");
+  if (!section || !listContainer) return;
+
+  try {
+    const list = JSON.parse(localStorage.getItem("kaizen_history") || "[]");
+    if (!list.length) {
+      section.classList.add("hidden");
+      return;
+    }
+
+    section.classList.remove("hidden");
+    listContainer.innerHTML = list.map((item) => `
+      <div class="history-item">
+        <div class="history-item-top">
+          <span>${item.tone || 'Kaizen'} · Score: ${item.scoreBefore} ➔ <strong style="color:var(--brand);">${item.scoreAfter}</strong></span>
+          <span>${item.timestamp}</span>
+        </div>
+        <div class="history-item-text" id="hist_text_${item.id}"></div>
+        <div class="history-item-actions">
+          <button type="button" class="history-item-btn" id="hist_copy_${item.id}">Copy</button>
+          <button type="button" class="history-item-btn" id="hist_restore_${item.id}">Evolve this</button>
+        </div>
+      </div>
+    `).join("");
+
+    list.forEach(item => {
+      const textElem = $(`hist_text_${item.id}`);
+      const copyBtn = $(`hist_copy_${item.id}`);
+      const restoreBtn = $(`hist_restore_${item.id}`);
+      if (textElem) textElem.textContent = item.improved;
+      if (copyBtn) copyBtn.onclick = () => copyTextDirectly(item.improved, copyBtn, true);
+      if (restoreBtn) restoreBtn.onclick = () => restoreHistoryItem(item.id);
+    });
+  } catch (err) {
+    console.error("Failed to render history:", err);
+  }
+}
+
+function restoreHistoryItem(id) {
+  try {
+    const list = JSON.parse(localStorage.getItem("kaizen_history") || "[]");
+    const item = list.find(i => i.id === id);
+    if (item) {
+      $("message").value = item.improved;
+      $("count").textContent = item.improved.length;
+      userInteracted = true;
+      showToast("Restored from history into draft! 🚀");
+      $("message").focus();
+      $("tool").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  } catch (err) {
+    console.error("Restore error:", err);
   }
 }
 
@@ -887,5 +981,16 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("Error parsing URL params:", err);
   }
 
+  // Clear History Handler
+  const clearHistoryBtn = $("clearHistoryBtn");
+  if (clearHistoryBtn) {
+    clearHistoryBtn.onclick = () => {
+      localStorage.removeItem("kaizen_history");
+      renderKaizenHistory();
+      showToast("History cleared");
+    };
+  }
+
+  renderKaizenHistory();
   loadDynamicModels();
 });
