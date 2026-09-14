@@ -825,6 +825,8 @@ async function fetchKotowazaProverbs() {
   if (loadingState) loadingState.classList.remove("hidden");
   if (contentState) contentState.classList.add("hidden");
 
+  const startTime = Date.now();
+
   try {
     const res = await fetch("/api/quotes?limit=100");
     if (res.ok) {
@@ -833,7 +835,6 @@ async function fetchKotowazaProverbs() {
         kotowazaList = data.quotes;
         // Pick a random quote on every page load
         currentQuoteIndex = Math.floor(Math.random() * kotowazaList.length);
-        updateQuoteDisplay();
       }
     } else {
       // Direct fetch from sepTN/kotowaza repo if API route is unavailable
@@ -844,15 +845,22 @@ async function fetchKotowazaProverbs() {
           kotowazaList = rawData;
           // Pick a random quote on every page load
           currentQuoteIndex = Math.floor(Math.random() * kotowazaList.length);
-          updateQuoteDisplay();
         }
       }
     }
   } catch (err) {
     console.error("Kotowaza API fetch error:", err);
   } finally {
-    if (loadingState) loadingState.classList.add("hidden");
-    if (contentState) contentState.classList.remove("hidden");
+    const elapsed = Date.now() - startTime;
+    const minDelay = Math.max(0, 700 - elapsed);
+    setTimeout(() => {
+      updateQuoteDisplay();
+      if (loadingState) loadingState.classList.add("hidden");
+      if (contentState) {
+        contentState.classList.remove("hidden");
+        contentState.classList.add("quote-content-fade-in");
+      }
+    }, minDelay);
   }
 }
 
@@ -1070,15 +1078,20 @@ function renderCardCanvas(canvas, options) {
     ctx.fillRect(0, 0, width, height);
 
     // 2. Top-Left Brand Lockup with Official Logo Image
+    const logoSize = 38;
+    const logoX = 60;
+    const logoY = 48;
     if (logoImg.complete && logoImg.naturalWidth !== 0) {
-      ctx.drawImage(logoImg, 60, 48, 38, 38);
+      ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize);
       ctx.fillStyle = colors.heading;
       ctx.font = "bold 30px 'Manrope', sans-serif";
-      ctx.fillText("KaizenReply", 110, 78);
+      ctx.textBaseline = "middle";
+      ctx.fillText("KaizenReply", logoX + logoSize + 12, logoY + (logoSize / 2));
+      ctx.textBaseline = "alphabetic";
     } else {
       ctx.fillStyle = colors.heading;
       ctx.font = "bold 30px 'Manrope', sans-serif";
-      ctx.fillText("KaizenReply", 60, 78);
+      ctx.fillText("KaizenReply", logoX, logoY + 30);
     }
 
     // 3. Top-Right Version / Category Tag

@@ -943,6 +943,48 @@ footer { padding: 40px 0; border-top: 1px solid var(--border); text-align: cente
   display: flex;
   justify-content: space-between;
   align-items: center;
+  width: 100%;
+}
+.showcase-brand-lockup {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 10px !important;
+  white-space: nowrap !important;
+}
+.showcase-brand-lockup .card-logo-icon {
+  height: 28px !important;
+  width: 28px !important;
+  object-fit: contain !important;
+  flex-shrink: 0 !important;
+  display: inline-block !important;
+  margin: 0 !important;
+}
+.showcase-brand-lockup b {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  display: inline-block !important;
+}
+
+.quote-loader {
+  padding: 48px 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.quote-content-fade-in {
+  animation: quoteContentFadeIn 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+@keyframes quoteContentFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .showcase-version {
   color: #16a66a;
