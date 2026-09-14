@@ -1,5 +1,5 @@
 /* ==========================================================================
-   KaizenReply — Full Interactive Client Application
+   KaizenReply — Full Interactive Client Application with All Feature Sets
    ========================================================================== */
 
 const TONES = [
@@ -22,6 +22,12 @@ const TONES = [
   "Tech Twitter Thread"
 ];
 
+const TONE_CATEGORIES = {
+  "Viral": ["LinkedIn Bro", "🔥 Roast My Draft", "Gen Z", "Dating App Opener", "Passive-Aggressive", "Tech Twitter Thread", "Cold Email Hook"],
+  "Work": ["Professional", "LinkedIn Bro", "Cold Email Hook", "Formal", "Diplomatic", "Concise", "Passive-Aggressive"],
+  "Social": ["Casual", "Friendly", "Dating App Opener", "ELI5", "Gen Z", "Polite"]
+};
+
 const PLATFORMS = [
   "Email",
   "LinkedIn",
@@ -33,6 +39,8 @@ const PLATFORMS = [
   "Discord",
   "Facebook"
 ];
+
+const RECIPIENTS = ["Friend", "Manager", "Client", "Teacher"];
 
 const QUOTES = [
   {
@@ -65,18 +73,28 @@ const QUOTES = [
   }
 ];
 
+let state = {
+  tone: "Professional",
+  platform: "",
+  recipient: "",
+  toneCategory: "All"
+};
+
 let currentMode = "evolve"; // "evolve" or "reply"
 let currentQuoteIndex = 0;
 let lastEvolvedData = null;
+let countdownInterval = null;
 
 const $ = (id) => document.getElementById(id);
 
 // Initialize Page
 document.addEventListener("DOMContentLoaded", () => {
   initTheme();
-  populateDropdowns();
+  populateDropdownsAndChips();
+  fetchAvailableModels();
   setupEventListeners();
   updateQuoteDisplay();
+  renderKaizenHistory();
 });
 
 // Theme Management
@@ -98,19 +116,102 @@ function setTheme(dark) {
   }
 }
 
-// Populate Select Options
-function populateDropdowns() {
+// Fetch Dynamic Models from Backend API
+async function fetchAvailableModels() {
+  const select = $("modelSelect");
+  if (!select) return;
+  try {
+    const res = await fetch("/api/models");
+    if (!res.ok) return;
+    const models = await res.json();
+    if (Array.isArray(models) && models.length > 0) {
+      select.innerHTML = models.map((m) => `<option value="${m}">${m}</option>`).join("");
+    }
+  } catch (e) {
+    // Keep default static options fallback
+    select.innerHTML = `<option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile</option>`;
+  }
+}
+
+// Populate Select Options & Chips
+function populateDropdownsAndChips() {
   const toneSel = $("toneSelect");
   const platformSel = $("platformSelect");
   if (toneSel) {
     toneSel.innerHTML = TONES.map((t) => `<option value="${t}">${t}</option>`).join("");
+    toneSel.value = state.tone;
+    toneSel.onchange = () => { state.tone = toneSel.value; renderToneChips(); };
   }
   if (platformSel) {
-    platformSel.innerHTML = PLATFORMS.map((p) => `<option value="${p}">${p}</option>`).join("");
+    platformSel.innerHTML = `<option value="">Platform-neutral</option>` + PLATFORMS.map((p) => `<option value="${p}">${p}</option>`).join("");
+    platformSel.value = state.platform;
+    platformSel.onchange = () => { state.platform = platformSel.value; renderPlatformChips(); };
   }
+
+  renderToneChips();
+  renderPlatformChips();
+  renderRecipientChips();
 }
 
-// Event Listeners
+// Render Tone Chips
+function renderToneChips() {
+  const container = $("toneChips");
+  if (!container) return;
+
+  const filtered = state.toneCategory === "All"
+    ? TONES
+    : TONES.filter((t) => (TONE_CATEGORIES[state.toneCategory] || []).includes(t));
+
+  container.innerHTML = filtered.map((t) => `
+    <button type="button" class="chip ${state.tone === t ? 'active' : ''}" data-tone="${t}">${t}</button>
+  `).join("");
+
+  container.querySelectorAll("button").forEach((btn) => {
+    btn.onclick = () => {
+      state.tone = btn.getAttribute("data-tone");
+      if ($("toneSelect")) $("toneSelect").value = state.tone;
+      renderToneChips();
+    };
+  });
+}
+
+// Render Platform Chips
+function renderPlatformChips() {
+  const container = $("platformChips");
+  if (!container) return;
+
+  container.innerHTML = PLATFORMS.map((p) => `
+    <button type="button" class="chip ${state.platform === p ? 'active' : ''}" data-platform="${p}">${p}</button>
+  `).join("");
+
+  container.querySelectorAll("button").forEach((btn) => {
+    btn.onclick = () => {
+      state.platform = state.platform === btn.getAttribute("data-platform") ? "" : btn.getAttribute("data-platform");
+      if ($("platformSelect")) $("platformSelect").value = state.platform;
+      renderPlatformChips();
+    };
+  });
+}
+
+// Render Recipient Chips
+function renderRecipientChips() {
+  const container = $("recipientChips");
+  if (!container) return;
+
+  container.innerHTML = RECIPIENTS.map((r) => `
+    <button type="button" class="chip ${state.recipient === r ? 'active' : ''}" data-rec="${r}">${r}</button>
+  `).join("");
+
+  container.querySelectorAll("button").forEach((btn) => {
+    btn.onclick = () => {
+      state.recipient = state.recipient === btn.getAttribute("data-rec") ? "" : btn.getAttribute("data-rec");
+      if ($("recipientInput")) $("recipientInput").value = state.recipient;
+      renderRecipientChips();
+    };
+  });
+}
+
+// Event Listeners Setup
 function setupEventListeners() {
   // Theme Toggle
   const themeBtn = $("themeToggle");
@@ -147,12 +248,8 @@ function setupEventListeners() {
   // Mode Switches
   const modeEvolve = $("modeEvolve");
   const modeReply = $("modeReply");
-  if (modeEvolve) {
-    modeEvolve.onclick = () => switchMode("evolve");
-  }
-  if (modeReply) {
-    modeReply.onclick = () => switchMode("reply");
-  }
+  if (modeEvolve) modeEvolve.onclick = () => switchMode("evolve");
+  if (modeReply) modeReply.onclick = () => switchMode("reply");
 
   // Character Counter & Input
   const msgInput = $("messageInput");
@@ -169,6 +266,76 @@ function setupEventListeners() {
     };
   }
 
+  // Paste Button
+  const pasteBtn = $("pasteBtn");
+  if (pasteBtn && msgInput) {
+    pasteBtn.onclick = async () => {
+      try {
+        const text = await navigator.clipboard.readText();
+        if (text) {
+          msgInput.value = text;
+          if (charCount) charCount.textContent = text.length;
+        }
+      } catch (err) {
+        alert("Clipboard access permission required.");
+      }
+    };
+  }
+
+  // AI Suggest Tone Button
+  const suggestBtn = $("suggestBtn");
+  if (suggestBtn) {
+    suggestBtn.onclick = async () => {
+      if (!msgInput || !msgInput.value.trim()) {
+        alert("Paste a draft message first for AI to analyze.");
+        return;
+      }
+      suggestBtn.disabled = true;
+      suggestBtn.textContent = "Analyzing…";
+      try {
+        const res = await fetch("/api/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: msgInput.value.trim() })
+        });
+        const data = await res.json();
+        if (res.ok && data.tone) {
+          const recBanner = $("recBanner");
+          const recText = $("recText");
+          const applyRecBtn = $("applyRecBtn");
+          if (recBanner && recText) {
+            recText.innerHTML = `We recommend <strong>${data.tone}</strong> tone (${data.reason || "best fit"}).`;
+            recBanner.classList.remove("hidden");
+            if (applyRecBtn) {
+              applyRecBtn.onclick = () => {
+                state.tone = data.tone;
+                if ($("toneSelect")) $("toneSelect").value = data.tone;
+                renderToneChips();
+                recBanner.classList.add("hidden");
+              };
+            }
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        suggestBtn.disabled = false;
+        suggestBtn.textContent = "💡 AI Suggest";
+      }
+    };
+  }
+
+  // Tone Category Filter Buttons
+  const catBtns = document.querySelectorAll(".tone-cat-btn");
+  catBtns.forEach((btn) => {
+    btn.onclick = () => {
+      catBtns.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      state.toneCategory = btn.getAttribute("data-cat") || "All";
+      renderToneChips();
+    };
+  });
+
   // Demo Buttons
   document.querySelectorAll(".demo-btn").forEach((btn) => {
     btn.onclick = () => {
@@ -179,8 +346,16 @@ function setupEventListeners() {
         msgInput.value = text;
         if (charCount) charCount.textContent = text.length;
       }
-      if (tone && $("toneSelect")) $("toneSelect").value = tone;
-      if (platform && $("platformSelect")) $("platformSelect").value = platform;
+      if (tone) {
+        state.tone = tone;
+        if ($("toneSelect")) $("toneSelect").value = tone;
+        renderToneChips();
+      }
+      if (platform) {
+        state.platform = platform;
+        if ($("platformSelect")) $("platformSelect").value = platform;
+        renderPlatformChips();
+      }
     };
   });
 
@@ -222,6 +397,15 @@ function setupEventListeners() {
     shareQuote.onclick = () => openQuoteCardModal();
   }
 
+  // Clear History
+  const clearHistoryBtn = $("clearHistoryBtn");
+  if (clearHistoryBtn) {
+    clearHistoryBtn.onclick = () => {
+      localStorage.removeItem("kaizen_history");
+      renderKaizenHistory();
+    };
+  }
+
   // Modal Close
   const closeModalBtn = $("closeModalBtn");
   const shareModal = $("shareModal");
@@ -257,11 +441,13 @@ function switchMode(mode) {
 // Execute AI Action (Evolve or Reply)
 async function runKaizenAction(overrideTone = null) {
   const msgInput = $("messageInput");
-  const toneSelect = $("toneSelect");
-  const platformSelect = $("platformSelect");
   const recipientInput = $("recipientInput");
   const contextInput = $("contextInput");
+  const modelSelect = $("modelSelect");
   const outputContainer = $("outputContainer");
+  const errorBanner = $("errorBanner");
+
+  if (errorBanner) errorBanner.classList.add("hidden");
 
   if (!msgInput || !msgInput.value.trim()) {
     alert("Please enter a message draft first.");
@@ -270,10 +456,11 @@ async function runKaizenAction(overrideTone = null) {
 
   const payload = {
     message: msgInput.value.trim(),
-    tone: overrideTone || (toneSelect ? toneSelect.value : "Professional"),
-    platform: platformSelect ? platformSelect.value : "Email",
-    recipient: recipientInput ? recipientInput.value.trim() : "",
-    conversationContext: contextInput ? contextInput.value.trim() : ""
+    tone: overrideTone || state.tone || "Professional",
+    platform: state.platform || "",
+    recipient: recipientInput ? recipientInput.value.trim() : state.recipient || "",
+    conversationContext: contextInput ? contextInput.value.trim() : "",
+    model: modelSelect ? modelSelect.value : ""
   };
 
   // Render Loading State
@@ -293,6 +480,11 @@ async function runKaizenAction(overrideTone = null) {
       body: JSON.stringify(payload)
     });
 
+    if (res.status === 429) {
+      startRateLimitCooldown(5);
+      throw new Error("Rate limit reached. Please wait a moment.");
+    }
+
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || "Request failed");
 
@@ -300,16 +492,50 @@ async function runKaizenAction(overrideTone = null) {
       renderReplyOutput(data, payload.message);
     } else {
       lastEvolvedData = { original: payload.message, ...data, tone: payload.tone, platform: payload.platform };
+      saveToKaizenHistory(payload.message, data.improved, data.score, payload.tone);
       renderEvolveOutput(data, payload.message, payload.tone, payload.platform);
     }
   } catch (err) {
+    if (errorBanner) {
+      errorBanner.textContent = err.message || "The Kaizen service is temporarily unavailable. Your draft is safe.";
+      errorBanner.classList.remove("hidden");
+    }
     outputContainer.innerHTML = `
-      <div class="result-state" style="color:var(--destructive);">
+      <div class="result-state" style="color:var(--hanko);">
         <h3>The message could not evolve</h3>
-        <p>${err.message || "Please check your network and try again."}</p>
+        <p>${escapeHtml(err.message || "Please check your network and try again.")}</p>
       </div>
     `;
   }
+}
+
+// Rate Limiting Cooldown Countdown
+function startRateLimitCooldown(seconds) {
+  const errorBanner = $("errorBanner");
+  const evolveBtn = $("evolveBtn");
+  if (!errorBanner || !evolveBtn) return;
+
+  evolveBtn.disabled = true;
+  let timeLeft = seconds;
+
+  const update = () => {
+    errorBanner.textContent = `Rate limit reached. Please wait ${timeLeft}s before trying again.`;
+    errorBanner.classList.remove("hidden");
+  };
+  update();
+
+  if (countdownInterval) clearInterval(countdownInterval);
+  countdownInterval = setInterval(() => {
+    timeLeft--;
+    if (timeLeft <= 0) {
+      clearInterval(countdownInterval);
+      countdownInterval = null;
+      errorBanner.classList.add("hidden");
+      evolveBtn.disabled = false;
+    } else {
+      update();
+    }
+  }, 1000);
 }
 
 // Render Evolve Output
@@ -377,26 +603,24 @@ function renderEvolveOutput(data, original, tone, platform) {
         <button class="btn-paper" id="copyResultBtn">Copy</button>
         <button class="btn-paper" id="shareResultBtn">Share</button>
         <button class="btn-paper" id="cardResultBtn">Card 🖼️</button>
+        <button class="btn-paper" id="shareXBtn">Post X 🐦</button>
       </div>
 
       <button class="btn-hero" id="evolveFurtherBtn" style="justify-content:center;margin-top:8px;">Evolve Further ↺</button>
     </div>
   `;
 
-  // Attach Result Action Listeners
+  // Action Buttons Listeners
   $("copyResultBtn").onclick = () => {
     navigator.clipboard.writeText(data.improved);
     alert("Evolved message copied to clipboard!");
   };
   $("shareResultBtn").onclick = () => {
-    if (navigator.share) {
-      navigator.share({ text: data.improved }).catch(() => undefined);
-    } else {
-      navigator.clipboard.writeText(data.improved);
-      alert("Evolved message copied!");
-    }
+    if (navigator.share) navigator.share({ text: data.improved }).catch(() => undefined);
+    else { navigator.clipboard.writeText(data.improved); alert("Evolved message copied!"); }
   };
   $("cardResultBtn").onclick = () => openEvolveCardModal(original, data.improved, scoreAfter, tone, platform);
+  $("shareXBtn").onclick = () => shareToX(original, data.improved, scoreBefore, scoreAfter, tone);
   $("evolveFurtherBtn").onclick = () => {
     const msgInput = $("messageInput");
     if (msgInput) {
@@ -405,6 +629,18 @@ function renderEvolveOutput(data, original, tone, platform) {
       msgInput.focus();
     }
   };
+}
+
+// 1-Click Viral Post to X / Twitter
+function shareToX(beforeText, afterText, beforeScore, afterScore, toneName) {
+  const isLinkedInMeme = toneName === "LinkedIn Bro";
+  let tweetText = "";
+  if (isLinkedInMeme) {
+    tweetText = `Reality vs. LinkedIn with @KaizenReply 改善:\n\nREALITY:\n"${beforeText.substring(0, 70)}"\n\nLINKEDIN:\n"${afterText.substring(0, 130)}"\n\nKaizen Score: ${beforeScore} ➔ ${afterScore} 🔥\nhttps://kaizenreply.js.org`;
+  } else {
+    tweetText = `Evolved my message with @KaizenReply 改善:\n\n"${afterText.substring(0, 180)}"\n\nKaizen Score: ${beforeScore} ➔ ${afterScore} 🔥\nhttps://kaizenreply.js.org`;
+  }
+  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, "_blank", "noopener,noreferrer");
 }
 
 // Render Reply Mode Output
@@ -439,6 +675,59 @@ window.copyReplyText = (text) => {
 window.shareReplyText = (text) => {
   if (navigator.share) navigator.share({ text }).catch(() => undefined);
   else { navigator.clipboard.writeText(text); alert("Reply copied!"); }
+};
+
+// Recent Kaizen History Management
+function saveToKaizenHistory(original, improved, score, tone) {
+  try {
+    const list = JSON.parse(localStorage.getItem("kaizen_history") || "[]");
+    list.unshift({
+      id: Date.now(),
+      original,
+      improved,
+      scoreAfter: score ? score.after : 88,
+      tone,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    });
+    const trimmed = list.slice(0, 10);
+    localStorage.setItem("kaizen_history", JSON.stringify(trimmed));
+    renderKaizenHistory();
+  } catch (err) {
+    console.error("Failed to save history:", err);
+  }
+}
+
+function renderKaizenHistory() {
+  const section = $("historySection");
+  const listContainer = $("historyList");
+  if (!section || !listContainer) return;
+
+  try {
+    const list = JSON.parse(localStorage.getItem("kaizen_history") || "[]");
+    if (!list.length) {
+      section.classList.add("hidden");
+      return;
+    }
+
+    section.classList.remove("hidden");
+    listContainer.innerHTML = list.map((item) => `
+      <div class="history-item" onclick="loadHistoryItem('${escapeJsString(item.improved)}')">
+        <span>${escapeHtml(item.tone || 'Kaizen')} · Score: <strong style="color:var(--primary);">${item.scoreAfter}</strong></span>
+        <small style="color:var(--muted-foreground);">${item.timestamp}</small>
+      </div>
+    `).join("");
+  } catch (err) {
+    console.error("History render error:", err);
+  }
+}
+
+window.loadHistoryItem = (text) => {
+  const msgInput = $("messageInput");
+  if (msgInput) {
+    msgInput.value = text;
+    if ($("charCount")) $("charCount").textContent = text.length;
+    msgInput.focus();
+  }
 };
 
 // Quotes Display Update
@@ -508,24 +797,20 @@ function renderCardCanvas(canvas, options) {
   const width = canvas.width;
   const height = canvas.height;
 
-  // Background
   const isDark = document.documentElement.classList.contains("dark");
   ctx.fillStyle = isDark ? "#0d1117" : "#f7f7f3";
   ctx.fillRect(0, 0, width, height);
 
-  // Outer Frame
   ctx.strokeStyle = isDark ? "#30363d" : "#e3e6e2";
   ctx.lineWidth = 4;
   ctx.strokeRect(30, 30, width - 60, height - 60);
 
-  // Hanko Seal Stamp
   ctx.fillStyle = "#c94a36";
   ctx.fillRect(width - 130, 50, 80, 80);
   ctx.fillStyle = "#ffffff";
   ctx.font = "bold 32px sans-serif";
   ctx.fillText("改善", width - 110, 102);
 
-  // Header Title
   ctx.fillStyle = isDark ? "#e6edf3" : "#17201c";
   ctx.font = "bold 38px sans-serif";
   ctx.fillText("KaizenReply", 60, 95);
@@ -534,7 +819,6 @@ function renderCardCanvas(canvas, options) {
   ctx.font = "bold 18px monospace";
   ctx.fillText("KAIZEN CONTINUOUS IMPROVEMENT", 60, 128);
 
-  // Divider
   ctx.strokeStyle = isDark ? "#30363d" : "#e3e6e2";
   ctx.lineWidth = 2;
   ctx.beginPath();
@@ -543,7 +827,6 @@ function renderCardCanvas(canvas, options) {
   ctx.stroke();
 
   if (options.type === "evolve") {
-    // Before Block
     ctx.fillStyle = isDark ? "#161b22" : "#ffffff";
     ctx.fillRect(60, 180, 520, 360);
     ctx.strokeStyle = isDark ? "#30363d" : "#e3e6e2";
@@ -558,7 +841,6 @@ function renderCardCanvas(canvas, options) {
     ctx.font = "20px sans-serif";
     wrapCanvasText(ctx, options.original, 85, 255, 470, 32);
 
-    // After Block
     ctx.fillStyle = isDark ? "rgba(34, 197, 94, 0.08)" : "rgba(22, 166, 106, 0.05)";
     ctx.fillRect(620, 180, 520, 360);
     ctx.strokeStyle = isDark ? "rgba(34, 197, 94, 0.4)" : "rgba(22, 166, 106, 0.3)";
@@ -573,16 +855,14 @@ function renderCardCanvas(canvas, options) {
     ctx.font = "bold 22px sans-serif";
     wrapCanvasText(ctx, options.improved, 645, 255, 470, 32);
 
-    // Footer Info
     ctx.fillStyle = "#16a66a";
     ctx.font = "bold 26px sans-serif";
     ctx.fillText(`Kaizen Score: ${options.score}/100`, 60, 575);
 
     ctx.fillStyle = isDark ? "#8b949e" : "#737a75";
     ctx.font = "16px monospace";
-    ctx.fillText(`${options.tone} · ${options.platform}`, width - 360, 575);
+    ctx.fillText(`${options.tone} · ${options.platform || "General"}`, width - 360, 575);
   } else {
-    // Quote Type Canvas
     ctx.fillStyle = "#16a66a";
     ctx.font = "bold 18px monospace";
     ctx.fillText(`PHILOSOPHY · ${options.category.toUpperCase()}`, 60, 200);

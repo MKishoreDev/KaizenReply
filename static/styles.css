@@ -204,7 +204,7 @@ button, input, select, textarea { font-family: var(--font-sans); }
 .desk-title small { font-size: 12px; color: var(--muted-foreground); }
 
 textarea.desk-textarea {
-  width: 100%; min-height: 160px; padding: 14px; border: 1px solid var(--border); border-radius: var(--radius);
+  width: 100%; min-height: 150px; padding: 14px; border: 1px solid var(--border); border-radius: var(--radius);
   background: var(--background); color: var(--foreground); font-size: 14px; line-height: 1.6; resize: vertical;
   outline: none; transition: border-color 0.2s;
 }
@@ -217,6 +217,28 @@ textarea.desk-textarea:focus { border-color: var(--primary); }
   padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s;
 }
 .demo-row button:hover { background: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
+
+/* Tone Chips Selector & Category Filters */
+.chips-wrap { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip {
+  background: var(--secondary); border: 1px solid var(--border); color: var(--foreground);
+  padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+}
+.chip:hover { border-color: var(--primary); }
+.chip.active { background: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
+
+.tone-cat-filters button {
+  background: transparent; border: 1px solid var(--border); color: var(--muted-foreground);
+  padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+}
+.tone-cat-filters button.active { background: var(--accent); color: var(--accent-foreground); border-color: var(--primary); }
+
+/* AI Suggest Recommendation Banner */
+.rec-banner {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px; background: var(--accent); border: 1px solid var(--primary);
+  border-radius: var(--radius); color: var(--accent-foreground); font-size: 12px;
+}
 
 .control-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .control-field { display: flex; flex-direction: column; gap: 6px; }
@@ -286,6 +308,13 @@ textarea.desk-textarea:focus { border-color: var(--primary); }
 .reply-results article span { font-size: 10px; font-weight: 800; color: var(--primary-emphasis); text-transform: uppercase; }
 .reply-results article p { font-size: 13px; margin: 0; line-height: 1.5; }
 .reply-results article div { display: flex; gap: 8px; justify-content: flex-end; }
+
+/* ── Recent History Items ────────────────────────────────────────────────── */
+.history-item {
+  padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--background); font-size: 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s;
+}
+.history-item:hover { border-color: var(--primary); }
 
 /* ── Process & Philosophy Sections ───────────────────────────────────────── */
 .process-section, .philosophy-section, .features-section, .quote-section { padding: 80px 0; border-bottom: 1px solid var(--border); }
