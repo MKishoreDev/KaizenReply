@@ -115,6 +115,8 @@ function setTheme(dark) {
     sun.classList.toggle("hidden", !dark);
     moon.classList.toggle("hidden", dark);
   }
+  document.querySelectorAll(".light-logo").forEach((el) => el.classList.toggle("hidden", dark));
+  document.querySelectorAll(".dark-logo").forEach((el) => el.classList.toggle("hidden", !dark));
 }
 
 // Fetch Dynamic Models from Backend API
