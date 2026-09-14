@@ -250,12 +250,12 @@ button, input, select, textarea { font-family: var(--font-sans); }
 .btn-paper:hover { background: var(--secondary); border-color: var(--primary); }
 
 /* ── Hero Section ─────────────────────────────────────────────────────── */
-.hero { min-height: 610px; position: relative; isolation: isolate; overflow: hidden; border-bottom: 1px solid var(--border); }
+.hero { min-height: calc(100vh - 66px); position: relative; isolation: isolate; overflow: hidden; border-bottom: 1px solid var(--border); display: flex; align-items: center; }
 .hero-art, .hero-wash { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; object-position: 60% center; }
 .hero-wash { z-index: -1; background: linear-gradient(90deg, color-mix(in srgb, var(--background) 98%, transparent) 0%, color-mix(in srgb, var(--background) 89%, transparent) 45%, color-mix(in srgb, var(--background) 20%, transparent) 76%); }
 .dark .hero-art, .dark .quote-art { filter: brightness(.25) saturate(.5); }
 
-.hero-grid { min-height: 610px; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(340px, .85fr); align-items: center; gap: 60px; padding-block: 48px; }
+.hero-grid { min-height: calc(100vh - 66px); width: 100%; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(340px, .85fr); align-items: center; gap: 60px; padding-block: 32px; }
 .hero-copy { position: relative; padding-left: 72px; max-width: 760px; }
 .vertical-kaizen { position: absolute; left: 0; top: 5px; display: flex; flex-direction: column; align-items: center; font-family: var(--font-jp); color: var(--primary-emphasis); font-size: 27px; line-height: 1.13; }
 .vertical-kaizen i { margin-top: 10px; width: 22px; height: 22px; border: 1px solid var(--hanko); color: var(--hanko); font-size: 9px; font-style: normal; display: grid; place-items: center; }
