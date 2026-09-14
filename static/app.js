@@ -524,14 +524,10 @@ async function runKaizenAction(overrideTone = null) {
   };
 
   // Render Kaizen Loading State
-  const loadingKanji = currentMode === "reply" ? "返" : "善";
   const loadingText = currentMode === "reply" ? "Crafting replies…" : "Evolving your words…";
-  const loadingSub = currentMode === "reply" ? "思慮深い返答を作成中" : "改善の力で言葉を洗練中";
+  const loadingSub = currentMode === "reply" ? "Generating thoughtful responses" : "Refining style & clarity";
   outputContainer.innerHTML = `
     <div class="kaizen-loader">
-      <div class="kaizen-loader__circle">
-        <div class="kaizen-loader__kanji">${loadingKanji}</div>
-      </div>
       <div class="kaizen-loader__dots">
         <div class="kaizen-loader__dot"></div>
         <div class="kaizen-loader__dot"></div>
@@ -616,7 +612,6 @@ function renderEvolveOutput(data, original, tone, platform) {
   const notesHtml = data.notes && data.notes.length
     ? data.notes.map(n => `
         <div class="note-row">
-          <span>改</span>
           <div>
             <b>“${escapeHtml(n.original)}” → “${escapeHtml(n.replacement)}”</b>
             <small>${escapeHtml(n.reason)}</small>
@@ -726,9 +721,9 @@ function shareToX(beforeText, afterText, beforeScore, afterScore, toneName) {
   const isLinkedInMeme = toneName === "LinkedIn Bro";
   let tweetText = "";
   if (isLinkedInMeme) {
-    tweetText = `Reality vs. LinkedIn with @KaizenReply 改善:\n\nREALITY:\n"${beforeText.substring(0, 70)}"\n\nLINKEDIN:\n"${afterText.substring(0, 130)}"\n\nKaizen Score: ${beforeScore} ➔ ${afterScore} 🔥\nhttps://kaizenreply.vercel.app`;
+    tweetText = `Reality vs. LinkedIn with @KaizenReply:\n\nREALITY:\n"${beforeText.substring(0, 70)}"\n\nLINKEDIN:\n"${afterText.substring(0, 130)}"\n\nKaizen Score: ${beforeScore} ➔ ${afterScore} 🔥\nhttps://kaizenreply.vercel.app`;
   } else {
-    tweetText = `Evolved my message with @KaizenReply 改善:\n\n"${afterText.substring(0, 180)}"\n\nKaizen Score: ${beforeScore} ➔ ${afterScore} 🔥\nhttps://kaizenreply.vercel.app`;
+    tweetText = `Evolved my message with @KaizenReply:\n\n"${afterText.substring(0, 180)}"\n\nKaizen Score: ${beforeScore} ➔ ${afterScore} 🔥\nhttps://kaizenreply.vercel.app`;
   }
   window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, "_blank", "noopener,noreferrer");
 }
@@ -1043,18 +1038,10 @@ function renderCardCanvas(canvas, options) {
     ctx.fillStyle = overlayGrad;
     ctx.fillRect(0, 0, width, height);
 
-    // 2. Top-Left Brand Lockup ([改] KaizenReply)
-    ctx.fillStyle = "#c94a36";
-    drawRoundRect(ctx, 60, 50, 34, 38, 3);
-    ctx.fill();
-
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 18px 'Noto Serif JP', serif";
-    ctx.fillText("改", 69, 76);
-
+    // 2. Top-Left Brand Lockup (KaizenReply)
     ctx.fillStyle = "#17201c";
     ctx.font = "bold 30px 'Manrope', sans-serif";
-    ctx.fillText("KaizenReply", 106, 78);
+    ctx.fillText("KaizenReply", 60, 78);
 
     // 3. Top-Right Version / Category Tag
     ctx.fillStyle = "#16a66a";
@@ -1129,24 +1116,7 @@ function renderCardCanvas(canvas, options) {
       ctx.font = "14px monospace";
       ctx.fillText("kaizenreply.vercel.app · Japanese Kotowaza Wisdom", 60, 565);
     }
-
-    // 5. Red Hanko Seal Stamp (Bottom Right)
-    ctx.strokeStyle = "#c94a36";
-    ctx.lineWidth = 3;
-    drawRoundRect(ctx, width - 120, height - 110, 55, 55, 3);
-    ctx.stroke();
-
-    ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
-    ctx.fill();
-
-    ctx.fillStyle = "#c94a36";
-    ctx.font = "bold 22px 'Noto Serif JP', serif";
-    ctx.fillText("改善", width - 107, height - 74);
   };
-
-  bgImg.onload = drawAll;
-  if (bgImg.complete) drawAll();
-}
 
   bgImg.onload = drawAll;
   if (bgImg.complete) drawAll();
