@@ -410,53 +410,61 @@
             <p class="eyebrow" style="margin:0;color:rgba(34,197,94,0.8);">Kotowaza Wisdom</p>
             <h2 style="font-size:clamp(1.6rem,3vw,2.2rem);font-family:var(--font-display);margin:6px 0 0;color:#fff;">Japanese Proverbs &amp; Kaizen Philosophy</h2>
           </div>
-          <div id="quoteTagFilters" class="quote-tags">
-            <button type="button" class="tag-btn active" data-tag="all">All</button>
-            <button type="button" class="tag-btn" data-tag="motivation">Motivation</button>
-            <button type="button" class="tag-btn" data-tag="kaizen">Kaizen</button>
-            <button type="button" class="tag-btn" data-tag="philosophy">Philosophy</button>
-            <button type="button" class="tag-btn" data-tag="life">Life</button>
-          </div>
         </div>
 
         <article class="quote-card" id="quoteCard">
-          <!-- Top row: category + JLPT badge -->
-          <div class="quote-card__meta">
-            <span id="quoteCategory" class="quote-card__tag">Kotowaza · Wisdom</span>
-            <span id="quoteJlpt" class="quote-card__jlpt">JLPT N4</span>
+          <!-- Quote Loading State -->
+          <div id="quoteLoadingState" class="quote-loader" style="padding: 40px 0; text-align: center;">
+            <div class="kaizen-loader__dots" style="justify-content: center; margin-bottom: 12px; display: flex; gap: 6px;">
+              <div class="kaizen-loader__dot"></div>
+              <div class="kaizen-loader__dot"></div>
+              <div class="kaizen-loader__dot"></div>
+              <div class="kaizen-loader__dot"></div>
+              <div class="kaizen-loader__dot"></div>
+            </div>
+            <p style="margin: 0; color: var(--muted-foreground); font-size: 13px; font-weight: 600;">Fetching Kotowaza wisdom…</p>
           </div>
 
-          <!-- Large Kanji -->
-          <p lang="ja" id="quoteJp" class="quote-card__kanji">七転び八起き</p>
+          <!-- Quote Content State -->
+          <div id="quoteContentState" class="hidden">
+            <!-- Top row: category + JLPT badge -->
+            <div class="quote-card__meta">
+              <span id="quoteCategory" class="quote-card__tag">Kotowaza · Wisdom</span>
+              <span id="quoteJlpt" class="quote-card__jlpt">JLPT N4</span>
+            </div>
 
-          <!-- Reading -->
-          <p id="quoteReading" class="quote-card__reading">ななころびやおき · Nanakorobi Yaoki</p>
+            <!-- Large Kanji -->
+            <p lang="ja" id="quoteJp" class="quote-card__kanji"></p>
 
-          <!-- English meaning -->
-          <blockquote id="quoteEn" class="quote-card__meaning">"Fall down seven times, stand up eight."</blockquote>
+            <!-- Reading -->
+            <p id="quoteReading" class="quote-card__reading"></p>
 
-          <!-- Literal + Equivalent (minimal row) -->
-          <div class="quote-card__details">
-            <span id="quoteLiteral" class="quote-card__literal"></span>
-            <span id="quoteEquivalent" class="quote-card__equiv"></span>
-          </div>
+            <!-- English meaning -->
+            <blockquote id="quoteEn" class="quote-card__meaning"></blockquote>
 
-          <!-- Example sentence (clean box) -->
-          <div id="quoteExampleBox" class="quote-card__example">
-            <span id="quoteExampleJa" lang="ja" class="quote-card__example-ja"></span>
-            <span id="quoteExampleEn" class="quote-card__example-en"></span>
-          </div>
+            <!-- Literal + Equivalent (minimal row) -->
+            <div class="quote-card__details">
+              <span id="quoteLiteral" class="quote-card__literal"></span>
+              <span id="quoteEquivalent" class="quote-card__equiv"></span>
+            </div>
 
-          <!-- Actions: only Share Card -->
-          <div class="quote-card__footer">
-            <span class="quote-card__refresh-hint">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
-              New quote on refresh
-            </span>
-            <button id="shareQuoteBtn" class="btn-hero">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-              Share Card
-            </button>
+            <!-- Example sentence (clean box) -->
+            <div id="quoteExampleBox" class="quote-card__example">
+              <span id="quoteExampleJa" lang="ja" class="quote-card__example-ja"></span>
+              <span id="quoteExampleEn" class="quote-card__example-en"></span>
+            </div>
+
+            <!-- Actions: only Share Card -->
+            <div class="quote-card__footer">
+              <span class="quote-card__refresh-hint">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+                New quote on refresh
+              </span>
+              <button id="shareQuoteBtn" class="btn-hero">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                Share Card
+              </button>
+            </div>
           </div>
         </article>
       </div>

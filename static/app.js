@@ -820,6 +820,11 @@ let kotowazaList = [];
 let activeQuoteTag = "all";
 
 async function fetchKotowazaProverbs() {
+  const loadingState = $("quoteLoadingState");
+  const contentState = $("quoteContentState");
+  if (loadingState) loadingState.classList.remove("hidden");
+  if (contentState) contentState.classList.add("hidden");
+
   try {
     const res = await fetch("/api/quotes?limit=100");
     if (res.ok) {
@@ -845,6 +850,9 @@ async function fetchKotowazaProverbs() {
     }
   } catch (err) {
     console.error("Kotowaza API fetch error:", err);
+  } finally {
+    if (loadingState) loadingState.classList.add("hidden");
+    if (contentState) contentState.classList.remove("hidden");
   }
 }
 
