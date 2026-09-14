@@ -149,9 +149,61 @@ button, input, select, textarea { font-family: var(--font-sans); }
   border-radius: 2px;
 }
 
-.nav-links { display: flex; align-items: center; gap: 30px; }
-.nav-links a { color: var(--muted-foreground); text-decoration: none; font-size: 13px; font-weight: 600; transition: color 0.2s; }
-.nav-links a:hover { color: var(--foreground); }
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--secondary);
+  padding: 3px 5px;
+  border-radius: 30px;
+  border: 1px solid var(--border);
+}
+.nav-links a {
+  color: var(--muted-foreground);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 13px;
+  border-radius: 20px;
+  transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.nav-links a:hover {
+  color: var(--foreground);
+}
+.nav-links a.active {
+  color: var(--primary-emphasis);
+  background: var(--card);
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 0 0 1px color-mix(in srgb, var(--primary) 35%, transparent);
+}
+.nav-links a.active::after {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--primary);
+  display: inline-block;
+}
+
+/* Dark Mode Navigation Active Indicator */
+.dark .nav-links {
+  background: rgba(16, 22, 32, 0.75);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+.dark .nav-links a.active {
+  color: #4ade80;
+  background: rgba(34, 197, 94, 0.16);
+  box-shadow: 0 0 16px rgba(34, 197, 94, 0.2), 0 0 0 1px rgba(34, 197, 94, 0.35);
+}
+.dark .nav-links a.active::after {
+  background: #22c55e;
+  box-shadow: 0 0 8px #22c55e;
+}
+
 .nav-actions { display: flex; justify-content: flex-end; align-items: center; gap: 6px; }
 
 /* ── Buttons ─────────────────────────────────────────────────────────── */

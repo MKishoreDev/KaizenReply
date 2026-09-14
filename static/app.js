@@ -97,7 +97,49 @@ document.addEventListener("DOMContentLoaded", () => {
   updateQuoteDisplay();
   renderKaizenHistory();
   initHeroPreviewAnimation();
+  initScrollSpy();
 });
+
+// Active Navigation Scroll Indicator
+function initScrollSpy() {
+  const sections = ["top", "desk", "how", "philosophy", "features", "quotes"];
+  const navItems = document.querySelectorAll(".nav-links a");
+
+  if (!navItems.length) return;
+
+  function onScroll() {
+    const scrollPos = window.scrollY + 140; // 140px offset for sticky header height
+
+    let currentSection = "top";
+    for (const secId of sections) {
+      const el = document.getElementById(secId);
+      if (el) {
+        const top = el.offsetTop;
+        const height = el.offsetHeight;
+        if (scrollPos >= top && scrollPos < top + height) {
+          currentSection = secId;
+        }
+      }
+    }
+
+    // Special check for bottom of page
+    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 60) {
+      currentSection = "quotes";
+    }
+
+    navItems.forEach((link) => {
+      const href = link.getAttribute("href");
+      if (href === `#${currentSection}`) {
+        link.classList.add("active");
+      } else {
+        link.classList.remove("active");
+      }
+    });
+  }
+
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+}
 
 // Interactive Typewriter & Score Count-Up Animation Loop for Hero Mini Card
 function initHeroPreviewAnimation() {
