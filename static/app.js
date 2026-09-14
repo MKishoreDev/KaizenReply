@@ -1018,33 +1018,63 @@ function renderCardCanvas(canvas, options) {
   const width = canvas.width;
   const height = canvas.height;
 
+  const isDark = document.documentElement.classList.contains("dark");
+  const colors = isDark ? {
+    bgOverlay1: "rgba(14, 20, 32, 0.88)",
+    bgOverlay2: "rgba(8, 12, 18, 0.70)",
+    heading: "#e8eef6",
+    accent: "#22c55e",
+    accentDark: "#4ade80",
+    muted: "#6b7a95",
+    text: "#d4dde8"
+  } : {
+    bgOverlay1: "rgba(247, 247, 243, 0.60)",
+    bgOverlay2: "rgba(247, 247, 243, 0.25)",
+    heading: "#17201c",
+    accent: "#16a66a",
+    accentDark: "#087443",
+    muted: "#6b7280",
+    text: "#17201c"
+  };
+
   const bgImg = new Image();
   bgImg.crossOrigin = "anonymous";
   bgImg.src = options.type === "quote" ? "/static/assets/kaizen-quote.jpg" : "/static/assets/kaizen-share.jpg";
 
+  const logoImg = new Image();
+  logoImg.crossOrigin = "anonymous";
+  logoImg.src = "/static/logo-icon.png";
+
   const drawAll = () => {
-    // 1. Draw Washi Landscape Background Image
+    // 1. Draw Landscape Background Image
     if (bgImg.complete && bgImg.naturalWidth !== 0) {
       ctx.drawImage(bgImg, 0, 0, width, height);
     } else {
-      ctx.fillStyle = "#f7f7f3";
+      ctx.fillStyle = isDark ? "#080c12" : "#f7f7f3";
       ctx.fillRect(0, 0, width, height);
     }
 
-    // Light gradient overlay for readability
+    // Dynamic theme gradient overlay
     const overlayGrad = ctx.createLinearGradient(0, 0, width, height);
-    overlayGrad.addColorStop(0, "rgba(247, 247, 243, 0.45)");
-    overlayGrad.addColorStop(1, "rgba(247, 247, 243, 0.15)");
+    overlayGrad.addColorStop(0, colors.bgOverlay1);
+    overlayGrad.addColorStop(1, colors.bgOverlay2);
     ctx.fillStyle = overlayGrad;
     ctx.fillRect(0, 0, width, height);
 
-    // 2. Top-Left Brand Lockup (KaizenReply)
-    ctx.fillStyle = "#17201c";
-    ctx.font = "bold 30px 'Manrope', sans-serif";
-    ctx.fillText("KaizenReply", 60, 78);
+    // 2. Top-Left Brand Lockup with Official Logo Image
+    if (logoImg.complete && logoImg.naturalWidth !== 0) {
+      ctx.drawImage(logoImg, 60, 48, 38, 38);
+      ctx.fillStyle = colors.heading;
+      ctx.font = "bold 30px 'Manrope', sans-serif";
+      ctx.fillText("KaizenReply", 110, 78);
+    } else {
+      ctx.fillStyle = colors.heading;
+      ctx.font = "bold 30px 'Manrope', sans-serif";
+      ctx.fillText("KaizenReply", 60, 78);
+    }
 
     // 3. Top-Right Version / Category Tag
-    ctx.fillStyle = "#16a66a";
+    ctx.fillStyle = colors.accent;
     ctx.font = "bold 16px monospace";
     if (options.type === "evolve") {
       ctx.fillText("V01 → V02", width - 180, 78);
@@ -1056,70 +1086,71 @@ function renderCardCanvas(canvas, options) {
     // 4. Content Drawing
     if (options.type === "evolve") {
       // Main Heading
-      ctx.fillStyle = "#17201c";
+      ctx.fillStyle = colors.heading;
       ctx.font = "400 42px 'Georgia', 'Noto Serif JP', serif";
       ctx.fillText("Small improvements.", 60, 165);
 
-      ctx.fillStyle = "#16a66a";
+      ctx.fillStyle = colors.accent;
       ctx.fillText("Better messages.", 60, 215);
 
       // BEFORE Section
-      ctx.fillStyle = "#6b7280";
+      ctx.fillStyle = colors.muted;
       ctx.font = "bold 13px monospace";
       ctx.fillText("BEFORE", 60, 275);
 
-      ctx.fillStyle = "#17201c";
+      ctx.fillStyle = colors.text;
       ctx.font = "600 20px 'Manrope', sans-serif";
       wrapCanvasText(ctx, options.original || "Original draft message...", 60, 310, 620, 30);
 
       // AFTER Section
-      ctx.fillStyle = "#16a66a";
+      ctx.fillStyle = colors.accent;
       ctx.font = "bold 13px monospace";
       ctx.fillText("AFTER", 60, 405);
 
-      ctx.fillStyle = "#087443";
+      ctx.fillStyle = colors.accentDark;
       ctx.font = "bold 24px 'Georgia', 'Manrope', serif";
       wrapCanvasText(ctx, options.improved || "Evolved message...", 60, 442, 650, 34);
 
       // Bottom Score Info
-      ctx.fillStyle = "#16a66a";
+      ctx.fillStyle = colors.accent;
       ctx.font = "bold 22px 'Manrope', sans-serif";
       ctx.fillText(`Kaizen Score: ${options.score || 88}/100`, 60, 565);
 
-      ctx.fillStyle = "#6b7280";
+      ctx.fillStyle = colors.muted;
       ctx.font = "15px monospace";
       const infoText = [options.tone, options.platform].filter(Boolean).join(" · ") || "Continuous Improvement";
       ctx.fillText(infoText, 320, 565);
 
     } else {
       // Quote Card Drawing
-      ctx.fillStyle = "#17201c";
+      ctx.fillStyle = colors.heading;
       ctx.font = "bold 56px 'Noto Serif JP', serif";
       ctx.fillText(options.japanese || "", 60, 210);
 
-      ctx.fillStyle = "#16a66a";
+      ctx.fillStyle = colors.accent;
       ctx.font = "400 42px 'Georgia', 'Instrument Serif', serif";
       wrapCanvasText(ctx, `"${options.meaning || ""}"`, 60, 280, 1000, 52);
 
-      ctx.fillStyle = "#737a75";
+      ctx.fillStyle = colors.muted;
       ctx.font = "20px 'Manrope', sans-serif";
       const sourceLine = [options.romaji, options.source ? `— ${options.source}` : ""].filter(Boolean).join(" ");
       ctx.fillText(sourceLine, 60, 410);
 
       if (options.literal) {
         ctx.font = "italic 16px sans-serif";
-        ctx.fillStyle = "#8b949e";
+        ctx.fillStyle = colors.muted;
         ctx.fillText(`Literal: ${options.literal}`, 60, 460);
       }
 
-      ctx.fillStyle = "#16a66a";
+      ctx.fillStyle = colors.accent;
       ctx.font = "14px monospace";
       ctx.fillText("kaizenreply.vercel.app · Japanese Kotowaza Wisdom", 60, 565);
     }
   };
 
   bgImg.onload = drawAll;
-  if (bgImg.complete) drawAll();
+  logoImg.onload = drawAll;
+  if (bgImg.complete && logoImg.complete) drawAll();
 }
 
 function drawRoundRect(ctx, x, y, w, h, r) {
