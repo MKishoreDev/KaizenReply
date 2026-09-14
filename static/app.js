@@ -1028,149 +1028,125 @@ function renderCardCanvas(canvas, options) {
   bgImg.src = options.type === "quote" ? "/static/assets/kaizen-quote.jpg" : "/static/assets/kaizen-share.jpg";
 
   const drawAll = () => {
-    // 1. Draw Japanese Landscape Artwork Background Image
+    // 1. Draw Washi Landscape Background Image
     if (bgImg.complete && bgImg.naturalWidth !== 0) {
       ctx.drawImage(bgImg, 0, 0, width, height);
-      ctx.fillStyle = options.type === "quote" ? "rgba(13, 17, 23, 0.65)" : "rgba(13, 17, 23, 0.55)";
-      ctx.fillRect(0, 0, width, height);
     } else {
-      const grad = ctx.createLinearGradient(0, 0, width, height);
-      grad.addColorStop(0, "#0d1117");
-      grad.addColorStop(1, "#161b22");
-      ctx.fillStyle = grad;
+      ctx.fillStyle = "#f7f7f3";
       ctx.fillRect(0, 0, width, height);
     }
 
-    // 2. Outer Border Frame
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+    // Light gradient overlay for readability
+    const overlayGrad = ctx.createLinearGradient(0, 0, width, height);
+    overlayGrad.addColorStop(0, "rgba(247, 247, 243, 0.45)");
+    overlayGrad.addColorStop(1, "rgba(247, 247, 243, 0.15)");
+    ctx.fillStyle = overlayGrad;
+    ctx.fillRect(0, 0, width, height);
+
+    // 2. Top-Left Brand Lockup ([改] KaizenReply)
+    ctx.fillStyle = "#c94a36";
+    drawRoundRect(ctx, 60, 50, 34, 38, 3);
+    ctx.fill();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 18px 'Noto Serif JP', serif";
+    ctx.fillText("改", 69, 76);
+
+    ctx.fillStyle = "#17201c";
+    ctx.font = "bold 30px 'Manrope', sans-serif";
+    ctx.fillText("KaizenReply", 106, 78);
+
+    // 3. Top-Right Version / Category Tag
+    ctx.fillStyle = "#16a66a";
+    ctx.font = "bold 16px monospace";
+    if (options.type === "evolve") {
+      ctx.fillText("V01 → V02", width - 180, 78);
+    } else {
+      const catText = `KAIZEN WISDOM · ${(options.category || "Wisdom").toUpperCase()}`;
+      ctx.fillText(catText, width - 360, 78);
+    }
+
+    // 4. Content Drawing
+    if (options.type === "evolve") {
+      // Main Heading
+      ctx.fillStyle = "#17201c";
+      ctx.font = "400 42px 'Georgia', 'Noto Serif JP', serif";
+      ctx.fillText("Small improvements.", 60, 165);
+
+      ctx.fillStyle = "#16a66a";
+      ctx.fillText("Better messages.", 60, 215);
+
+      // BEFORE Section
+      ctx.fillStyle = "#6b7280";
+      ctx.font = "bold 13px monospace";
+      ctx.fillText("BEFORE", 60, 275);
+
+      ctx.fillStyle = "#17201c";
+      ctx.font = "600 20px 'Manrope', sans-serif";
+      wrapCanvasText(ctx, options.original || "Original draft message...", 60, 310, 620, 30);
+
+      // AFTER Section
+      ctx.fillStyle = "#16a66a";
+      ctx.font = "bold 13px monospace";
+      ctx.fillText("AFTER", 60, 405);
+
+      ctx.fillStyle = "#087443";
+      ctx.font = "bold 24px 'Georgia', 'Manrope', serif";
+      wrapCanvasText(ctx, options.improved || "Evolved message...", 60, 442, 650, 34);
+
+      // Bottom Score Info
+      ctx.fillStyle = "#16a66a";
+      ctx.font = "bold 22px 'Manrope', sans-serif";
+      ctx.fillText(`Kaizen Score: ${options.score || 88}/100`, 60, 565);
+
+      ctx.fillStyle = "#6b7280";
+      ctx.font = "15px monospace";
+      const infoText = [options.tone, options.platform].filter(Boolean).join(" · ") || "Continuous Improvement";
+      ctx.fillText(infoText, 320, 565);
+
+    } else {
+      // Quote Card Drawing
+      ctx.fillStyle = "#17201c";
+      ctx.font = "bold 56px 'Noto Serif JP', serif";
+      ctx.fillText(options.japanese || "", 60, 210);
+
+      ctx.fillStyle = "#16a66a";
+      ctx.font = "400 42px 'Georgia', 'Instrument Serif', serif";
+      wrapCanvasText(ctx, `"${options.meaning || ""}"`, 60, 280, 1000, 52);
+
+      ctx.fillStyle = "#737a75";
+      ctx.font = "20px 'Manrope', sans-serif";
+      const sourceLine = [options.romaji, options.source ? `— ${options.source}` : ""].filter(Boolean).join(" ");
+      ctx.fillText(sourceLine, 60, 410);
+
+      if (options.literal) {
+        ctx.font = "italic 16px sans-serif";
+        ctx.fillStyle = "#8b949e";
+        ctx.fillText(`Literal: ${options.literal}`, 60, 460);
+      }
+
+      ctx.fillStyle = "#16a66a";
+      ctx.font = "14px monospace";
+      ctx.fillText("kaizenreply.vercel.app · Japanese Kotowaza Wisdom", 60, 565);
+    }
+
+    // 5. Red Hanko Seal Stamp (Bottom Right)
+    ctx.strokeStyle = "#c94a36";
     ctx.lineWidth = 3;
-    ctx.strokeRect(24, 24, width - 48, height - 48);
-
-    // 3. Red Hanko Seal (Top Right)
-    ctx.fillStyle = "#c94a36";
-    drawRoundRect(ctx, width - 120, 42, 66, 66, 4);
-    ctx.fill();
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 26px 'Noto Serif JP', serif";
-    ctx.fillText("改善", width - 104, 84);
-
-    // Brand Mark Header (Top Left)
-    ctx.fillStyle = "#c94a36";
-    drawRoundRect(ctx, 50, 45, 30, 32, 2);
-    ctx.fill();
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 16px 'Noto Serif JP', serif";
-    ctx.fillText("改", 58, 67);
-
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 32px 'Manrope', sans-serif";
-    ctx.fillText("KaizenReply", 92, 70);
-
-    ctx.fillStyle = "#22c55e";
-    ctx.font = "bold 14px monospace";
-    const subTitle = options.type === "quote" ? "KAIZEN WISDOM · KOTOWAZA" : "KAIZEN · V01 → V02";
-    ctx.fillText(subTitle, 92, 95);
-
-    // Divider Line
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(50, 115);
-    ctx.lineTo(width - 50, 115);
+    drawRoundRect(ctx, width - 120, height - 110, 55, 55, 3);
     ctx.stroke();
 
-    // 4. Content Cards
-    if (options.type === "evolve") {
-      // BEFORE Card (Frosted Glass Dark Box)
-      ctx.fillStyle = "rgba(13, 17, 23, 0.82)";
-      drawRoundRect(ctx, 50, 140, 520, 390, 12);
-      ctx.fill();
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
-      ctx.lineWidth = 1;
-      ctx.stroke();
+    ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+    ctx.fill();
 
-      ctx.fillStyle = "#8b949e";
-      ctx.font = "bold 14px monospace";
-      ctx.fillText("BEFORE · ORIGINAL DRAFT", 75, 175);
-
-      ctx.fillStyle = "#f0f6fc";
-      ctx.font = "20px 'Manrope', sans-serif";
-      wrapCanvasText(ctx, options.original || "Original draft message...", 75, 215, 470, 32);
-
-      // Center Arrow
-      ctx.fillStyle = "#22c55e";
-      ctx.font = "bold 32px sans-serif";
-      ctx.fillText("→", 584, 335);
-
-      // AFTER Card (Kaizen Evolved Green Frosted Box)
-      ctx.fillStyle = "rgba(22, 166, 106, 0.22)";
-      drawRoundRect(ctx, 630, 140, 520, 390, 12);
-      ctx.fill();
-      ctx.strokeStyle = "rgba(34, 197, 94, 0.6)";
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      ctx.fillStyle = "#22c55e";
-      ctx.font = "bold 14px monospace";
-      ctx.fillText("AFTER · KAIZEN EVOLVED", 655, 175);
-
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 22px 'Manrope', sans-serif";
-      wrapCanvasText(ctx, options.improved || "Evolved message...", 655, 215, 470, 34);
-
-      // Footer Info
-      ctx.fillStyle = "#22c55e";
-      ctx.font = "bold 24px 'Manrope', sans-serif";
-      ctx.fillText(`Kaizen Score: ${options.score || 88}/100`, 50, 575);
-
-      ctx.fillStyle = "#e6edf3";
-      ctx.font = "16px monospace";
-      const infoText = [options.tone, options.platform].filter(Boolean).join(" · ") || "Continuous Improvement";
-      ctx.fillText(infoText, width - 360, 575);
-
-    } else {
-      // Quote Card
-      ctx.fillStyle = "rgba(13, 17, 23, 0.85)";
-      drawRoundRect(ctx, 50, 140, 1100, 390, 12);
-      ctx.fill();
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
-      ctx.lineWidth = 1;
-      ctx.stroke();
-
-      ctx.fillStyle = "#22c55e";
-      ctx.font = "bold 14px monospace";
-      ctx.fillText(`KOTOWAZA · ${(options.category || "Wisdom").toUpperCase()} · ${options.jlpt || "N4"}`, 80, 180);
-
-      // Kanji
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 58px 'Noto Serif JP', serif";
-      ctx.fillText(options.japanese || "", 80, 255);
-
-      // Reading
-      ctx.font = "18px monospace";
-      ctx.fillStyle = "#8b949e";
-      ctx.fillText(`${options.reading || ""} · ${options.romaji || ""}`, 80, 295);
-
-      // Meaning
-      ctx.font = "bold 26px 'Instrument Serif', serif";
-      ctx.fillStyle = "#ffffff";
-      wrapCanvasText(ctx, `"${options.meaning || ""}"`, 80, 355, 1040, 38);
-
-      // Literal & Equivalent
-      ctx.font = "italic 18px sans-serif";
-      ctx.fillStyle = "#8b949e";
-      if (options.literal) {
-        ctx.fillText(`Literal: ${options.literal}`, 80, 455);
-      }
-      if (options.equivalent) {
-        ctx.fillText(`Equivalent: "${options.equivalent}"`, 80, 485);
-      }
-
-      ctx.font = "14px monospace";
-      ctx.fillStyle = "#22c55e";
-      ctx.fillText("kaizenreply.vercel.app · Japanese Kotowaza Wisdom", 50, 575);
-    }
+    ctx.fillStyle = "#c94a36";
+    ctx.font = "bold 22px 'Noto Serif JP', serif";
+    ctx.fillText("改善", width - 107, height - 74);
   };
+
+  bgImg.onload = drawAll;
+  if (bgImg.complete) drawAll();
+}
 
   bgImg.onload = drawAll;
   if (bgImg.complete) drawAll();
