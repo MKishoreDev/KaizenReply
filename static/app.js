@@ -92,6 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initTheme();
   populateDropdownsAndChips();
   fetchAvailableModels();
+  fetchKotowazaProverbs();
   setupEventListeners();
   updateQuoteDisplay();
   renderKaizenHistory();
@@ -377,25 +378,61 @@ function setupEventListeners() {
   if (evolveBtn) evolveBtn.onclick = () => runKaizenAction();
   if (fixGrammarBtn) fixGrammarBtn.onclick = () => runKaizenAction("Fix Grammar Only");
 
-  // Quotes Carousel Navigation
+  // Quotes Carousel & Kotowaza Tag Navigation
   const prevQuote = $("prevQuoteBtn");
   const nextQuote = $("nextQuoteBtn");
+  const randomQuote = $("randomQuoteBtn");
+  const tryQuoteInDesk = $("tryQuoteInDeskBtn");
   const shareQuote = $("shareQuoteBtn");
+
   if (prevQuote) {
     prevQuote.onclick = () => {
-      currentQuoteIndex = (currentQuoteIndex - 1 + QUOTES.length) % QUOTES.length;
+      const list = getFilteredQuotes();
+      currentQuoteIndex = (currentQuoteIndex - 1 + list.length) % list.length;
       updateQuoteDisplay();
     };
   }
   if (nextQuote) {
     nextQuote.onclick = () => {
-      currentQuoteIndex = (currentQuoteIndex + 1) % QUOTES.length;
+      const list = getFilteredQuotes();
+      currentQuoteIndex = (currentQuoteIndex + 1) % list.length;
       updateQuoteDisplay();
+    };
+  }
+  if (randomQuote) {
+    randomQuote.onclick = () => {
+      const list = getFilteredQuotes();
+      currentQuoteIndex = Math.floor(Math.random() * list.length);
+      updateQuoteDisplay();
+    };
+  }
+  if (tryQuoteInDesk) {
+    tryQuoteInDesk.onclick = () => {
+      const list = getFilteredQuotes();
+      const q = list[currentQuoteIndex] || list[0];
+      if (q && msgInput) {
+        msgInput.value = `${q.japanese} (${q.romaji}) — ${q.meaning ? q.meaning.en : (q.translation || '')}`;
+        if (charCount) charCount.textContent = msgInput.value.length;
+        msgInput.focus();
+        document.getElementById("desk")?.scrollIntoView({ behavior: "smooth" });
+      }
     };
   }
   if (shareQuote) {
     shareQuote.onclick = () => openQuoteCardModal();
   }
+
+  // Kotowaza Tag Filters
+  document.querySelectorAll(".tag-btn").forEach((btn) => {
+    btn.onclick = () => {
+      document.querySelectorAll(".tag-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      activeQuoteTag = btn.getAttribute("data-tag") || "all";
+      currentQuoteIndex = 0;
+      updateQuoteDisplay();
+    };
+  });
+
 
   // Clear History
   const clearHistoryBtn = $("clearHistoryBtn");
@@ -730,24 +767,161 @@ window.loadHistoryItem = (text) => {
   }
 };
 
-// Quotes Display Update
+// Kotowaza Quotes State & Management
+let kotowazaList = [
+  {
+    id: "nanakorobi-yaoki",
+    japanese: "七転び八起き",
+    reading: "ななころびやおき",
+    romaji: "Nanakorobi Yaoki",
+    literal: "Fall seven times, rise eight times",
+    meaning: { en: "No matter how many times you fail, never give up and keep getting back up." },
+    tags: ["motivation", "life", "resilience"],
+    jlpt: "N4",
+    equivalent: { en: "If at first you don't succeed, try, try again." },
+    examples: [{ ja: "「七転び八起き」の精神で、最後まで諦めずに頑張ろう。", en: "With the spirit of falling 7 times and rising 8, let's keep striving until the end without giving up." }]
+  },
+  {
+    id: "ichigo-ichie",
+    japanese: "一期一会",
+    reading: "いちごいちえ",
+    romaji: "Ichigo Ichie",
+    literal: "One time, one meeting",
+    meaning: { en: "Every encounter is unique and will never happen again, so it must be treasured." },
+    tags: ["relationships", "philosophy", "mindfulness"],
+    jlpt: "N2",
+    equivalent: { en: "Once in a lifetime encounter." },
+    examples: [{ ja: "一期一会の精神で、ひとつひとつの出会いを大切にしたい。", en: "With the spirit of ichigo ichie, I want to treasure each and every encounter." }]
+  },
+  {
+    id: "chiri-mo-tsumoreba-yama-to-naru",
+    japanese: "塵も積もれば山となる",
+    reading: "ちりもつもればやまとなる",
+    romaji: "Chiri mo Tsumoreba Yama to Naru",
+    literal: "Even dust, if accumulated, becomes a mountain",
+    meaning: { en: "Small, continuous efforts over time lead to monumental achievements (The core philosophy of Kaizen)." },
+    tags: ["kaizen", "habits", "effort", "growth"],
+    jlpt: "N3",
+    equivalent: { en: "Drop by drop, the ocean is filled / Many a mickle makes a muckle." },
+    examples: [{ ja: "毎日少しずつ勉強を続ければ、塵も積もれば山となる。", en: "If you study a little every day, even dust will build up to become a mountain." }]
+  },
+  {
+    id: "keizoku-wa-chikara-nari",
+    japanese: "継続は力なり",
+    reading: "けいぞくはちからなり",
+    romaji: "Keizoku wa Chikara Nari",
+    literal: "Continuity is power",
+    meaning: { en: "Persisting in effort day after day becomes a formidable strength." },
+    tags: ["discipline", "kaizen", "perseverance"],
+    jlpt: "N3",
+    equivalent: { en: "Consistency is key / Persistence pays off." },
+    examples: [{ ja: "「継続は力なり」と言う通り、毎日続けることが成功の鍵だ。", en: "As the saying goes 'continuity is power', doing something every day is the key to success." }]
+  },
+  {
+    id: "ishin-denshin",
+    japanese: "以心伝心",
+    reading: "いしんでんしん",
+    romaji: "Ishin Denshin",
+    literal: "Transmitting from heart to heart",
+    meaning: { en: "Tacit understanding without needing spoken words; unspoken harmony between minds." },
+    tags: ["communication", "harmony", "connection"],
+    jlpt: "N2",
+    equivalent: { en: "Great minds think alike / Speaks louder than words." },
+    examples: [{ ja: "長年の友人とは以心伝心で、言葉がなくても互いの気持ちがわかる。", en: "With a longtime friend, through unspoken connection, we understand each other without words." }]
+  },
+  {
+    id: "saru-mo-ki-kara-ochiru",
+    japanese: "猿も木から落ちる",
+    reading: "さるもきからおちる",
+    romaji: "Saru mo Ki kara Ochiru",
+    literal: "Even monkeys fall from trees",
+    meaning: { en: "Even masters make mistakes. Stay humble and keep learning." },
+    tags: ["humility", "wisdom", "life"],
+    jlpt: "N3",
+    equivalent: { en: "Even Homer nods / Nobody is perfect." },
+    examples: [{ ja: "プロでも失敗することはある。猿も木から落ちるというね。", en: "Even pros make mistakes sometimes. As they say, even monkeys fall from trees." }]
+  }
+];
+
+let activeQuoteTag = "all";
+
+async function fetchKotowazaProverbs() {
+  try {
+    const res = await fetch("/api/quotes?limit=50");
+    if (res.ok) {
+      const data = await res.json();
+      if (data && Array.isArray(data.quotes) && data.quotes.length > 0) {
+        kotowazaList = data.quotes;
+        currentQuoteIndex = 0;
+        updateQuoteDisplay();
+      }
+    }
+  } catch (err) {
+    console.warn("Using default Kotowaza proverbs dataset:", err);
+  }
+}
+
+function getFilteredQuotes() {
+  if (activeQuoteTag === "all") return kotowazaList;
+  const tag = activeQuoteTag.toLowerCase();
+  return kotowazaList.filter((q) => {
+    const tags = (q.tags || []).map((t) => String(t).toLowerCase());
+    const tagsId = (q.tags_id || []).map((t) => String(t).toLowerCase());
+    return tags.includes(tag) || tagsId.includes(tag);
+  });
+}
+
 function updateQuoteDisplay() {
-  const q = QUOTES[currentQuoteIndex];
+  const filtered = getFilteredQuotes();
+  const list = filtered.length > 0 ? filtered : kotowazaList;
+  if (currentQuoteIndex >= list.length) currentQuoteIndex = 0;
+  if (currentQuoteIndex < 0) currentQuoteIndex = list.length - 1;
+
+  const q = list[currentQuoteIndex];
   if (!q) return;
 
   const idxNum = $("quoteIndexNum");
+  const totNum = $("quoteTotalNum");
   const cat = $("quoteCategory");
+  const jlpt = $("quoteJlpt");
   const jp = $("quoteJp");
+  const reading = $("quoteReading");
   const en = $("quoteEn");
-  const romaji = $("quoteRomaji");
-  const source = $("quoteSource");
+  const literal = $("quoteLiteral");
+  const exJa = $("quoteExampleJa");
+  const exEn = $("quoteExampleEn");
+  const exBox = $("quoteExampleBox");
+  const equiv = $("quoteEquivalent");
 
-  if (idxNum) idxNum.textContent = `0${currentQuoteIndex + 1}`;
-  if (cat) cat.textContent = `Kaizen inspiration · ${q.category}`;
-  if (jp) jp.textContent = q.japanese;
-  if (en) en.textContent = q.translation;
-  if (romaji) romaji.textContent = q.romaji;
-  if (source) source.textContent = q.source;
+  if (idxNum) idxNum.textContent = String(currentQuoteIndex + 1).padStart(2, '0');
+  if (totNum) totNum.textContent = String(list.length).padStart(2, '0');
+
+  const mainTag = (q.tags && q.tags[0]) ? q.tags[0] : "wisdom";
+  if (cat) cat.textContent = `Kotowaza · ${mainTag.charAt(0).toUpperCase() + mainTag.slice(1)}`;
+  if (jlpt) {
+    jlpt.textContent = q.jlpt ? `JLPT ${q.jlpt}` : "Kotowaza";
+    jlpt.style.display = q.jlpt ? "inline-block" : "none";
+  }
+
+  if (jp) jp.textContent = q.japanese || "";
+  if (reading) reading.textContent = `${q.reading || ""} · ${q.romaji || ""}`;
+  if (en) en.textContent = `"${(q.meaning && q.meaning.en) ? q.meaning.en : (q.translation || "")}"`;
+  if (literal) literal.textContent = q.literal ? `Literal: ${q.literal}` : "";
+
+  if (q.examples && q.examples.length > 0) {
+    const ex = q.examples[0];
+    if (exJa) exJa.textContent = ex.ja || "";
+    if (exEn) exEn.textContent = ex.en || ex.id || "";
+    if (exBox) exBox.style.display = "block";
+  } else {
+    if (exBox) exBox.style.display = "none";
+  }
+
+  if (equiv) {
+    const eqEn = q.equivalent && q.equivalent.en ? q.equivalent.en : "";
+    equiv.textContent = eqEn ? `Equivalent: "${eqEn}"` : "";
+    equiv.style.display = eqEn ? "inline" : "none";
+  }
 }
 
 // Social Canvas Card Rendering Modal
@@ -776,20 +950,26 @@ function openQuoteCardModal() {
   const canvas = $("shareCardCanvas");
   if (!modal || !canvas) return;
 
-  const q = QUOTES[currentQuoteIndex];
+  const filtered = getFilteredQuotes();
+  const list = filtered.length > 0 ? filtered : kotowazaList;
+  const q = list[currentQuoteIndex] || kotowazaList[0];
+
   renderCardCanvas(canvas, {
     type: "quote",
     japanese: q.japanese,
-    translation: q.translation,
+    reading: q.reading,
     romaji: q.romaji,
-    source: q.source,
-    category: q.category
+    meaning: (q.meaning && q.meaning.en) ? q.meaning.en : (q.translation || ""),
+    literal: q.literal,
+    equivalent: q.equivalent && q.equivalent.en ? q.equivalent.en : "",
+    category: (q.tags && q.tags[0]) ? q.tags[0] : "Wisdom",
+    jlpt: q.jlpt || "Kotowaza"
   });
 
   modal.classList.remove("hidden");
 
-  $("downloadCardBtn").onclick = () => downloadCanvasAsPng(canvas, "kaizenreply-quote.png");
-  $("shareCardImageBtn").onclick = () => shareCanvasImage(canvas, "kaizenreply-quote.png");
+  $("downloadCardBtn").onclick = () => downloadCanvasAsPng(canvas, `kaizenreply-kotowaza-${q.id || 'proverb'}.png`);
+  $("shareCardImageBtn").onclick = () => shareCanvasImage(canvas, `kaizenreply-kotowaza-${q.id || 'proverb'}.png`);
 }
 
 function renderCardCanvas(canvas, options) {
@@ -801,23 +981,26 @@ function renderCardCanvas(canvas, options) {
   ctx.fillStyle = isDark ? "#0d1117" : "#f7f7f3";
   ctx.fillRect(0, 0, width, height);
 
+  // Decorative Border & Ink Lines
   ctx.strokeStyle = isDark ? "#30363d" : "#e3e6e2";
   ctx.lineWidth = 4;
   ctx.strokeRect(30, 30, width - 60, height - 60);
 
+  // Red Hanko Stamp Seal 改善印
   ctx.fillStyle = "#c94a36";
   ctx.fillRect(width - 130, 50, 80, 80);
   ctx.fillStyle = "#ffffff";
-  ctx.font = "bold 32px sans-serif";
+  ctx.font = "bold 32px serif";
   ctx.fillText("改善", width - 110, 102);
 
+  // Header Title
   ctx.fillStyle = isDark ? "#e6edf3" : "#17201c";
   ctx.font = "bold 38px sans-serif";
   ctx.fillText("KaizenReply", 60, 95);
 
   ctx.fillStyle = "#16a66a";
-  ctx.font = "bold 18px monospace";
-  ctx.fillText("KAIZEN CONTINUOUS IMPROVEMENT", 60, 128);
+  ctx.font = "bold 16px monospace";
+  ctx.fillText("改善ことわざ · JAPANESE PROVERB WISDOM", 60, 128);
 
   ctx.strokeStyle = isDark ? "#30363d" : "#e3e6e2";
   ctx.lineWidth = 2;
@@ -863,21 +1046,39 @@ function renderCardCanvas(canvas, options) {
     ctx.font = "16px monospace";
     ctx.fillText(`${options.tone} · ${options.platform || "General"}`, width - 360, 575);
   } else {
+    // Kotowaza Proverb Canvas Card
     ctx.fillStyle = "#16a66a";
     ctx.font = "bold 18px monospace";
-    ctx.fillText(`PHILOSOPHY · ${options.category.toUpperCase()}`, 60, 200);
+    ctx.fillText(`KOTOWAZA · ${options.category.toUpperCase()} · ${options.jlpt}`, 60, 200);
 
+    // Large Kanji Title
     ctx.fillStyle = isDark ? "#ffffff" : "#17201c";
-    ctx.font = "bold 52px serif";
-    ctx.fillText(options.japanese, 60, 270);
+    ctx.font = "bold 58px serif";
+    ctx.fillText(options.japanese, 60, 275);
 
-    ctx.font = "italic 28px serif";
-    ctx.fillStyle = isDark ? "#e6edf3" : "#087443";
-    wrapCanvasText(ctx, options.translation, 60, 340, 1080, 42);
-
-    ctx.font = "20px monospace";
+    // Reading & Romaji
+    ctx.font = "18px monospace";
     ctx.fillStyle = isDark ? "#8b949e" : "#737a75";
-    ctx.fillText(`${options.romaji}  ${options.source}`, 60, 480);
+    ctx.fillText(`${options.reading || ""} · ${options.romaji || ""}`, 60, 315);
+
+    // English Meaning
+    ctx.font = "bold 26px serif";
+    ctx.fillStyle = isDark ? "#e6edf3" : "#087443";
+    wrapCanvasText(ctx, `"${options.meaning}"`, 60, 375, 1080, 38);
+
+    // Literal & Equivalent
+    ctx.font = "italic 18px sans-serif";
+    ctx.fillStyle = isDark ? "#8b949e" : "#555d58";
+    if (options.literal) {
+      ctx.fillText(`Literal: ${options.literal}`, 60, 480);
+    }
+    if (options.equivalent) {
+      ctx.fillText(`Equivalent: "${options.equivalent}"`, 60, 510);
+    }
+
+    ctx.font = "14px monospace";
+    ctx.fillStyle = "#16a66a";
+    ctx.fillText("kaizenreply.js.org · sepTN/kotowaza proverbs dataset", 60, 575);
   }
 }
 

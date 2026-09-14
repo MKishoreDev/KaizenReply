@@ -361,28 +361,61 @@
       </div>
     </section>
 
-    <!-- Japanese Quote Section -->
+    <!-- Japanese Quote Section (Powered by Kotowaza) -->
     <section class="quote-section" id="quotes">
-      <img src="/static/assets/kaizen-quote.jpg" alt="Misty Japanese mountains" class="quote-art" />
+      <img src="/static/assets/kaizen-quote.jpg" alt="Misty Japanese mountains artwork" class="quote-art" />
       <div class="quote-overlay"></div>
       <div class="page-shell quote-layout">
-        <div class="quote-index">
-          <span id="quoteIndexNum">01</span> / <span>04</span>
-        </div>
-        <article class="quote-card">
-          <p class="eyebrow" id="quoteCategory">Kaizen inspiration · Resilience</p>
-          <blockquote>
-            <p lang="ja" id="quoteJp">七転び八起き</p>
-            <p id="quoteEn">"Fall down seven times, stand up eight."</p>
-          </blockquote>
-          <div class="quote-meta">
-            <span id="quoteRomaji">Nana korobi ya oki</span>
-            <b id="quoteSource">— Japanese proverb</b>
+        <div class="quote-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+          <div>
+            <p class="eyebrow" style="margin:0;">改善ことわざ · Kotowaza Wisdom</p>
+            <h2 style="font-size:24px;font-family:var(--font-serif);margin:4px 0 0;">Japanese Proverbs & Kaizen Philosophy</h2>
           </div>
-          <div class="quote-actions">
+          <div id="quoteTagFilters" class="quote-tags" style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button type="button" class="tag-btn active" data-tag="all">All</button>
+            <button type="button" class="tag-btn" data-tag="motivation">Motivation</button>
+            <button type="button" class="tag-btn" data-tag="kaizen">Kaizen</button>
+            <button type="button" class="tag-btn" data-tag="philosophy">Philosophy</button>
+            <button type="button" class="tag-btn" data-tag="life">Life</button>
+          </div>
+        </div>
+
+        <div class="quote-index">
+          <span id="quoteIndexNum">01</span> / <span id="quoteTotalNum">06</span>
+        </div>
+
+        <article class="quote-card" style="position:relative;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;">
+            <p class="eyebrow" id="quoteCategory" style="margin:0;">Kotowaza · Resilience</p>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <span id="quoteJlpt" style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:12px;background:rgba(22,166,106,0.15);color:var(--primary);">JLPT N4</span>
+            </div>
+          </div>
+
+          <blockquote>
+            <p lang="ja" id="quoteJp" style="font-size:clamp(2.4rem, 5vw, 3.6rem);font-family:'Noto Serif JP', serif;font-weight:700;line-height:1.2;margin:0 0 6px;color:var(--foreground);">七転び八起き</p>
+            <p id="quoteReading" style="font-size:15px;color:var(--muted-foreground);margin:0 0 14px;font-family:var(--font-mono);">ななころびやおき · Nanakorobi Yaoki</p>
+            <p id="quoteEn" style="font-size:18px;font-weight:500;line-height:1.5;margin:0 0 8px;color:var(--foreground);">"No matter how many times you fail, never give up and keep getting back up."</p>
+            <p id="quoteLiteral" style="font-size:13px;color:var(--muted-foreground);font-style:italic;margin:0 0 12px;">Literal: Fall seven times, rise eight times</p>
+          </blockquote>
+
+          <div id="quoteExampleBox" style="background:rgba(0,0,0,0.03);border-left:3px solid var(--primary);padding:10px 14px;border-radius:0 var(--radius) var(--radius) 0;margin-bottom:16px;font-size:13px;">
+            <strong style="color:var(--foreground);display:block;margin-bottom:4px;">Usage Example:</strong>
+            <span id="quoteExampleJa" lang="ja" style="display:block;font-family:'Noto Serif JP', serif;">「七転び八起き」の精神で、最後まで諦めずに頑張ろう。</span>
+            <span id="quoteExampleEn" style="color:var(--muted-foreground);">With the spirit of falling 7 times and rising 8, let's keep striving until the end without giving up.</span>
+          </div>
+
+          <div class="quote-meta" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+            <span id="quoteEquivalent" style="font-size:12px;color:var(--muted-foreground);font-weight:600;">Equivalent: "If at first you don't succeed, try, try again."</span>
+            <b id="quoteSource" style="font-size:12px;color:var(--muted-foreground);">— Kotowaza Dataset (sepTN/kotowaza)</b>
+          </div>
+
+          <div class="quote-actions" style="margin-top:20px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
             <button id="prevQuoteBtn" class="btn-paper" aria-label="Previous quote">◄ Prev</button>
             <button id="nextQuoteBtn" class="btn-paper" aria-label="Next quote">Next ►</button>
-            <button id="shareQuoteBtn" class="btn-hero">Share quote</button>
+            <button id="randomQuoteBtn" class="btn-paper">🎲 Random</button>
+            <button id="tryQuoteInDeskBtn" class="btn-paper">⚡ Evolve Proverb</button>
+            <button id="shareQuoteBtn" class="btn-hero" style="margin-left:auto;">Share Card 🎨</button>
           </div>
         </article>
       </div>

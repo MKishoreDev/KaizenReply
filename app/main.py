@@ -324,6 +324,167 @@ def check_antispam(ip: str):
     last_seen[ip] = now
 
 
+_cached_kotowaza: list[dict] = []
+_cached_kotowaza_time: float = 0.0
+KOTOWAZA_CACHE_TTL = 86400  # 24 hours
+
+DEFAULT_KOTOWAZA = [
+    {
+        "id": "nanakorobi-yaoki",
+        "japanese": "七転び八起き",
+        "reading": "ななころびやおき",
+        "romaji": "Nanakorobi Yaoki",
+        "literal": "Fall seven times, rise eight times",
+        "meaning": {
+            "en": "No matter how many times you fail, never give up and keep getting back up."
+        },
+        "tags": ["motivation", "life", "resilience"],
+        "jlpt": "N4",
+        "equivalent": {
+            "en": "If at first you don't succeed, try, try again."
+        },
+        "examples": [
+            {
+                "ja": "「七転び八起き」の精神で、最後まで諦めずに頑張ろう。",
+                "romaji": "\"Nanakorobi yaoki\" no seishin de, saigo made akiramezu ni ganbarou.",
+                "en": "With the spirit of falling 7 times and rising 8, let's keep striving until the end without giving up."
+            }
+        ]
+    },
+    {
+        "id": "ichigo-ichie",
+        "japanese": "一期一会",
+        "reading": "いちごいちえ",
+        "romaji": "Ichigo Ichie",
+        "literal": "One time, one meeting",
+        "meaning": {
+            "en": "Every encounter is unique and will never happen again, so it must be treasured."
+        },
+        "tags": ["relationships", "philosophy", "mindfulness"],
+        "jlpt": "N2",
+        "equivalent": {
+            "en": "Once in a lifetime encounter."
+        },
+        "examples": [
+            {
+                "ja": "一期一会の精神で、ひとつひとつの出会いを大切にしたい。",
+                "romaji": "Ichigo ichie no seishin de, hitotsu hitotsu no deai o taisetsu ni shitai.",
+                "en": "With the spirit of ichigo ichie, I want to treasure each and every encounter."
+            }
+        ]
+    },
+    {
+        "id": "chiri-mo-tsumoreba-yama-to-naru",
+        "japanese": "塵も積もれば山となる",
+        "reading": "ちりもつもればやまとなる",
+        "romaji": "Chiri mo Tsumoreba Yama to Naru",
+        "literal": "Even dust, if accumulated, becomes a mountain",
+        "meaning": {
+            "en": "Small, continuous efforts over time lead to monumental achievements (The core philosophy of Kaizen)."
+        },
+        "tags": ["kaizen", "habits", "effort", "growth"],
+        "jlpt": "N3",
+        "equivalent": {
+            "en": "Many a mickle makes a muckle / Drop by drop, the ocean is filled."
+        },
+        "examples": [
+            {
+                "ja": "毎日少しずつ勉強を続ければ、塵も積もれば山となる。",
+                "romaji": "Mainichi sukoshizutsu benkyou o tsudukereba, chiri mo tsumoreba yama to naru.",
+                "en": "If you study a little every day, even dust will build up to become a mountain."
+            }
+        ]
+    },
+    {
+        "id": "keizoku-wa-chikara-nari",
+        "japanese": "継続は力なり",
+        "reading": "けいぞくはちからなり",
+        "romaji": "Keizoku wa Chikara Nari",
+        "literal": "Continuity is power",
+        "meaning": {
+            "en": "Persisting in effort day after day becomes a formidable strength."
+        },
+        "tags": ["discipline", "kaizen", "perseverance"],
+        "jlpt": "N3",
+        "equivalent": {
+            "en": "Consistency is key / Persistence pays off."
+        },
+        "examples": [
+            {
+                "ja": "「継続は力なり」と言う通り、毎日続けることが成功の鍵だ。",
+                "romaji": "\"Keizoku wa chikara nari\" to iu toori, mainichi tsudukeru koto ga seikou no kagi da.",
+                "en": "As the saying goes 'continuity is power', doing something every day is the key to success."
+            }
+        ]
+    },
+    {
+        "id": "ishin-denshin",
+        "japanese": "以心伝心",
+        "reading": "いしんでんしん",
+        "romaji": "Ishin Denshin",
+        "literal": "Transmitting from heart to heart",
+        "meaning": {
+            "en": "Tacit understanding without needing spoken words; unspoken harmony between minds."
+        },
+        "tags": ["communication", "harmony", "connection"],
+        "jlpt": "N2",
+        "equivalent": {
+            "en": "Great minds think alike / Speaks louder than words."
+        },
+        "examples": [
+            {
+                "ja": "長年の友人とは以心伝心で、言葉がなくても互いの気持ちがわかる。",
+                "romaji": "Naganen no yuujin to wa ishin denshin de, kotoba ga nakutemo utagai no kimochi ga wakaru.",
+                "en": "With a longtime friend, through unspoken connection, we understand each other without words."
+            }
+        ]
+    },
+    {
+        "id": "saru-mo-ki-kara-ochiru",
+        "japanese": "猿も木から落ちる",
+        "reading": "さるもきからおちる",
+        "romaji": "Saru mo Ki kara Ochiru",
+        "literal": "Even monkeys fall from trees",
+        "meaning": {
+            "en": "Even masters make mistakes. Stay humble and keep learning."
+        },
+        "tags": ["humility", "wisdom", "mistakes"],
+        "jlpt": "N3",
+        "equivalent": {
+            "en": "Even Homer nods / Nobody is perfect."
+        },
+        "examples": [
+            {
+                "ja": "プロでも失敗することはある。猿も木から落ちるというね。",
+                "romaji": "Puro demo shippai suru koto wa aru. Saru mo ki kara ochiru to iu ne.",
+                "en": "Even pros make mistakes sometimes. As they say, even monkeys fall from trees."
+            }
+        ]
+    }
+]
+
+
+async def get_kotowaza_proverbs() -> list[dict]:
+    global _cached_kotowaza, _cached_kotowaza_time
+    now = time.time()
+    if _cached_kotowaza and (now - _cached_kotowaza_time < KOTOWAZA_CACHE_TTL):
+        return _cached_kotowaza
+
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            res = await client.get("https://raw.githubusercontent.com/sepTN/kotowaza/main/data/kotowaza.json")
+            if res.status_code == 200:
+                data = res.json()
+                if isinstance(data, list) and len(data) > 0:
+                    _cached_kotowaza = data
+                    _cached_kotowaza_time = now
+                    return data
+    except Exception as e:
+        print(f"[Kotowaza Warning] Failed to fetch live proverb dataset from sepTN/kotowaza: {e}")
+
+    return DEFAULT_KOTOWAZA
+
+
 @app.get("/health")
 async def health():
     models = await get_groq_models()
@@ -337,6 +498,30 @@ async def list_models():
         "current": GROQ_MODEL,
         "models": models
     }
+
+
+@app.get("/api/quotes")
+@app.get("/api/kaizen/quotes")
+async def get_quotes(tag: str | None = None, limit: int = 30):
+    proverbs = await get_kotowaza_proverbs()
+    if tag:
+        t = tag.lower()
+        proverbs = [
+            p for p in proverbs
+            if any(t in str(tg).lower() for tg in p.get("tags", []))
+            or any(t in str(tg).lower() for tg in p.get("tags_id", []))
+        ]
+    return {"total": len(proverbs), "quotes": proverbs[:limit]}
+
+
+@app.get("/api/quotes/random")
+@app.get("/api/kaizen/quotes/random")
+async def get_random_quote():
+    proverbs = await get_kotowaza_proverbs()
+    import random
+    quote = random.choice(proverbs) if proverbs else DEFAULT_KOTOWAZA[0]
+    return quote
+
 
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
