@@ -370,15 +370,15 @@ function setupEventListeners() {
       } catch (err) {
         if (err.name !== "AbortError") {
           await navigator.clipboard.writeText(payload.fullCopyText);
-          alert("KaizenReply invite & Kotowaza quote copied to clipboard!");
+          showKaizenToast("KaizenReply invite & Kotowaza quote copied to clipboard!", "success");
         }
       }
     } else {
       try {
         await navigator.clipboard.writeText(payload.fullCopyText);
-        alert("KaizenReply invite & Kotowaza quote copied to clipboard!\n\n" + payload.fullCopyText);
+        showKaizenToast("KaizenReply invite & Kotowaza quote copied to clipboard!", "success");
       } catch (e) {
-        alert("KaizenReply link: " + payload.url);
+        showKaizenToast("KaizenReply link copied to clipboard!", "success");
       }
     }
   };
@@ -443,7 +443,7 @@ function setupEventListeners() {
           if (charCount) charCount.textContent = text.length;
         }
       } catch (err) {
-        alert("Clipboard access permission required.");
+        showKaizenToast("Clipboard access permission required.", "error");
       }
     };
   }
@@ -453,7 +453,7 @@ function setupEventListeners() {
   if (suggestBtn) {
     suggestBtn.onclick = async () => {
       if (!msgInput || !msgInput.value.trim()) {
-        alert("Paste a draft message first for AI to analyze.");
+        showKaizenToast("Paste a draft message first for AI to analyze.", "info");
         return;
       }
       suggestBtn.disabled = true;
@@ -655,7 +655,7 @@ async function runKaizenAction(overrideTone = null) {
   if (errorBanner) errorBanner.classList.add("hidden");
 
   if (!msgInput || !msgInput.value.trim()) {
-    alert("Please enter a message draft first.");
+    showKaizenToast("Please enter a message draft first.", "info");
     return;
   }
 
@@ -843,11 +843,11 @@ function renderEvolveOutput(data, original, tone, platform) {
   // Action Buttons Listeners
   $("copyResultBtn").onclick = () => {
     navigator.clipboard.writeText(data.improved);
-    alert("Evolved message copied to clipboard!");
+    showKaizenToast("Evolved message copied to clipboard!", "success");
   };
   $("shareResultBtn").onclick = () => {
     if (navigator.share) navigator.share({ text: data.improved }).catch(() => undefined);
-    else { navigator.clipboard.writeText(data.improved); alert("Evolved message copied!"); }
+    else { navigator.clipboard.writeText(data.improved); showKaizenToast("Evolved message copied to clipboard!", "success"); }
   };
   $("cardResultBtn").onclick = () => openEvolveCardModal(original, data.improved, scoreAfter, tone, platform);
   $("shareXBtn").onclick = () => shareToX(original, data.improved, scoreBefore, scoreAfter, tone);
@@ -928,12 +928,12 @@ function renderReplyOutput(data, incomingMsg) {
 
 window.copyReplyText = (text) => {
   navigator.clipboard.writeText(text);
-  alert("Reply copied to clipboard!");
+  showKaizenToast("Reply copied to clipboard!", "success");
 };
 
 window.shareReplyText = (text) => {
   if (navigator.share) navigator.share({ text }).catch(() => undefined);
-  else { navigator.clipboard.writeText(text); alert("Reply copied!"); }
+  else { navigator.clipboard.writeText(text); showKaizenToast("Reply copied to clipboard!", "success"); }
 };
 
 // Recent Kaizen History Management
@@ -1413,4 +1413,50 @@ function escapeHtml(str) {
 
 function escapeJsString(str) {
   return String(str || "").replace(/'/g, "\\'").replace(/"/g, '\\"');
+}
+
+// Kaizen Toast Notification System (Replaces Browser Alerts)
+function showKaizenToast(message, type = "success", duration = 3500) {
+  let container = $("kaizenToastContainer");
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "kaizenToastContainer";
+    container.className = "kaizen-toast-container";
+    document.body.appendChild(container);
+  }
+
+  const toast = document.createElement("div");
+  toast.className = `kaizen-toast kaizen-toast--${type} kaizen-toast-enter`;
+
+  let iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`;
+  if (type === "error") {
+    iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+  } else if (type === "info") {
+    iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`;
+  }
+
+  toast.innerHTML = `
+    <div class="kaizen-toast__icon">${iconSvg}</div>
+    <div class="kaizen-toast__content">
+      <p class="kaizen-toast__message">${escapeHtml(message)}</p>
+    </div>
+    <button type="button" class="kaizen-toast__close" aria-label="Close notification">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  `;
+
+  const closeBtn = toast.querySelector(".kaizen-toast__close");
+  const dismiss = () => {
+    toast.classList.remove("kaizen-toast-enter");
+    toast.classList.add("kaizen-toast-exit");
+    setTimeout(() => toast.remove(), 300);
+  };
+
+  if (closeBtn) closeBtn.onclick = dismiss;
+
+  container.appendChild(toast);
+
+  if (duration > 0) {
+    setTimeout(dismiss, duration);
+  }
 }
