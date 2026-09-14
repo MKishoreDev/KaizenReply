@@ -96,7 +96,94 @@ document.addEventListener("DOMContentLoaded", () => {
   setupEventListeners();
   updateQuoteDisplay();
   renderKaizenHistory();
+  initHeroPreviewAnimation();
 });
+
+// Interactive Typewriter & Score Count-Up Animation Loop for Hero Mini Card
+function initHeroPreviewAnimation() {
+  const draftEl = $("heroDraftText");
+  const evolvedEl = $("heroEvolvedText");
+  const scoreValEl = $("heroScoreVal");
+  const gainValEl = $("heroGainVal");
+  const flowBadgeEl = $("heroFlowBadge");
+
+  if (!draftEl || !evolvedEl || !scoreValEl) return;
+
+  const originalText = "bro send that report asap need it for client meeting";
+  const evolvedText = "Could you please send the report as soon as possible for the client meeting?";
+  const targetScore = 78;
+  const startScore = 60;
+  const gain = targetScore - startScore;
+
+  async function runAnimationCycle() {
+    // 1. Reset card elements
+    draftEl.innerHTML = '<span class="typewriter-text"></span><span class="typewriter-cursor">|</span>';
+    evolvedEl.innerHTML = '<span style="opacity:0.35;font-size:11px;">Waiting for draft message…</span>';
+    evolvedEl.classList.remove("mini-evolved--active");
+    scoreValEl.textContent = "--";
+    if (gainValEl) {
+      gainValEl.style.opacity = "0";
+      gainValEl.style.transform = "scale(0.8)";
+    }
+    if (flowBadgeEl) flowBadgeEl.classList.remove("mini-flow--glowing");
+
+    const textSpan = draftEl.querySelector(".typewriter-text");
+
+    // 2. Type original message character-by-character (~38ms per char)
+    for (let i = 0; i <= originalText.length; i++) {
+      if (textSpan) textSpan.textContent = originalText.substring(0, i);
+      await new Promise((r) => setTimeout(r, 38));
+    }
+
+    // Pause briefly after typing draft
+    await new Promise((r) => setTimeout(r, 450));
+
+    // Hide typing cursor
+    const cursor = draftEl.querySelector(".typewriter-cursor");
+    if (cursor) cursor.style.display = "none";
+
+    // 3. Show Kaizen loader state & glowing flow badge
+    if (flowBadgeEl) flowBadgeEl.classList.add("mini-flow--glowing");
+    evolvedEl.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px;color:var(--primary-emphasis);font-weight:600;font-size:11px;">
+        <div class="kaizen-loader__dots" style="gap:4px;">
+          <div class="kaizen-loader__dot" style="height:12px;width:3px;"></div>
+          <div class="kaizen-loader__dot" style="height:12px;width:3px;"></div>
+          <div class="kaizen-loader__dot" style="height:12px;width:3px;"></div>
+        </div>
+        <span>Kaizen refining clarity &amp; tone…</span>
+      </div>
+    `;
+
+    await new Promise((r) => setTimeout(r, 800));
+
+    // 4. Reveal Evolved Message with pop-in
+    evolvedEl.innerHTML = escapeHtml(evolvedText);
+    evolvedEl.classList.add("mini-evolved--active");
+
+    // 5. Kaizen Score Count-Up Animation (60 -> 78 / 100)
+    const duration = 450;
+    const steps = 12;
+    const stepTime = Math.floor(duration / steps);
+    for (let s = 0; s <= steps; s++) {
+      const current = Math.round(startScore + (gain * (s / steps)));
+      scoreValEl.textContent = current;
+      await new Promise((r) => setTimeout(r, stepTime));
+    }
+    scoreValEl.textContent = targetScore;
+
+    if (gainValEl) {
+      gainValEl.textContent = `+${gain}`;
+      gainValEl.style.opacity = "1";
+      gainValEl.style.transform = "scale(1)";
+    }
+
+    // 6. Hold completed state for 4.5 seconds and loop again
+    setTimeout(runAnimationCycle, 4500);
+  }
+
+  runAnimationCycle();
+}
 
 // Theme Management
 function initTheme() {

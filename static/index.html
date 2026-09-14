@@ -73,8 +73,8 @@
         </div>
 
         <!-- Live Mini Preview -->
-        <div class="mini-preview">
-          <div class="mini-tabs">
+        <div class="mini-preview" id="heroMiniPreview">
+          <div class="mini-tabs" id="heroMiniTabs">
             <span class="active">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
               Evolve Draft
@@ -85,12 +85,12 @@
             </span>
           </div>
           <label>Your message</label>
-          <p>bro send that report asap need it for client meeting</p>
-          <div class="mini-flow"><span>Kaizen v01</span> → <span>v02</span></div>
-          <div class="mini-evolved">Could you please send the report as soon as possible for the client meeting?</div>
-          <div class="mini-score">
-            <b>78</b><span>/100</span>
-            <small>+18</small>
+          <p id="heroDraftText" class="mini-draft-text"></p>
+          <div class="mini-flow" id="heroFlowBadge"><span>Kaizen v01</span> → <span>v02</span></div>
+          <div class="mini-evolved" id="heroEvolvedText"></div>
+          <div class="mini-score" id="heroScoreBox">
+            <b id="heroScoreVal">0</b><span>/100</span>
+            <small id="heroGainVal">+18</small>
           </div>
         </div>
       </div>
