@@ -317,11 +317,27 @@ function setupEventListeners() {
   const shareWebBtn = $("shareWebBtn");
   const heroShareBtn = $("heroShareBtn");
   const handleShareWeb = async () => {
+    const payload = generateKaizenSharePayload();
     if (navigator.share) {
-      await navigator.share({ title: "KaizenReply", text: "Your message is good. Make it better.", url: window.location.href }).catch(() => undefined);
+      try {
+        await navigator.share({
+          title: payload.title,
+          text: payload.text,
+          url: payload.url
+        });
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          await navigator.clipboard.writeText(payload.fullCopyText);
+          alert("KaizenReply invite & Kotowaza quote copied to clipboard!");
+        }
+      }
     } else {
-      await navigator.clipboard.writeText(window.location.href);
-      alert("KaizenReply link copied to clipboard!");
+      try {
+        await navigator.clipboard.writeText(payload.fullCopyText);
+        alert("KaizenReply invite & Kotowaza quote copied to clipboard!\n\n" + payload.fullCopyText);
+      } catch (e) {
+        alert("KaizenReply link: " + payload.url);
+      }
     }
   };
   if (shareWebBtn) shareWebBtn.onclick = handleShareWeb;
@@ -800,6 +816,35 @@ function renderEvolveOutput(data, original, tone, platform) {
       $("charCount").textContent = data.improved.length;
       msgInput.focus();
     }
+  };
+}
+
+// Viral Share Payload Generator with Japanese Kotowaza Wisdom
+function generateKaizenSharePayload() {
+  let quoteLine = "七転び八起き (Nana korobi ya oki) — \"Fall down seven times, stand up eight.\" 🌸";
+  if (kotowazaList && kotowazaList.length > 0) {
+    const randomQ = kotowazaList[Math.floor(Math.random() * kotowazaList.length)];
+    if (randomQ) {
+      const meaning = (randomQ.meaning && randomQ.meaning.en) ? randomQ.meaning.en : (randomQ.translation || "");
+      quoteLine = `${randomQ.japanese || ""} (${randomQ.romaji || ""}) — "${meaning}" 🌸`;
+    }
+  }
+
+  const hooks = [
+    "Hey! Check out KaizenReply — continuous improvement for your words & draft messages 🍵",
+    "Stop sending raw, unrefined drafts! Elevate your communication with KaizenReply ⚡",
+    "Found this amazing AI message-refinement tool called KaizenReply — Japanese precision for your words 🌸"
+  ];
+  const selectedHook = hooks[Math.floor(Math.random() * hooks.length)];
+
+  const shareText = `${selectedHook}\n\nKotowaza Wisdom:\n${quoteLine}\n\nYour message is good. Make it better:`;
+  const shareUrl = "https://kaizenreply.vercel.app";
+
+  return {
+    title: "KaizenReply — Your message is good. Make it better.",
+    text: shareText,
+    url: shareUrl,
+    fullCopyText: `${shareText}\n${shareUrl}`
   };
 }
 
