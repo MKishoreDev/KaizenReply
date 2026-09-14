@@ -241,10 +241,27 @@ function setupEventListeners() {
   const showcaseCardBtn = $("showcaseCardBtn");
   const showcaseImgCard = $("showcaseImgCard");
   const handleShowcase = () => {
-    openEvolveCardModal("bro send that report asap", "Could you please send the report as soon as possible?", 88, "Professional", "Email");
+    if (lastEvolvedData) {
+      openEvolveCardModal(
+        lastEvolvedData.original,
+        lastEvolvedData.improved,
+        lastEvolvedData.score ? lastEvolvedData.score.after : 88,
+        lastEvolvedData.tone || state.tone,
+        lastEvolvedData.platform || state.platform
+      );
+    } else {
+      openEvolveCardModal(
+        "bro send that report asap need it for client meeting",
+        "Could you please send the report as soon as possible for the client meeting?",
+        88,
+        "Professional",
+        "Email"
+      );
+    }
   };
   if (showcaseCardBtn) showcaseCardBtn.onclick = handleShowcase;
   if (showcaseImgCard) showcaseImgCard.onclick = handleShowcase;
+
 
   // Mode Switches
   const modeEvolve = $("modeEvolve");
@@ -914,110 +931,173 @@ function renderCardCanvas(canvas, options) {
   const width = canvas.width;
   const height = canvas.height;
 
-  const isDark = document.documentElement.classList.contains("dark");
-  ctx.fillStyle = isDark ? "#0d1117" : "#f7f7f3";
-  ctx.fillRect(0, 0, width, height);
+  const bgImg = new Image();
+  bgImg.crossOrigin = "anonymous";
+  bgImg.src = options.type === "quote" ? "/static/assets/kaizen-quote.jpg" : "/static/assets/kaizen-share.jpg";
 
-  // Decorative Border & Ink Lines
-  ctx.strokeStyle = isDark ? "#30363d" : "#e3e6e2";
-  ctx.lineWidth = 4;
-  ctx.strokeRect(30, 30, width - 60, height - 60);
+  const drawAll = () => {
+    // 1. Draw Japanese Landscape Artwork Background Image
+    if (bgImg.complete && bgImg.naturalWidth !== 0) {
+      ctx.drawImage(bgImg, 0, 0, width, height);
+      ctx.fillStyle = options.type === "quote" ? "rgba(13, 17, 23, 0.65)" : "rgba(13, 17, 23, 0.55)";
+      ctx.fillRect(0, 0, width, height);
+    } else {
+      const grad = ctx.createLinearGradient(0, 0, width, height);
+      grad.addColorStop(0, "#0d1117");
+      grad.addColorStop(1, "#161b22");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, width, height);
+    }
 
-  // Red Hanko Stamp Seal 改善印
-  ctx.fillStyle = "#c94a36";
-  ctx.fillRect(width - 130, 50, 80, 80);
-  ctx.fillStyle = "#ffffff";
-  ctx.font = "bold 32px serif";
-  ctx.fillText("改善", width - 110, 102);
+    // 2. Outer Border Frame
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(24, 24, width - 48, height - 48);
 
-  // Header Title
-  ctx.fillStyle = isDark ? "#e6edf3" : "#17201c";
-  ctx.font = "bold 38px sans-serif";
-  ctx.fillText("KaizenReply", 60, 95);
+    // 3. Red Hanko Seal (Top Right)
+    ctx.fillStyle = "#c94a36";
+    drawRoundRect(ctx, width - 120, 42, 66, 66, 4);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 26px 'Noto Serif JP', serif";
+    ctx.fillText("改善", width - 104, 84);
 
-  ctx.fillStyle = "#16a66a";
-  ctx.font = "bold 16px monospace";
-  ctx.fillText("改善ことわざ · JAPANESE PROVERB WISDOM", 60, 128);
+    // Brand Mark Header (Top Left)
+    ctx.fillStyle = "#c94a36";
+    drawRoundRect(ctx, 50, 45, 30, 32, 2);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 16px 'Noto Serif JP', serif";
+    ctx.fillText("改", 58, 67);
 
-  ctx.strokeStyle = isDark ? "#30363d" : "#e3e6e2";
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(60, 150);
-  ctx.lineTo(width - 60, 150);
-  ctx.stroke();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 32px 'Manrope', sans-serif";
+    ctx.fillText("KaizenReply", 92, 70);
 
-  if (options.type === "evolve") {
-    ctx.fillStyle = isDark ? "#161b22" : "#ffffff";
-    ctx.fillRect(60, 180, 520, 360);
-    ctx.strokeStyle = isDark ? "#30363d" : "#e3e6e2";
+    ctx.fillStyle = "#22c55e";
+    ctx.font = "bold 14px monospace";
+    const subTitle = options.type === "quote" ? "KAIZEN WISDOM · KOTOWAZA" : "KAIZEN · V01 → V02";
+    ctx.fillText(subTitle, 92, 95);
+
+    // Divider Line
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
     ctx.lineWidth = 1;
-    ctx.strokeRect(60, 180, 520, 360);
+    ctx.beginPath();
+    ctx.moveTo(50, 115);
+    ctx.lineTo(width - 50, 115);
+    ctx.stroke();
 
-    ctx.fillStyle = isDark ? "#8b949e" : "#737a75";
-    ctx.font = "bold 16px monospace";
-    ctx.fillText("DRAFT · ORIGINAL", 85, 215);
+    // 4. Content Cards
+    if (options.type === "evolve") {
+      // BEFORE Card (Frosted Glass Dark Box)
+      ctx.fillStyle = "rgba(13, 17, 23, 0.82)";
+      drawRoundRect(ctx, 50, 140, 520, 390, 12);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
 
-    ctx.fillStyle = isDark ? "#e6edf3" : "#17201c";
-    ctx.font = "20px sans-serif";
-    wrapCanvasText(ctx, options.original, 85, 255, 470, 32);
+      ctx.fillStyle = "#8b949e";
+      ctx.font = "bold 14px monospace";
+      ctx.fillText("BEFORE · ORIGINAL DRAFT", 75, 175);
 
-    ctx.fillStyle = isDark ? "rgba(34, 197, 94, 0.08)" : "rgba(22, 166, 106, 0.05)";
-    ctx.fillRect(620, 180, 520, 360);
-    ctx.strokeStyle = isDark ? "rgba(34, 197, 94, 0.4)" : "rgba(22, 166, 106, 0.3)";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(620, 180, 520, 360);
+      ctx.fillStyle = "#f0f6fc";
+      ctx.font = "20px 'Manrope', sans-serif";
+      wrapCanvasText(ctx, options.original || "Original draft message...", 75, 215, 470, 32);
 
-    ctx.fillStyle = "#16a66a";
-    ctx.font = "bold 16px monospace";
-    ctx.fillText("KAIZEN · EVOLVED", 645, 215);
+      // Center Arrow
+      ctx.fillStyle = "#22c55e";
+      ctx.font = "bold 32px sans-serif";
+      ctx.fillText("→", 584, 335);
 
-    ctx.fillStyle = isDark ? "#ffffff" : "#087443";
-    ctx.font = "bold 22px sans-serif";
-    wrapCanvasText(ctx, options.improved, 645, 255, 470, 32);
+      // AFTER Card (Kaizen Evolved Green Frosted Box)
+      ctx.fillStyle = "rgba(22, 166, 106, 0.22)";
+      drawRoundRect(ctx, 630, 140, 520, 390, 12);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(34, 197, 94, 0.6)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
 
-    ctx.fillStyle = "#16a66a";
-    ctx.font = "bold 26px sans-serif";
-    ctx.fillText(`Kaizen Score: ${options.score}/100`, 60, 575);
+      ctx.fillStyle = "#22c55e";
+      ctx.font = "bold 14px monospace";
+      ctx.fillText("AFTER · KAIZEN EVOLVED", 655, 175);
 
-    ctx.fillStyle = isDark ? "#8b949e" : "#737a75";
-    ctx.font = "16px monospace";
-    ctx.fillText(`${options.tone} · ${options.platform || "General"}`, width - 360, 575);
-  } else {
-    // Kotowaza Proverb Canvas Card
-    ctx.fillStyle = "#16a66a";
-    ctx.font = "bold 18px monospace";
-    ctx.fillText(`KOTOWAZA · ${options.category.toUpperCase()} · ${options.jlpt}`, 60, 200);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 22px 'Manrope', sans-serif";
+      wrapCanvasText(ctx, options.improved || "Evolved message...", 655, 215, 470, 34);
 
-    // Large Kanji Title
-    ctx.fillStyle = isDark ? "#ffffff" : "#17201c";
-    ctx.font = "bold 58px serif";
-    ctx.fillText(options.japanese, 60, 275);
+      // Footer Info
+      ctx.fillStyle = "#22c55e";
+      ctx.font = "bold 24px 'Manrope', sans-serif";
+      ctx.fillText(`Kaizen Score: ${options.score || 88}/100`, 50, 575);
 
-    // Reading & Romaji
-    ctx.font = "18px monospace";
-    ctx.fillStyle = isDark ? "#8b949e" : "#737a75";
-    ctx.fillText(`${options.reading || ""} · ${options.romaji || ""}`, 60, 315);
+      ctx.fillStyle = "#e6edf3";
+      ctx.font = "16px monospace";
+      const infoText = [options.tone, options.platform].filter(Boolean).join(" · ") || "Continuous Improvement";
+      ctx.fillText(infoText, width - 360, 575);
 
-    // English Meaning
-    ctx.font = "bold 26px serif";
-    ctx.fillStyle = isDark ? "#e6edf3" : "#087443";
-    wrapCanvasText(ctx, `"${options.meaning}"`, 60, 375, 1080, 38);
+    } else {
+      // Quote Card
+      ctx.fillStyle = "rgba(13, 17, 23, 0.85)";
+      drawRoundRect(ctx, 50, 140, 1100, 390, 12);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
 
-    // Literal & Equivalent
-    ctx.font = "italic 18px sans-serif";
-    ctx.fillStyle = isDark ? "#8b949e" : "#555d58";
-    if (options.literal) {
-      ctx.fillText(`Literal: ${options.literal}`, 60, 480);
+      ctx.fillStyle = "#22c55e";
+      ctx.font = "bold 14px monospace";
+      ctx.fillText(`KOTOWAZA · ${(options.category || "Wisdom").toUpperCase()} · ${options.jlpt || "N4"}`, 80, 180);
+
+      // Kanji
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 58px 'Noto Serif JP', serif";
+      ctx.fillText(options.japanese || "", 80, 255);
+
+      // Reading
+      ctx.font = "18px monospace";
+      ctx.fillStyle = "#8b949e";
+      ctx.fillText(`${options.reading || ""} · ${options.romaji || ""}`, 80, 295);
+
+      // Meaning
+      ctx.font = "bold 26px 'Instrument Serif', serif";
+      ctx.fillStyle = "#ffffff";
+      wrapCanvasText(ctx, `"${options.meaning || ""}"`, 80, 355, 1040, 38);
+
+      // Literal & Equivalent
+      ctx.font = "italic 18px sans-serif";
+      ctx.fillStyle = "#8b949e";
+      if (options.literal) {
+        ctx.fillText(`Literal: ${options.literal}`, 80, 455);
+      }
+      if (options.equivalent) {
+        ctx.fillText(`Equivalent: "${options.equivalent}"`, 80, 485);
+      }
+
+      ctx.font = "14px monospace";
+      ctx.fillStyle = "#22c55e";
+      ctx.fillText("kaizenreply.js.org · Japanese Kotowaza Wisdom", 50, 575);
     }
-    if (options.equivalent) {
-      ctx.fillText(`Equivalent: "${options.equivalent}"`, 60, 510);
-    }
+  };
 
-    ctx.font = "14px monospace";
-    ctx.fillStyle = "#16a66a";
-    ctx.fillText("kaizenreply.js.org · sepTN/kotowaza proverbs dataset", 60, 575);
-  }
+  bgImg.onload = drawAll;
+  if (bgImg.complete) drawAll();
 }
+
+function drawRoundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
 
 function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight) {
   const words = (text || "").split(" ");
