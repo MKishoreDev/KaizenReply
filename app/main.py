@@ -359,6 +359,7 @@ async def index():
 
 
 @app.post("/api/improve", response_model=ImproveResponse)
+@app.post("/api/kaizen/improve", response_model=ImproveResponse)
 async def improve(req: ImproveRequest, request: Request) -> ImproveResponse:
     ip = get_ip(request)
     key = ("improve", req.message, req.tone, req.platform, req.conversationContext, req.recipient, req.model)
@@ -421,6 +422,7 @@ async def improve(req: ImproveRequest, request: Request) -> ImproveResponse:
 
 
 @app.post("/api/analyze", response_model=AnalyzeResponse)
+@app.post("/api/kaizen/analyze", response_model=AnalyzeResponse)
 async def analyze(req: AnalyzeRequest, request: Request) -> AnalyzeResponse:
     ip = get_ip(request)
     key = ("analyze", req.message, req.model)
@@ -463,6 +465,7 @@ async def analyze(req: AnalyzeRequest, request: Request) -> AnalyzeResponse:
 
 
 @app.post("/api/reply", response_model=ReplyResponse)
+@app.post("/api/kaizen/reply", response_model=ReplyResponse)
 async def reply(req: ReplyRequest, request: Request) -> ReplyResponse:
     ip = get_ip(request)
     key = ("reply", req.message, req.tone, req.platform, req.conversationContext, req.recipient, req.model)

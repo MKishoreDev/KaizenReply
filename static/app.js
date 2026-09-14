@@ -1,531 +1,604 @@
+/* ==========================================================================
+   KaizenReply — Full Interactive Client Application
+   ========================================================================== */
+
 const TONES = [
-  "Casual",
   "Professional",
+  "Friendly",
+  "Concise",
+  "Casual",
+  "Polite",
+  "Formal",
+  "Persuasive",
+  "Assertive",
+  "Diplomatic",
+  "Gen Z",
   "LinkedIn Bro",
   "🔥 Roast My Draft",
   "Cold Email Hook",
   "Dating App Opener",
   "ELI5",
-  "Gen Z",
-  "Polite",
-  "Formal",
-  "Friendly",
-  "Persuasive",
   "Passive-Aggressive",
-  "Tech Twitter Thread",
-  "Assertive",
-  "Diplomatic",
-  "Concise"
+  "Tech Twitter Thread"
 ];
 
-const TONE_CATEGORIES = {
-  "Viral": ["LinkedIn Bro", "🔥 Roast My Draft", "Gen Z", "Dating App Opener", "Passive-Aggressive", "Tech Twitter Thread", "Cold Email Hook"],
-  "Work": ["Professional", "LinkedIn Bro", "Cold Email Hook", "Formal", "Diplomatic", "Concise", "Passive-Aggressive"],
-  "Social": ["Casual", "Friendly", "Dating App Opener", "ELI5", "Gen Z", "Polite"]
-};
+const PLATFORMS = [
+  "Email",
+  "LinkedIn",
+  "WhatsApp",
+  "X (Twitter)",
+  "SMS",
+  "Instagram",
+  "Telegram",
+  "Discord",
+  "Facebook"
+];
 
-let selectedToneCategory = "All";
-const PLATFORMS = ["WhatsApp","Instagram","Facebook","Telegram","LinkedIn","Email","SMS","Discord","X (Twitter)"];
-const RECIPIENTS = ["Friend","Manager","Client","Teacher"];
+const QUOTES = [
+  {
+    category: "Resilience",
+    japanese: "七転び八起き",
+    romaji: "Nana korobi ya oki",
+    translation: "\"Fall down seven times, stand up eight.\"",
+    source: "— Japanese proverb"
+  },
+  {
+    category: "Reflection",
+    japanese: "一期一会",
+    romaji: "Ichi-go ichi-e",
+    translation: "\"Treasure each encounter; it may never happen the same way again.\"",
+    source: "— Japanese proverb"
+  },
+  {
+    category: "Focus",
+    japanese: "古池や 蛙飛び込む 水の音",
+    romaji: "Furu ike ya / kawazu tobikomu / mizu no oto",
+    translation: "\"An old pond — a frog jumps in — the sound of water.\"",
+    source: "— Matsuo Bashō"
+  },
+  {
+    category: "Growth",
+    japanese: "温故知新",
+    romaji: "Onko chishin",
+    translation: "\"Review the past, and understand the new.\"",
+    source: "— Confucius · Yojijukugo"
+  }
+];
 
-const state = { tone: "Casual", platform: "", recipient: "" };
-let mode = "evolve"; // "evolve" or "reply"
-let userInteracted = false;
-let activeRec = null;
-let lastRequest = {
-  message: "",
-  tone: "",
-  platform: "",
-  recipient: "",
-  conversationContext: "",
-  mode: ""
-};
+let currentMode = "evolve"; // "evolve" or "reply"
+let currentQuoteIndex = 0;
+let lastEvolvedData = null;
 
 const $ = (id) => document.getElementById(id);
 
-let countdownInterval = null;
+// Initialize Page
+document.addEventListener("DOMContentLoaded", () => {
+  initTheme();
+  populateDropdowns();
+  setupEventListeners();
+  updateQuoteDisplay();
+});
 
-function startRateLimitCooldown(seconds) {
-  if (countdownInterval) clearInterval(countdownInterval);
-  
-  const improveBtn = $("improve");
-  const fixGrammarBtn = $("fixGrammar");
-  const suggestBtn = $("suggestBtn");
-  const errorDiv = $("error");
-  
-  improveBtn.disabled = true;
-  fixGrammarBtn.disabled = true;
-  suggestBtn.disabled = true;
-  
-  let timeLeft = seconds;
-  
-  const updateBanner = () => {
-    errorDiv.innerHTML = `<svg class="warn-ic" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px; vertical-align:middle;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Rate limit reached. Please wait <strong>${timeLeft}s</strong> before trying again.`;
-    errorDiv.classList.remove("hidden");
-  };
-  
-  updateBanner();
-  
-  countdownInterval = setInterval(() => {
-    timeLeft--;
-    if (timeLeft <= 0) {
-      clearInterval(countdownInterval);
-      countdownInterval = null;
-      errorDiv.classList.add("hidden");
-      
-      improveBtn.disabled = false;
-      fixGrammarBtn.disabled = false;
-      suggestBtn.disabled = false;
-      
-      switchMode(mode); // resets text
-    } else {
-      updateBanner();
-    }
-  }, 1000);
+// Theme Management
+function initTheme() {
+  const saved = localStorage.getItem("kaizen-theme");
+  const isDark = saved ? saved === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+  setTheme(isDark);
 }
 
+function setTheme(dark) {
+  document.documentElement.classList.toggle("dark", dark);
+  document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+  localStorage.setItem("kaizen-theme", dark ? "dark" : "light");
+  const sun = document.querySelector(".sun-icon");
+  const moon = document.querySelector(".moon-icon");
+  if (sun && moon) {
+    sun.classList.toggle("hidden", !dark);
+    moon.classList.toggle("hidden", dark);
+  }
+}
 
-function renderChips(container, options, key, { allowCustom = false } = {}) {
-  container.innerHTML = "";
-  const opts = allowCustom ? [...options, "Custom"] : options;
-  opts.forEach((label) => {
-    const btn = document.createElement("button");
-    btn.className = "chip" + (state[key] === label ? " active" : "");
+// Populate Select Options
+function populateDropdowns() {
+  const toneSel = $("toneSelect");
+  const platformSel = $("platformSelect");
+  if (toneSel) {
+    toneSel.innerHTML = TONES.map((t) => `<option value="${t}">${t}</option>`).join("");
+  }
+  if (platformSel) {
+    platformSel.innerHTML = PLATFORMS.map((p) => `<option value="${p}">${p}</option>`).join("");
+  }
+}
 
-    if (label === "Custom") {
-      btn.className += " chip-custom";
-      btn.innerHTML = `Custom <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`;
+// Event Listeners
+function setupEventListeners() {
+  // Theme Toggle
+  const themeBtn = $("themeToggle");
+  if (themeBtn) {
+    themeBtn.onclick = () => {
+      const isDark = document.documentElement.classList.contains("dark");
+      setTheme(!isDark);
+    };
+  }
+
+  // Web Share Button
+  const shareWebBtn = $("shareWebBtn");
+  const heroShareBtn = $("heroShareBtn");
+  const handleShareWeb = async () => {
+    if (navigator.share) {
+      await navigator.share({ title: "KaizenReply", text: "Your message is good. Make it better.", url: window.location.href }).catch(() => undefined);
     } else {
-      btn.textContent = label;
+      await navigator.clipboard.writeText(window.location.href);
+      alert("KaizenReply link copied to clipboard!");
     }
+  };
+  if (shareWebBtn) shareWebBtn.onclick = handleShareWeb;
+  if (heroShareBtn) heroShareBtn.onclick = handleShareWeb;
 
-    btn.onclick = () => {
-      userInteracted = true;
-      state[key] = state[key] === label ? (key === "tone" ? "Casual" : "") : label;
-      renderChips(container, options, key, { allowCustom });
-      if (key === "platform") {
-        $("customPlatform").classList.toggle("hidden", state.platform !== "Custom");
-      }
-      if (key === "tone") {
-        $("customTone").classList.toggle("hidden", state.tone !== "Custom");
-      }
-      if (key === "recipient" && state.recipient !== "" && state.recipient !== label) {
-        $("recipient").value = "";
+  // Mode Switches
+  const modeEvolve = $("modeEvolve");
+  const modeReply = $("modeReply");
+  if (modeEvolve) {
+    modeEvolve.onclick = () => switchMode("evolve");
+  }
+  if (modeReply) {
+    modeReply.onclick = () => switchMode("reply");
+  }
+
+  // Character Counter & Input
+  const msgInput = $("messageInput");
+  const charCount = $("charCount");
+  if (msgInput && charCount) {
+    msgInput.oninput = () => {
+      charCount.textContent = msgInput.value.length;
+    };
+    msgInput.onkeydown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        runKaizenAction();
       }
     };
-    container.appendChild(btn);
+  }
+
+  // Demo Buttons
+  document.querySelectorAll(".demo-btn").forEach((btn) => {
+    btn.onclick = () => {
+      const text = btn.getAttribute("data-text");
+      const tone = btn.getAttribute("data-tone");
+      const platform = btn.getAttribute("data-platform");
+      if (text && msgInput) {
+        msgInput.value = text;
+        if (charCount) charCount.textContent = text.length;
+      }
+      if (tone && $("toneSelect")) $("toneSelect").value = tone;
+      if (platform && $("platformSelect")) $("platformSelect").value = platform;
+    };
   });
-}
 
-function getFilteredTones() {
-  if (selectedToneCategory === "All") return TONES;
-  return TONE_CATEGORIES[selectedToneCategory] || TONES;
-}
-
-function renderToneChips() {
-  const container = $("tones");
-  if (!container) return;
-  const filtered = getFilteredTones();
-  renderChips(container, filtered, "tone", { allowCustom: true });
-}
-
-// Initial chip render
-renderToneChips();
-renderChips($("platforms"), PLATFORMS, "platform", { allowCustom: true });
-renderChips($("recipients"), RECIPIENTS, "recipient");
-
-document.querySelectorAll(".tone-cat-btn").forEach((btn) => {
-  btn.onclick = () => {
-    document.querySelectorAll(".tone-cat-btn").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    selectedToneCategory = btn.getAttribute("data-cat") || "All";
-    renderToneChips();
-  };
-});
-
-// Character Counter
-$("message").addEventListener("input", (e) => {
-  $("count").textContent = e.target.value.length;
-});
-
-// Clipboard Paste
-$("pasteBtn").onclick = async () => {
-  try {
-    const text = await navigator.clipboard.readText();
-    if (text) {
-      $("message").value = text;
-      $("count").textContent = text.length;
-      userInteracted = true;
-    }
-  } catch (err) {
-    console.error("Failed to read clipboard:", err);
+  // Expandable Context Drawer
+  const ctxToggle = $("contextToggle");
+  const ctxDrawer = $("contextDrawer");
+  const ctxSymbol = $("ctxSymbol");
+  if (ctxToggle && ctxDrawer) {
+    ctxToggle.onclick = () => {
+      const isHidden = ctxDrawer.classList.contains("hidden");
+      ctxDrawer.classList.toggle("hidden", !isHidden);
+      if (ctxSymbol) ctxSymbol.textContent = isHidden ? "−" : "+";
+    };
   }
-};
 
-// Suggest Options (Explicit AI Call)
-$("suggestBtn").onclick = () => {
-  const text = $("message").value.trim();
-  if (text) {
-    handleRecommendation(text);
+  // Action Buttons
+  const evolveBtn = $("evolveBtn");
+  const fixGrammarBtn = $("fixGrammarBtn");
+  if (evolveBtn) evolveBtn.onclick = () => runKaizenAction();
+  if (fixGrammarBtn) fixGrammarBtn.onclick = () => runKaizenAction("Fix Grammar Only");
+
+  // Quotes Carousel Navigation
+  const prevQuote = $("prevQuoteBtn");
+  const nextQuote = $("nextQuoteBtn");
+  const shareQuote = $("shareQuoteBtn");
+  if (prevQuote) {
+    prevQuote.onclick = () => {
+      currentQuoteIndex = (currentQuoteIndex - 1 + QUOTES.length) % QUOTES.length;
+      updateQuoteDisplay();
+    };
   }
-};
+  if (nextQuote) {
+    nextQuote.onclick = () => {
+      currentQuoteIndex = (currentQuoteIndex + 1) % QUOTES.length;
+      updateQuoteDisplay();
+    };
+  }
+  if (shareQuote) {
+    shareQuote.onclick = () => openQuoteCardModal();
+  }
 
-// Context panel toggle
-$("ctxToggle").addEventListener("click", () => {
-  const panel = $("ctxPanel");
-  panel.classList.toggle("hidden");
-  $("ctxArrow").textContent = panel.classList.contains("hidden") ? "▾" : "▴";
-});
-
-// Mode Switching (Segmented Control)
-const evolveTab = $("modeEvolve");
-const replyTab = $("modeReply");
-
-evolveTab.onclick = () => switchMode("evolve");
-replyTab.onclick = () => switchMode("reply");
-
-function switchMode(newMode) {
-  mode = newMode;
-
-  evolveTab.classList.toggle("active", mode === "evolve");
-  replyTab.classList.toggle("active", mode === "reply");
-
-  const label = $("textareaLabel");
-  const textarea = $("message");
-  const fixGrammarBtn = $("fixGrammar");
-  const evolveBtn = $("improve");
-
-  // Clear previous outputs
-  $("output").innerHTML = "";
-  $("empty").classList.remove("hidden");
-  $("recommendation").classList.add("hidden");
-
-  if (mode === "evolve") {
-    label.textContent = "Your message";
-    textarea.placeholder = "Paste your message here…  e.g. bro send that file asap";
-    fixGrammarBtn.classList.remove("hidden");
-    evolveBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg> Evolve Message`;
-  } else {
-    label.textContent = "Message you received";
-    textarea.placeholder = "Paste the message you received here…  e.g. Hey, are you free for a call at 3 PM?";
-    fixGrammarBtn.classList.add("hidden");
-    evolveBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Suggest Replies`;
+  // Modal Close
+  const closeModalBtn = $("closeModalBtn");
+  const shareModal = $("shareModal");
+  if (closeModalBtn && shareModal) {
+    closeModalBtn.onclick = () => shareModal.classList.add("hidden");
   }
 }
 
-// Custom inputs mark user interaction
-$("customTone").addEventListener("input", () => { userInteracted = true; });
-$("customPlatform").addEventListener("input", () => { userInteracted = true; });
-$("recipient").addEventListener("input", () => { userInteracted = true; });
-$("conversationContext").addEventListener("input", () => { userInteracted = true; });
+// Mode Switch Handler
+function switchMode(mode) {
+  currentMode = mode;
+  const modeEvolve = $("modeEvolve");
+  const modeReply = $("modeReply");
+  const deskTitle = $("deskTitleText");
+  const evolveBtnText = $("evolveBtnText");
+  const msgInput = $("messageInput");
 
-$("improve").addEventListener("click", () => improve("evolve"));
-$("fixGrammar").addEventListener("click", () => improve("grammar"));
+  if (modeEvolve && modeReply) {
+    modeEvolve.classList.toggle("active", mode === "evolve");
+    modeReply.classList.toggle("active", mode === "reply");
+  }
+  if (deskTitle) {
+    deskTitle.textContent = mode === "evolve" ? "Your Draft" : "Message you received";
+  }
+  if (evolveBtnText) {
+    evolveBtnText.textContent = mode === "evolve" ? "Evolve Message →" : "Create Replies →";
+  }
+  if (msgInput) {
+    msgInput.placeholder = mode === "evolve" ? "Paste your message here…  e.g. bro send that report asap" : "Paste the message you received…  e.g. Can you send the report by tomorrow?";
+  }
+}
 
-async function improve(modeArg = "evolve") {
-  const message = $("message").value.trim();
-  if (!message) return;
-  $("error").classList.add("hidden");
-  $("infoMessage").classList.add("hidden");
+// Execute AI Action (Evolve or Reply)
+async function runKaizenAction(overrideTone = null) {
+  const msgInput = $("messageInput");
+  const toneSelect = $("toneSelect");
+  const platformSelect = $("platformSelect");
+  const recipientInput = $("recipientInput");
+  const contextInput = $("contextInput");
+  const outputContainer = $("outputContainer");
 
-  const tone = modeArg === "grammar" ? "Fix Grammar Only" : (state.tone === "Custom" ? $("customTone").value.trim() : state.tone);
-  const platform = state.platform === "Custom" ? $("customPlatform").value.trim() : state.platform;
-  const recipient = RECIPIENTS.includes(state.recipient) ? state.recipient : $("recipient").value.trim();
-  
-  const context = $("ctxPanel").classList.contains("hidden") ? "" : $("conversationContext").value.trim();
-  const finalRecipient = $("ctxPanel").classList.contains("hidden") ? "" : recipient;
-
-  if (
-    lastRequest.message === message &&
-    lastRequest.tone === tone &&
-    lastRequest.platform === platform &&
-    lastRequest.recipient === finalRecipient &&
-    lastRequest.conversationContext === context &&
-    lastRequest.mode === mode
-  ) {
-    $("infoMessage").innerHTML = `<svg class="info-ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg> Draft and options haven't changed. Showing previous result.`;
-    $("infoMessage").classList.remove("hidden");
-    if ($("output").innerHTML) {
-      $("output").scrollIntoView({ behavior: "smooth", block: "nearest" });
-    }
+  if (!msgInput || !msgInput.value.trim()) {
+    alert("Please enter a message draft first.");
     return;
   }
 
-  const btn = modeArg === "grammar" ? $("fixGrammar") : $("improve");
-  const originalText = btn.innerHTML;
-  const textarea = $("message");
-  btn.disabled = true;
-  btn.textContent = "Evolving…";
-  textarea.classList.add("loading-pulse");
+  const payload = {
+    message: msgInput.value.trim(),
+    tone: overrideTone || (toneSelect ? toneSelect.value : "Professional"),
+    platform: platformSelect ? platformSelect.value : "Email",
+    recipient: recipientInput ? recipientInput.value.trim() : "",
+    conversationContext: contextInput ? contextInput.value.trim() : ""
+  };
+
+  // Render Loading State
+  outputContainer.innerHTML = `
+    <div class="result-state">
+      <svg class="spin" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--primary);"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
+      <h3>Evolving your words…</h3>
+      <p>Preserving your voice while refining clarity and tone.</p>
+    </div>
+  `;
 
   try {
-    const apiBase = (window.location.protocol === "file:" || window.location.hostname === "")
-      ? "http://localhost:8000"
-      : "";
-    const endpoint = mode === "reply" ? "/api/reply" : "/api/improve";
-    const selectedModel = $("modelSelect") ? $("modelSelect").value : "";
-    const res = await fetch(apiBase + endpoint, {
+    const endpoint = currentMode === "reply" ? "/api/reply" : "/api/improve";
+    const res = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message,
-        tone: tone || "Casual",
-        platform,
-        conversationContext: context,
-        recipient: finalRecipient,
-        model: selectedModel,
-      }),
+      body: JSON.stringify(payload)
     });
-    
 
-    if (res.status === 429) {
-      const retryAfter = res.headers.get("Retry-After");
-      if (retryAfter) {
-        startRateLimitCooldown(parseInt(retryAfter));
-      }
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail || "Too many requests.");
-    }
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail || "Could not process the message right now.");
-    }
     const data = await res.json();
-    
-    // Update lastRequest cache state
-    lastRequest = {
-      message,
-      tone,
-      platform,
-      recipient: finalRecipient,
-      conversationContext: context,
-      mode
-    };
+    if (!res.ok) throw new Error(data.detail || "Request failed");
 
-    if (mode === "reply") {
-      renderReplyOutput(data);
+    if (currentMode === "reply") {
+      renderReplyOutput(data, payload.message);
     } else {
-      renderOutput(data);
+      lastEvolvedData = { original: payload.message, ...data, tone: payload.tone, platform: payload.platform };
+      renderEvolveOutput(data, payload.message, payload.tone, payload.platform);
     }
-  } catch (e) {
-    if (!countdownInterval) {
-      $("error").textContent = e.message;
-      $("error").classList.remove("hidden");
-    }
-  } finally {
-    if (!countdownInterval) {
-      setTimeout(() => {
-        btn.disabled = false;
-        btn.innerHTML = originalText;
-      }, 1500);
-      textarea.classList.remove("loading-pulse");
-    } else {
-      textarea.classList.remove("loading-pulse");
-    }
+  } catch (err) {
+    outputContainer.innerHTML = `
+      <div class="result-state" style="color:var(--destructive);">
+        <h3>The message could not evolve</h3>
+        <p>${err.message || "Please check your network and try again."}</p>
+      </div>
+    `;
   }
 }
 
-function renderOutput(data) {
-  $("empty").classList.add("hidden");
-  const { improved, score, notes = [] } = data;
-  const original = $("message").value.trim() || "Original Draft";
-  const origWords = original.split(/\s+/).filter(Boolean).length;
-  const impWords = improved.split(/\s+/).filter(Boolean).length;
-  const diffWords = impWords - origWords;
-  const wordStat = diffWords === 0 ? "Same length" : (diffWords < 0 ? `${Math.abs(diffWords)} words cut` : `+${diffWords} words added`);
-  const readTimeSec = Math.max(1, Math.round(impWords / 3.5));
-
-  const rows = [
-    ["Clarity", score.breakdown.clarity],
-    ["Tone", score.breakdown.tone],
-    ["Professionalism", score.breakdown.professionalism],
-    ["Readability", score.breakdown.readability],
-  ];
-  const max = Math.max(...rows.map((r) => r[1]), 30);
-
-  const isLinkedInMeme = state.tone === "LinkedIn Bro";
-  const beforeBadgeText = isLinkedInMeme ? "REALITY" : "Draft (Original)";
-  const afterBadgeText = isLinkedInMeme ? "LINKEDIN" : "Kaizen (Evolved)";
-  const afterBadgeStyle = isLinkedInMeme ? 'style="background: rgba(10, 102, 194, 0.18); color: #0a66c2;"' : '';
-
-  const notesHtml = (notes && notes.length > 0) ? `
-    <div class="kaizen-notes-card">
-      <div class="kaizen-notes-title">
-        <span class="hanko-seal">改善印</span>
-        <span>Kaizen Notes — Why changes were made</span>
-      </div>
-      ${notes.map(n => `
-        <div class="kaizen-note-item">
-          <div class="kaizen-note-diff">
-            <span class="kaizen-note-del">"${escapeHtml(n.original || '')}"</span> ➔ <span class="kaizen-note-add">"${escapeHtml(n.replacement || '')}"</span>
+// Render Evolve Output
+function renderEvolveOutput(data, original, tone, platform) {
+  const outputContainer = $("outputContainer");
+  const notesHtml = data.notes && data.notes.length
+    ? data.notes.map(n => `
+        <div class="note-row">
+          <span>改</span>
+          <div>
+            <b>“${escapeHtml(n.original)}” → “${escapeHtml(n.replacement)}”</b>
+            <small>${escapeHtml(n.reason)}</small>
           </div>
-          <div class="kaizen-note-reason">↳ ${escapeHtml(n.reason || '')}</div>
         </div>
+      `).join("")
+    : `<p style="font-size:12px;color:var(--muted-foreground);">No micro-notes generated for this evolution.</p>`;
+
+  const scoreBefore = data.score ? data.score.before : 60;
+  const scoreAfter = data.score ? data.score.after : 88;
+  const gain = Math.max(0, scoreAfter - scoreBefore);
+  const bd = data.score ? data.score.breakdown : { clarity: 24, tone: 22, professionalism: 20, readability: 22 };
+
+  outputContainer.innerHTML = `
+    <div class="evolved-result">
+      <div class="result-version">
+        <span>✨ Kaizen Evolved Output</span>
+        <small>v01 → v02</small>
+      </div>
+
+      <div class="comparison">
+        <article>
+          <span>Draft · Original</span>
+          <p>${escapeHtml(original)}</p>
+        </article>
+        <article class="after">
+          <span>Kaizen · Evolved</span>
+          <p>${escapeHtml(data.improved)}</p>
+        </article>
+      </div>
+
+      <div class="notes-panel">
+        <div class="notes-head">
+          <span>💡 Kaizen Notes</span>
+          <small style="color:var(--muted-foreground);">Why changes were made</small>
+        </div>
+        ${notesHtml}
+      </div>
+
+      <div class="score-panel">
+        <div class="score-total">
+          <span>Kaizen Score</span>
+          <div>
+            <b>${scoreAfter}</b>/100 <em>+${gain}</em>
+          </div>
+        </div>
+        <div class="score-bars">
+          <div><span>Clarity</span><div><i style="width:${(bd.clarity/30)*100}%"></i></div></div>
+          <div><span>Tone</span><div><i style="width:${(bd.tone/30)*100}%"></i></div></div>
+          <div><span>Professionalism</span><div><i style="width:${(bd.professionalism/30)*100}%"></i></div></div>
+          <div><span>Readability</span><div><i style="width:${(bd.readability/30)*100}%"></i></div></div>
+        </div>
+      </div>
+
+      <div class="result-actions">
+        <button class="btn-paper" id="copyResultBtn">Copy</button>
+        <button class="btn-paper" id="shareResultBtn">Share</button>
+        <button class="btn-paper" id="cardResultBtn">Card 🖼️</button>
+      </div>
+
+      <button class="btn-hero" id="evolveFurtherBtn" style="justify-content:center;margin-top:8px;">Evolve Further ↺</button>
+    </div>
+  `;
+
+  // Attach Result Action Listeners
+  $("copyResultBtn").onclick = () => {
+    navigator.clipboard.writeText(data.improved);
+    alert("Evolved message copied to clipboard!");
+  };
+  $("shareResultBtn").onclick = () => {
+    if (navigator.share) {
+      navigator.share({ text: data.improved }).catch(() => undefined);
+    } else {
+      navigator.clipboard.writeText(data.improved);
+      alert("Evolved message copied!");
+    }
+  };
+  $("cardResultBtn").onclick = () => openEvolveCardModal(original, data.improved, scoreAfter, tone, platform);
+  $("evolveFurtherBtn").onclick = () => {
+    const msgInput = $("messageInput");
+    if (msgInput) {
+      msgInput.value = data.improved;
+      $("charCount").textContent = data.improved.length;
+      msgInput.focus();
+    }
+  };
+}
+
+// Render Reply Mode Output
+function renderReplyOutput(data, incomingMsg) {
+  const outputContainer = $("outputContainer");
+  const suggestions = data.suggestions || ["Option 1", "Option 2", "Option 3"];
+
+  outputContainer.innerHTML = `
+    <div class="reply-results">
+      <div class="result-version">
+        <span>💬 3 Ready-to-Send Replies</span>
+      </div>
+      ${suggestions.map((s, idx) => `
+        <article>
+          <span>Reply Option 0${idx + 1}</span>
+          <p>${escapeHtml(s)}</p>
+          <div>
+            <button class="btn-paper" onclick="copyReplyText('${escapeJsString(s)}')">Copy</button>
+            <button class="btn-paper" onclick="shareReplyText('${escapeJsString(s)}')">Share</button>
+          </div>
+        </article>
       `).join("")}
     </div>
-  ` : '';
+  `;
+}
 
-  $("output").innerHTML = `
-    <div class="out-wrap">
-      <div class="out-card">
-        <div style="display:flex;align-items:center;justify-space:between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
-          <span class="badge"><span class="hanko-seal">改善印</span> ${isLinkedInMeme ? 'Reality vs. LinkedIn' : 'Kaizen Evolved Output'}</span>
-          <div class="kaizen-metrics-row" style="font-size:0.75rem;color:var(--muted);display:flex;gap:12px;font-weight:600;">
-            <span>✦ ~${readTimeSec}s read</span>
-            <span>◈ ${wordStat}</span>
-            <span>◇ Kaizen: +${score.after - score.before} pts</span>
-          </div>
-        </div>
-        
-        <div class="comparison-container">
-          <div class="comparison-block before-block">
-            <span class="comparison-badge before-badge">${beforeBadgeText}</span>
-            <p class="comparison-text" id="beforeText"></p>
-          </div>
-          <div class="comparison-arrow">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </div>
-          <div class="comparison-block after-block">
-            <span class="comparison-badge after-badge" ${afterBadgeStyle}>${afterBadgeText}</span>
-            <p class="comparison-text" id="improvedText" style="cursor: pointer; padding: 10px; border-radius: 8px; transition: background-color 0.2s;" title="Click to copy easily"></p>
-          </div>
-        </div>
+window.copyReplyText = (text) => {
+  navigator.clipboard.writeText(text);
+  alert("Reply copied to clipboard!");
+};
 
-        ${notesHtml}
+window.shareReplyText = (text) => {
+  if (navigator.share) navigator.share({ text }).catch(() => undefined);
+  else { navigator.clipboard.writeText(text); alert("Reply copied!"); }
+};
 
-        <div class="out-actions" style="margin-top:16px;">
-          <button id="copyBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button>
-          <button id="shareBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Share</button>
-          <button id="shareXBtn" style="background: rgba(29, 155, 240, 0.12); color: #1d9bf0; border-color: rgba(29, 155, 240, 0.3);">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" class="btn-ic"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-            Post to 𝕏
-          </button>
-          <button id="shareLinkBtn" style="background: rgba(168, 85, 247, 0.12); color: #a855f7; border-color: rgba(168, 85, 247, 0.3);">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-            Share Link
-          </button>
-          <button id="downloadCardBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Download Card</button>
-          <button id="evolveFurtherBtn" style="background: rgba(22, 166, 106, 0.12); color: var(--brand); border-color: rgba(22, 166, 106, 0.3); font-weight: 700;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-            改善 Evolve Further (Kaizen Loop v2)
-          </button>
-          <button id="retryBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Regenerate variations</button>
-        </div>
+// Quotes Display Update
+function updateQuoteDisplay() {
+  const q = QUOTES[currentQuoteIndex];
+  if (!q) return;
 
-        <div class="quick-refine-wrap">
-          <span class="quick-refine-title">✦ 1-Tap Micro-Refinements</span>
-          <div class="quick-refine-chips">
-            <button type="button" class="quick-refine-chip" data-quick-tone="LinkedIn Bro">◈ LinkedIn Bro Meme</button>
-            <button type="button" class="quick-refine-chip" data-quick-tone="🔥 Roast My Draft">🔥 Roast My Draft</button>
-            <button type="button" class="quick-refine-chip" data-quick-tone="Concise">↳ Concise Cut</button>
-            <button type="button" class="quick-refine-chip" data-quick-tone="Professional">◇ Executive Tone</button>
-            <button type="button" class="quick-refine-chip" data-quick-tone="Dating App Opener">✦ Smooth Opener</button>
-            <button type="button" class="quick-refine-chip" data-quick-tone="Persuasive">⚡ Impact Boost</button>
-          </div>
-        </div>
-      </div>
-      <div class="evolution">
-        <span class="step">Draft</span> → <span class="step">Kaizen v1</span> → <span class="step final">Refined</span>
-      </div>
-      <div class="score">
-        <div class="score-head">
-          <div><p class="lbl" style="margin:0">Kaizen Score</p><p class="muted sm">Measurable improvement</p></div>
-          <p class="score-num"><span class="muted">${score.before}</span> → <span class="grad-text">${score.after}</span> <span style="font-size:0.8rem;color:var(--brand);font-weight:700;">(+${score.after - score.before})</span></p>
-        </div>
-        ${rows.map(([label, v]) => `
-          <div class="bar-row">
-            <div class="bar-top"><span>${label}</span><span class="plus">+${v}</span></div>
-            <div class="bar"><div class="bar-fill" style="width:${Math.round((v / max) * 100)}%"></div></div>
-          </div>`).join("")}
-      </div>
-    </div>`;
+  const idxNum = $("quoteIndexNum");
+  const cat = $("quoteCategory");
+  const jp = $("quoteJp");
+  const en = $("quoteEn");
+  const romaji = $("quoteRomaji");
+  const source = $("quoteSource");
 
-  $("beforeText").textContent = original;
-  $("improvedText").textContent = improved;
+  if (idxNum) idxNum.textContent = `0${currentQuoteIndex + 1}`;
+  if (cat) cat.textContent = `Kaizen inspiration · ${q.category}`;
+  if (jp) jp.textContent = q.japanese;
+  if (en) en.textContent = q.translation;
+  if (romaji) romaji.textContent = q.romaji;
+  if (source) source.textContent = q.source;
+}
 
-  // Set event handlers
-  $("improvedText").onclick = () => copyTextDirectly(improved, $("improvedText"));
-  $("copyBtn").onclick = () => copyTextDirectly(improved, $("copyBtn"), true);
-  $("shareBtn").onclick = () => shareText(improved);
-  if ($("shareXBtn")) $("shareXBtn").onclick = () => shareToX(original, improved, score.before, score.after, state.tone);
-  if ($("shareLinkBtn")) $("shareLinkBtn").onclick = () => shareDeepLink(original, state.tone);
-  $("downloadCardBtn").onclick = () => downloadEvolutionCard(original, improved, score.before, score.after, state.tone);
-  if ($("evolveFurtherBtn")) {
-    $("evolveFurtherBtn").onclick = () => {
-      $("message").value = improved;
-      $("count").textContent = improved.length;
-      userInteracted = true;
-      showToast("Evolved text loaded as new draft! Select tone & refine 🚀");
-      $("message").focus();
-      $("tool").scrollIntoView({ behavior: "smooth", block: "start" });
-    };
+// Social Canvas Card Rendering Modal
+function openEvolveCardModal(original, improved, score, tone, platform) {
+  const modal = $("shareModal");
+  const canvas = $("shareCardCanvas");
+  if (!modal || !canvas) return;
+
+  renderCardCanvas(canvas, {
+    type: "evolve",
+    original,
+    improved,
+    score: score || 88,
+    tone: tone || "Professional",
+    platform: platform || "Email"
+  });
+
+  modal.classList.remove("hidden");
+
+  $("downloadCardBtn").onclick = () => downloadCanvasAsPng(canvas, "kaizenreply-evolution.png");
+  $("shareCardImageBtn").onclick = () => shareCanvasImage(canvas, "kaizenreply-evolution.png");
+}
+
+function openQuoteCardModal() {
+  const modal = $("shareModal");
+  const canvas = $("shareCardCanvas");
+  if (!modal || !canvas) return;
+
+  const q = QUOTES[currentQuoteIndex];
+  renderCardCanvas(canvas, {
+    type: "quote",
+    japanese: q.japanese,
+    translation: q.translation,
+    romaji: q.romaji,
+    source: q.source,
+    category: q.category
+  });
+
+  modal.classList.remove("hidden");
+
+  $("downloadCardBtn").onclick = () => downloadCanvasAsPng(canvas, "kaizenreply-quote.png");
+  $("shareCardImageBtn").onclick = () => shareCanvasImage(canvas, "kaizenreply-quote.png");
+}
+
+function renderCardCanvas(canvas, options) {
+  const ctx = canvas.getContext("2d");
+  const width = canvas.width;
+  const height = canvas.height;
+
+  // Background
+  const isDark = document.documentElement.classList.contains("dark");
+  ctx.fillStyle = isDark ? "#0d1117" : "#f7f7f3";
+  ctx.fillRect(0, 0, width, height);
+
+  // Outer Frame
+  ctx.strokeStyle = isDark ? "#30363d" : "#e3e6e2";
+  ctx.lineWidth = 4;
+  ctx.strokeRect(30, 30, width - 60, height - 60);
+
+  // Hanko Seal Stamp
+  ctx.fillStyle = "#c94a36";
+  ctx.fillRect(width - 130, 50, 80, 80);
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 32px sans-serif";
+  ctx.fillText("改善", width - 110, 102);
+
+  // Header Title
+  ctx.fillStyle = isDark ? "#e6edf3" : "#17201c";
+  ctx.font = "bold 38px sans-serif";
+  ctx.fillText("KaizenReply", 60, 95);
+
+  ctx.fillStyle = "#16a66a";
+  ctx.font = "bold 18px monospace";
+  ctx.fillText("KAIZEN CONTINUOUS IMPROVEMENT", 60, 128);
+
+  // Divider
+  ctx.strokeStyle = isDark ? "#30363d" : "#e3e6e2";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(60, 150);
+  ctx.lineTo(width - 60, 150);
+  ctx.stroke();
+
+  if (options.type === "evolve") {
+    // Before Block
+    ctx.fillStyle = isDark ? "#161b22" : "#ffffff";
+    ctx.fillRect(60, 180, 520, 360);
+    ctx.strokeStyle = isDark ? "#30363d" : "#e3e6e2";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(60, 180, 520, 360);
+
+    ctx.fillStyle = isDark ? "#8b949e" : "#737a75";
+    ctx.font = "bold 16px monospace";
+    ctx.fillText("DRAFT · ORIGINAL", 85, 215);
+
+    ctx.fillStyle = isDark ? "#e6edf3" : "#17201c";
+    ctx.font = "20px sans-serif";
+    wrapCanvasText(ctx, options.original, 85, 255, 470, 32);
+
+    // After Block
+    ctx.fillStyle = isDark ? "rgba(34, 197, 94, 0.08)" : "rgba(22, 166, 106, 0.05)";
+    ctx.fillRect(620, 180, 520, 360);
+    ctx.strokeStyle = isDark ? "rgba(34, 197, 94, 0.4)" : "rgba(22, 166, 106, 0.3)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(620, 180, 520, 360);
+
+    ctx.fillStyle = "#16a66a";
+    ctx.font = "bold 16px monospace";
+    ctx.fillText("KAIZEN · EVOLVED", 645, 215);
+
+    ctx.fillStyle = isDark ? "#ffffff" : "#087443";
+    ctx.font = "bold 22px sans-serif";
+    wrapCanvasText(ctx, options.improved, 645, 255, 470, 32);
+
+    // Footer Info
+    ctx.fillStyle = "#16a66a";
+    ctx.font = "bold 26px sans-serif";
+    ctx.fillText(`Kaizen Score: ${options.score}/100`, 60, 575);
+
+    ctx.fillStyle = isDark ? "#8b949e" : "#737a75";
+    ctx.font = "16px monospace";
+    ctx.fillText(`${options.tone} · ${options.platform}`, width - 360, 575);
+  } else {
+    // Quote Type Canvas
+    ctx.fillStyle = "#16a66a";
+    ctx.font = "bold 18px monospace";
+    ctx.fillText(`PHILOSOPHY · ${options.category.toUpperCase()}`, 60, 200);
+
+    ctx.fillStyle = isDark ? "#ffffff" : "#17201c";
+    ctx.font = "bold 52px serif";
+    ctx.fillText(options.japanese, 60, 270);
+
+    ctx.font = "italic 28px serif";
+    ctx.fillStyle = isDark ? "#e6edf3" : "#087443";
+    wrapCanvasText(ctx, options.translation, 60, 340, 1080, 42);
+
+    ctx.font = "20px monospace";
+    ctx.fillStyle = isDark ? "#8b949e" : "#737a75";
+    ctx.fillText(`${options.romaji}  ${options.source}`, 60, 480);
   }
-  $("retryBtn").onclick = () => improve();
-
-  saveToKaizenHistory(original, improved, score, state.tone);
-
-  document.querySelectorAll(".quick-refine-chip").forEach((chip) => {
-    chip.onclick = () => {
-      const targetTone = chip.getAttribute("data-quick-tone");
-      if (targetTone) {
-        state.tone = targetTone;
-        userInteracted = true;
-        renderChips($("tones"), TONES, "tone", { allowCustom: true });
-        $("customTone").classList.add("hidden");
-        improve("evolve");
-      }
-    };
-  });
-
-  $("output").scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
-function renderReplyOutput(data) {
-  $("empty").classList.add("hidden");
-  const suggestions = data.suggestions || [];
-
-  $("output").innerHTML = `
-    <div class="out-wrap">
-      <div class="score">
-        <p class="lbl" style="margin:0 0 16px;">Suggested Replies</p>
-        <div class="reply-cards">
-          ${suggestions.map((replyText, idx) => `
-            <div class="out-card" style="margin-bottom: 12px; border-color: var(--border); background: var(--card);">
-              <span class="badge" style="margin-bottom: 10px;"><img src="/static/logo.png" alt="Logo" class="logo-img-badge" /> Option ${idx + 1}</span>
-              <p class="out-text" id="replyText_${idx}" style="cursor: pointer; padding: 10px; border-radius: 8px; transition: background-color 0.2s;" title="Click to copy easily"></p>
-              <div class="out-actions" style="margin-top: 14px;">
-                <button id="copyBtn_${idx}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button>
-                <button id="shareBtn_${idx}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Share</button>
-              </div>
-            </div>
-          `).join("")}
-        </div>
-        <button id="retryBtn" class="btn btn-secondary btn-block mt" style="border-radius:12px; padding:12px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Regenerate variations</button>
-      </div>
-    </div>`;
-
-  suggestions.forEach((replyText, idx) => {
-    $(`replyText_${idx}`).textContent = replyText;
-    $(`replyText_${idx}`).onclick = () => copyTextDirectly(replyText, $(`replyText_${idx}`));
-    $(`copyBtn_${idx}`).onclick = () => copyTextDirectly(replyText, $(`copyBtn_${idx}`), true);
-    $(`shareBtn_${idx}`).onclick = () => shareText(replyText);
-  });
-
-  $("retryBtn").onclick = () => improve();
-  $("output").scrollIntoView({ behavior: "smooth", block: "nearest" });
-}
-
-// Canvas Text Wrapping Helper
 function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight) {
-  const words = text.split(" ");
+  const words = (text || "").split(" ");
   let line = "";
   let currentY = y;
   for (let n = 0; n < words.length; n++) {
     const testLine = line + words[n] + " ";
-    const metrics = ctx.measureText(testLine);
-    const testWidth = metrics.width;
-    if (testWidth > maxWidth && n > 0) {
+    if (ctx.measureText(testLine).width > maxWidth && n > 0) {
       ctx.fillText(line, x, currentY);
       line = words[n] + " ";
       currentY += lineHeight;
@@ -540,550 +613,33 @@ function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight) {
   ctx.fillText(line, x, currentY);
 }
 
-// Share Transformation Deep Link
-function shareDeepLink(draftText, toneName) {
-  const baseUrl = "https://kaizenreply.js.org";
-  const shareUrl = `${baseUrl}/?draft=${encodeURIComponent(draftText)}&tone=${encodeURIComponent(toneName || 'Casual')}`;
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(shareUrl).then(() => {
-      showToast("🔗 Shareable Transformation Link copied to clipboard!");
-    }).catch(() => {
-      showToast("Share link: " + shareUrl);
-    });
-  } else {
-    showToast("Share link: " + shareUrl);
-  }
+function downloadCanvasAsPng(canvas, filename) {
+  const a = document.createElement("a");
+  a.download = filename;
+  a.href = canvas.toDataURL("image/png");
+  a.click();
 }
 
-// 1-Click Viral Tweet / Post to X
-function shareToX(beforeText, afterText, beforeScore, afterScore, toneName) {
-  const isLinkedInMeme = toneName === "LinkedIn Bro";
-  const isRoast = toneName === "🔥 Roast My Draft";
-  let tweetText = "";
-  if (isLinkedInMeme) {
-    tweetText = `Reality vs. LinkedIn with @KaizenReply 改善:\n\nREALITY:\n"${beforeText.substring(0, 70)}${beforeText.length > 70 ? '...' : ''}"\n\nLINKEDIN:\n"${afterText.substring(0, 130)}${afterText.length > 130 ? '...' : ''}"\n\nKaizen Score: ${beforeScore} ➔ ${afterScore} (+${afterScore - beforeScore} pts) 🔥\nhttps://kaizenreply.js.org`;
-  } else if (isRoast) {
-    tweetText = `Just got my draft roasted by @KaizenReply 改善 🔥\n\n"${afterText.substring(0, 180)}${afterText.length > 180 ? '...' : ''}"\n\nTry it at https://kaizenreply.js.org`;
-  } else {
-    tweetText = `Evolved my message with @KaizenReply 改善:\n\n"${afterText.substring(0, 180)}${afterText.length > 180 ? '...' : ''}"\n\nKaizen Score: ${beforeScore} ➔ ${afterScore} (+${afterScore - beforeScore} pts) 🔥\nhttps://kaizenreply.js.org`;
-  }
-  const twitterIntentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
-  window.open(twitterIntentUrl, "_blank", "noopener,noreferrer");
-}
-
-// Download Visual Kaizen Evolution Card (1200x630 Social Image)
-function downloadEvolutionCard(beforeText, afterText, beforeScore, afterScore, toneName) {
-  try {
-    const canvas = document.createElement("canvas");
-    canvas.width = 1200;
-    canvas.height = 630;
-    const ctx = canvas.getContext("2d");
-
-    const isLinkedInMeme = toneName === "LinkedIn Bro";
-    const beforeHeader = isLinkedInMeme ? "REALITY" : "DRAFT (Original)";
-    const afterHeader = isLinkedInMeme ? "LINKEDIN" : "KAIZEN (Evolved)";
-
-    // Washi Background (Off-white or Dark)
-    const isDark = document.documentElement.getAttribute("data-theme") === "dark";
-    ctx.fillStyle = isDark ? "#0d1117" : "#f7f7f3";
-    ctx.fillRect(0, 0, 1200, 630);
-
-    // Border Frame
-    ctx.strokeStyle = isDark ? "#30363d" : "#e3e6e2";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(30, 30, 1140, 570);
-
-    // Hanko Stamp Badge (改善印)
-    ctx.fillStyle = "rgba(201, 74, 54, 0.12)";
-    ctx.fillRect(60, 65, 80, 36);
-    ctx.strokeStyle = "#c94a36";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(60, 65, 80, 36);
-
-    ctx.font = "bold 16px Inter, system-ui, sans-serif";
-    ctx.fillStyle = "#c94a36";
-    ctx.fillText("改善印", 76, 89);
-
-    // Header Title
-    ctx.font = "bold 32px Inter, system-ui, sans-serif";
-    ctx.fillStyle = isDark ? "#e6edf3" : "#17201c";
-    ctx.fillText(isLinkedInMeme ? "Reality vs. LinkedIn — Kaizen Evolution" : "KaizenReply — Message Improvement", 160, 90);
-
-    ctx.font = "600 18px Inter, system-ui, sans-serif";
-    ctx.fillStyle = "#16a66a";
-    ctx.fillText(`Kaizen Score: ${beforeScore} ➔ ${afterScore} (+${afterScore - beforeScore} pts)`, 160, 122);
-
-    // Before Block
-    ctx.fillStyle = isDark ? "#161b22" : "#ffffff";
-    ctx.fillRect(60, 150, 520, 380);
-    ctx.strokeStyle = isDark ? "#30363d" : "#e3e6e2";
-    ctx.lineWidth = 1;
-    ctx.strokeRect(60, 150, 520, 380);
-
-    ctx.fillStyle = isLinkedInMeme ? "#c94a36" : (isDark ? "#8b949e" : "#737a75");
-    ctx.font = "bold 18px Inter, system-ui, sans-serif";
-    ctx.fillText(beforeHeader, 85, 190);
-
-    ctx.fillStyle = isDark ? "#cbd5e1" : "#17201c";
-    ctx.font = "17px Inter, system-ui, sans-serif";
-    wrapCanvasText(ctx, beforeText, 85, 230, 470, 28);
-
-    // After Block
-    ctx.fillStyle = isDark ? "rgba(22, 166, 106, 0.08)" : "rgba(22, 166, 106, 0.05)";
-    ctx.fillRect(620, 150, 520, 380);
-    ctx.strokeStyle = isDark ? "rgba(22, 166, 106, 0.4)" : "rgba(22, 166, 106, 0.3)";
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(620, 150, 520, 380);
-
-    ctx.fillStyle = "#16a66a";
-    ctx.font = "bold 18px Inter, system-ui, sans-serif";
-    ctx.fillText(afterHeader, 645, 190);
-
-    ctx.fillStyle = isDark ? "#ffffff" : "#17201c";
-    ctx.font = "17px Inter, system-ui, sans-serif";
-    wrapCanvasText(ctx, afterText, 645, 230, 470, 28);
-
-    // Footer Watermark
-    ctx.font = "600 15px Inter, system-ui, sans-serif";
-    ctx.fillStyle = isDark ? "#8b949e" : "#737a75";
-    ctx.fillText("kaizenreply.js.org  •  Small improvements. Better communication.", 60, 570);
-
-    // Trigger Download
-    const a = document.createElement("a");
-    a.download = `kaizenreply-${isLinkedInMeme ? 'reality-vs-linkedin' : 'evolution'}.png`;
-    a.href = canvas.toDataURL("image/png");
-    a.click();
-    showToast("Minimalist Kaizen Card downloaded.");
-  } catch (err) {
-    console.error("Card generation error:", err);
-    showToast("Could not generate visual card");
-  }
-}
-
-// Local History Management for Kaizen Evolutions
-function saveToKaizenHistory(original, improved, score, tone) {
-  try {
-    const list = JSON.parse(localStorage.getItem("kaizen_history") || "[]");
-    list.unshift({
-      id: Date.now(),
-      original,
-      improved,
-      scoreBefore: score.before,
-      scoreAfter: score.after,
-      tone,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    });
-    const trimmed = list.slice(0, 10);
-    localStorage.setItem("kaizen_history", JSON.stringify(trimmed));
-    renderKaizenHistory();
-  } catch (err) {
-    console.error("Failed to save kaizen history:", err);
-  }
-}
-
-function renderKaizenHistory() {
-  const section = $("historySection");
-  const listContainer = $("historyList");
-  if (!section || !listContainer) return;
-
-  try {
-    const list = JSON.parse(localStorage.getItem("kaizen_history") || "[]");
-    if (!list.length) {
-      section.classList.add("hidden");
-      return;
-    }
-
-    section.classList.remove("hidden");
-    listContainer.innerHTML = list.map((item) => `
-      <div class="history-item">
-        <div class="history-item-top">
-          <span>${item.tone || 'Kaizen'} · Score: ${item.scoreBefore} ➔ <strong style="color:var(--brand);">${item.scoreAfter}</strong></span>
-          <span>${item.timestamp}</span>
-        </div>
-        <div class="history-item-text" id="hist_text_${item.id}"></div>
-        <div class="history-item-actions">
-          <button type="button" class="history-item-btn" id="hist_copy_${item.id}">Copy</button>
-          <button type="button" class="history-item-btn" id="hist_restore_${item.id}">Evolve this</button>
-        </div>
-      </div>
-    `).join("");
-
-    list.forEach(item => {
-      const textElem = $(`hist_text_${item.id}`);
-      const copyBtn = $(`hist_copy_${item.id}`);
-      const restoreBtn = $(`hist_restore_${item.id}`);
-      if (textElem) textElem.textContent = item.improved;
-      if (copyBtn) copyBtn.onclick = () => copyTextDirectly(item.improved, copyBtn, true);
-      if (restoreBtn) restoreBtn.onclick = () => restoreHistoryItem(item.id);
-    });
-  } catch (err) {
-    console.error("Failed to render history:", err);
-  }
-}
-
-function restoreHistoryItem(id) {
-  try {
-    const list = JSON.parse(localStorage.getItem("kaizen_history") || "[]");
-    const item = list.find(i => i.id === id);
-    if (item) {
-      $("message").value = item.improved;
-      $("count").textContent = item.improved.length;
-      userInteracted = true;
-      showToast("Restored from history into draft! 🚀");
-      $("message").focus();
-      $("tool").scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  } catch (err) {
-    console.error("Restore error:", err);
-  }
-}
-
-// Toast helper
-let toastTimeout = null;
-function showToast(msg) {
-  const toast = $("toast");
-  if (!toast) return;
-  if (toastTimeout) clearTimeout(toastTimeout);
-  toast.textContent = msg;
-  toast.classList.remove("hidden");
-  toastTimeout = setTimeout(() => {
-    toast.classList.add("hidden");
-  }, 2500);
-}
-
-// Copy to Clipboard Helpers
-async function copyTextDirectly(text, element, isButton = false) {
-  try {
-    await navigator.clipboard.writeText(text);
-    showToast("Copied to clipboard. Ready to send.");
-    if (isButton && element) {
-      const originalHTML = element.innerHTML;
-      element.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-ic"><polyline points="20 6 9 17 4 12"/></svg>Copied`;
-      setTimeout(() => { element.innerHTML = originalHTML; }, 1800);
-    } else if (element) {
-      const originalBg = element.style.backgroundColor;
-      element.style.backgroundColor = "rgba(34, 197, 94, 0.15)";
-      setTimeout(() => { element.style.backgroundColor = originalBg; }, 400);
-    }
-  } catch (err) {
-    console.error("Failed to copy:", err);
-  }
-}
-
-// Web Share API sharing
-async function shareText(text) {
-  if (navigator.share) {
-    try {
-      await navigator.share({ text: text });
-      showToast("Shared successfully.");
-    } catch (err) {
-      await navigator.clipboard.writeText(text);
-      showToast("Copied to clipboard.");
-    }
-  } else {
-    await navigator.clipboard.writeText(text);
-    showToast("Copied to clipboard.");
-  }
-}
-
-// Theme toggling and persistence
-(function initTheme() {
-  const toggleBtn = $("themeToggle");
-  const storedTheme = localStorage.getItem("theme");
-  const initialTheme = storedTheme || "light";
-
-  document.documentElement.setAttribute("data-theme", initialTheme);
-
-  if (toggleBtn) {
-    toggleBtn.onclick = () => {
-      const currentTheme = document.documentElement.getAttribute("data-theme");
-      const targetTheme = currentTheme === "dark" ? "light" : "dark";
-      document.documentElement.setAttribute("data-theme", targetTheme);
-      localStorage.setItem("theme", targetTheme);
-    };
-  }
-})();
-
-// Heuristic Recommendation Engine
-function analyzeDraft(text) {
-  const t = text.toLowerCase();
-  const indicators = {
-    professional: ["dear", "sincerely", "regards", "meeting", "project", "schedule", "attached", "invoice", "discuss", "update", "team", "client", "quarterly", "report", "review", "opportunity", "request", "resume", "position", "contract", "proposal"],
-    casual: ["bro", "dude", "hey", "wanna", "gonna", "lol", "lmao", "btw", "asap", "yeah", "chill", "party", "tonight", "weekend", "hangout", "yo", "sup", "thanks man", "heyy"],
-    polite: ["please", "thank you", "kindly", "could you", "would you", "appreciate", "sorry", "apologize", "excuse me", "grateful", "obligation", "pardon", "sorry for"],
-    persuasive: ["buy", "discount", "offer", "deal", "limited", "sale", "save", "free", "guarantee", "try", "join", "best", "exclusive", "promotion", "checkout", "subscribe", "upgrade"]
-  };
-
-  let scores = { professional: 0, casual: 0, polite: 0, persuasive: 0 };
-  
-  for (const [key, words] of Object.entries(indicators)) {
-    words.forEach(w => {
-      const regex = new RegExp("\\b" + w + "\\b", "g");
-      const matches = t.match(regex);
-      if (matches) {
-        scores[key] += matches.length;
-      }
-    });
-  }
-
-  if (Object.values(scores).reduce((a, b) => a + b, 0) === 0 && t.length > 0) {
-    if (t.length > 200) {
-      scores.professional = 1;
+async function shareCanvasImage(canvas, filename) {
+  canvas.toBlob(async (blob) => {
+    if (!blob) return;
+    const file = new File([blob], filename, { type: "image/png" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: "KaizenReply" }).catch(() => undefined);
     } else {
-      scores.casual = 1;
+      downloadCanvasAsPng(canvas, filename);
     }
-  }
-
-  let maxCat = "";
-  let maxScore = 0;
-  for (const [cat, score] of Object.entries(scores)) {
-    if (score > maxScore) {
-      maxScore = score;
-      maxCat = cat;
-    }
-  }
-
-  if (!maxCat) return null;
-
-  if (maxCat === "professional") {
-    return { tone: "Professional", platform: "Email", reason: "business/work phrasing" };
-  } else if (maxCat === "casual") {
-    return { tone: "Casual", platform: "WhatsApp", reason: "informal terms" };
-  } else if (maxCat === "polite") {
-    return { tone: "Polite", platform: "Email", reason: "courteous request language" };
-  } else if (maxCat === "persuasive") {
-    return { tone: "Persuasive", platform: "LinkedIn", reason: "promotional indicators" };
-  }
-  return null;
-}
-
-let lastRecommendationText = "";
-
-async function handleRecommendation(text) {
-  if (lastRecommendationText === text && activeRec) {
-    updateRecUI(activeRec);
-    $("recommendation").classList.remove("hidden");
-    return;
-  }
-  const banner = $("recommendation");
-  const suggestBtn = $("suggestBtn");
-  const originalText = suggestBtn.innerHTML;
-  const textarea = $("message");
-
-  suggestBtn.disabled = true;
-  suggestBtn.textContent = "Analyzing…";
-  textarea.classList.add("loading-pulse");
-  
-  try {
-    const apiBase = (window.location.protocol === "file:" || window.location.hostname === "")
-      ? "http://localhost:8000"
-      : "";
-    const res = await fetch(apiBase + "/api/analyze", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text })
-    });
-    
-
-
-    if (res.status === 429) {
-      const retryAfter = res.headers.get("Retry-After");
-      if (retryAfter) {
-        startRateLimitCooldown(parseInt(retryAfter));
-      }
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail || "Too many requests.");
-    }
-
-    if (res.ok) {
-      const rec = await res.json();
-      activeRec = rec;
-      lastRecommendationText = text;
-      updateRecUI(rec);
-    } else {
-      useLocalFallback(text);
-    }
-  } catch (e) {
-    useLocalFallback(text);
-  } finally {
-    if (!countdownInterval) {
-      setTimeout(() => {
-        suggestBtn.disabled = false;
-        suggestBtn.innerHTML = originalText;
-      }, 1500);
-      textarea.classList.remove("loading-pulse");
-    } else {
-      textarea.classList.remove("loading-pulse");
-    }
-  }
-}
-
-function useLocalFallback(text) {
-  const rec = analyzeDraft(text);
-  if (!rec) {
-    $("recommendation").classList.add("hidden");
-    activeRec = null;
-    return;
-  }
-  activeRec = rec;
-  lastRecommendationText = text;
-  updateRecUI(rec);
-}
-
-function updateRecUI(rec) {
-  const banner = $("recommendation");
-  if (!userInteracted) {
-    state.tone = rec.tone;
-    renderChips($("tones"), TONES, "tone", { allowCustom: true });
-    $("customTone").classList.add("hidden");
-    
-    $("recText").innerHTML = `Auto-selected <strong>${rec.tone}</strong> tone based on AI suggestion.`;
-    $("applyRecBtn").classList.add("hidden");
-  } else {
-    const currentTone = state.tone === "Custom" ? $("customTone").value.trim() : state.tone;
-    
-    if (currentTone !== rec.tone) {
-      $("recText").innerHTML = `AI recommends <strong>${rec.tone}</strong> tone: <em>"${rec.reason}"</em>.`;
-      $("applyRecBtn").classList.remove("hidden");
-    } else {
-      $("recText").innerHTML = `AI recommended <strong>${rec.tone}</strong> tone is active.`;
-      $("applyRecBtn").classList.add("hidden");
-    }
-  }
-  banner.classList.remove("hidden");
-}
-
-$("applyRecBtn").onclick = () => {
-  if (activeRec) {
-    userInteracted = true;
-    state.tone = activeRec.tone;
-    renderChips($("tones"), TONES, "tone", { allowCustom: true });
-    $("customTone").classList.add("hidden");
-    $("applyRecBtn").classList.add("hidden");
-    $("recText").innerHTML = `Applied <strong>${activeRec.tone}</strong> tone.`;
-  }
-};
-
-// cleanTextTypos function removed as typo handling is now fully delegated to system prompts
-
-// Share Website functionality
-async function shareWebsite() {
-  const title = "KaizenReply — Improve every message. One Kaizen at a time.";
-  const text = "Check out KaizenReply — Evolve your drafts into clear, confident messages step-by-step!";
-  const url = window.location.origin;
-
-  if (navigator.share) {
-    try {
-      await navigator.share({ title, text, url });
-    } catch (err) {
-      await navigator.clipboard.writeText(url);
-      showToast("KaizenReply link copied.");
-    }
-  } else {
-    await navigator.clipboard.writeText(url);
-    showToast("KaizenReply link copied.");
-  }
-}
-
-async function loadDynamicModels() {
-  try {
-    const apiBase = (window.location.protocol === "file:" || window.location.hostname === "")
-      ? "http://localhost:8000"
-      : "";
-    const res = await fetch(apiBase + "/api/models");
-    if (res.ok) {
-      const data = await res.json();
-      const select = $("modelSelect");
-      const row = $("modelSelectRow");
-      if (select && data.models && data.models.length) {
-        select.innerHTML = data.models.map(m =>
-          `<option value="${m}" ${m === data.current ? 'selected' : ''}>${m}</option>`
-        ).join("");
-        if (row) row.classList.remove("hidden");
-      }
-    }
-  } catch (e) {
-    console.log("Could not load dynamic models list:", e);
-  }
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const shareWebsiteBtn = $("shareWebsiteBtn");
-  const heroShareBtn = $("heroShareBtn");
-
-  if (shareWebsiteBtn) {
-    shareWebsiteBtn.onclick = shareWebsite;
-  }
-  if (heroShareBtn) {
-    heroShareBtn.onclick = shareWebsite;
-  }
-
-  // Register Service Worker for PWA
-  if ("serviceWorker" in navigator && window.location.protocol.startsWith("http")) {
-    navigator.serviceWorker.register("/sw.js").catch((err) => {
-      console.log("Service Worker registration failed:", err);
-    });
-  }
-
-  // Sample pills handler
-  document.querySelectorAll(".sample-pill").forEach((pill) => {
-    pill.addEventListener("click", () => {
-      const text = pill.getAttribute("data-text");
-      const tone = pill.getAttribute("data-tone");
-      if (text) {
-        $("message").value = text;
-        $("count").textContent = text.length;
-        userInteracted = true;
-        if (tone) {
-          state.tone = tone;
-          renderToneChips();
-          $("customTone").classList.add("hidden");
-        }
-        improve(mode === "reply" ? "reply" : "evolve");
-      }
-    });
   });
+}
 
-  // Keyboard shortcut Ctrl+Enter / Cmd+Enter
-  const textarea = $("message");
-  if (textarea) {
-    textarea.addEventListener("keydown", (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-        e.preventDefault();
-        improve(mode === "reply" ? "reply" : "evolve");
-      }
-    });
-  }
+function escapeHtml(str) {
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
 
-  // Auto-fill from URL params (Share Target / Deep Links)
-  try {
-    const params = new URLSearchParams(window.location.search);
-    const sharedText = params.get("draft") || params.get("text") || params.get("title") || params.get("message");
-    const sharedTone = params.get("tone");
-    if (sharedText) {
-      textarea.value = sharedText;
-      $("count").textContent = sharedText.length;
-      userInteracted = true;
-      if (sharedTone && TONES.includes(sharedTone)) {
-        state.tone = sharedTone;
-        renderToneChips();
-      }
-      setTimeout(() => improve(mode === "reply" ? "reply" : "evolve"), 300);
-    }
-  } catch (err) {
-    console.log("Error parsing URL params:", err);
-  }
-
-  // Clear History Handler
-  const clearHistoryBtn = $("clearHistoryBtn");
-  if (clearHistoryBtn) {
-    clearHistoryBtn.onclick = () => {
-      localStorage.removeItem("kaizen_history");
-      renderKaizenHistory();
-      showToast("History cleared");
-    };
-  }
-
-  renderKaizenHistory();
-  loadDynamicModels();
-});
+function escapeJsString(str) {
+  return String(str || "").replace(/'/g, "\\'").replace(/"/g, '\\"');
+}
