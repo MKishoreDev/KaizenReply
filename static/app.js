@@ -101,7 +101,8 @@ document.addEventListener("DOMContentLoaded", () => {
 // Theme Management
 function initTheme() {
   const saved = localStorage.getItem("kaizen-theme");
-  const isDark = saved ? saved === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+  // Default is light mode unless user explicitly chose dark
+  const isDark = saved === "dark";
   setTheme(isDark);
 }
 
@@ -339,8 +340,11 @@ function setupEventListeners() {
       } catch (e) {
         console.error(e);
       } finally {
-        suggestBtn.disabled = false;
-        suggestBtn.textContent = "💡 AI Suggest";
+      suggestBtn.disabled = false;
+        suggestBtn.innerHTML = `
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          AI Suggest
+        `;
       }
     };
   }
@@ -519,12 +523,24 @@ async function runKaizenAction(overrideTone = null) {
     model: modelSelect ? modelSelect.value : ""
   };
 
-  // Render Loading State
+  // Render Kaizen Loading State
+  const loadingKanji = currentMode === "reply" ? "返" : "善";
+  const loadingText = currentMode === "reply" ? "Crafting replies…" : "Evolving your words…";
+  const loadingSub = currentMode === "reply" ? "思慮深い返答を作成中" : "改善の力で言葉を洗練中";
   outputContainer.innerHTML = `
-    <div class="result-state">
-      <svg class="spin" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--primary);"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
-      <h3>Evolving your words…</h3>
-      <p>Preserving your voice while refining clarity and tone.</p>
+    <div class="kaizen-loader">
+      <div class="kaizen-loader__circle">
+        <div class="kaizen-loader__kanji">${loadingKanji}</div>
+      </div>
+      <div class="kaizen-loader__dots">
+        <div class="kaizen-loader__dot"></div>
+        <div class="kaizen-loader__dot"></div>
+        <div class="kaizen-loader__dot"></div>
+        <div class="kaizen-loader__dot"></div>
+        <div class="kaizen-loader__dot"></div>
+      </div>
+      <div class="kaizen-loader__text">${loadingText}</div>
+      <div class="kaizen-loader__sub">${loadingSub}</div>
     </div>
   `;
 
@@ -615,9 +631,12 @@ function renderEvolveOutput(data, original, tone, platform) {
   const bd = data.score ? data.score.breakdown : { clarity: 24, tone: 22, professionalism: 20, readability: 22 };
 
   outputContainer.innerHTML = `
-    <div class="evolved-result">
+    <div class="evolved-result evolved-result-animate">
       <div class="result-version">
-        <span>✨ Kaizen Evolved Output</span>
+        <span style="display:flex;align-items:center;gap:6px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+          Kaizen Evolved Output
+        </span>
         <small>v01 → v02</small>
       </div>
 
@@ -634,7 +653,10 @@ function renderEvolveOutput(data, original, tone, platform) {
 
       <div class="notes-panel">
         <div class="notes-head">
-          <span>💡 Kaizen Notes</span>
+          <span style="display:flex;align-items:center;gap:6px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Kaizen Notes
+          </span>
           <small style="color:var(--muted-foreground);">Why changes were made</small>
         </div>
         ${notesHtml}
@@ -656,10 +678,22 @@ function renderEvolveOutput(data, original, tone, platform) {
       </div>
 
       <div class="result-actions">
-        <button class="btn-paper" id="copyResultBtn">Copy</button>
-        <button class="btn-paper" id="shareResultBtn">Share</button>
-        <button class="btn-paper" id="cardResultBtn">Card 🖼️</button>
-        <button class="btn-paper" id="shareXBtn">Post X 🐦</button>
+        <button class="btn-paper" id="copyResultBtn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy
+        </button>
+        <button class="btn-paper" id="shareResultBtn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Share
+        </button>
+        <button class="btn-paper" id="cardResultBtn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          Card
+        </button>
+        <button class="btn-paper" id="shareXBtn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4l16 16M4 20L20 4"/></svg>
+          Post X
+        </button>
       </div>
 
       <button class="btn-hero" id="evolveFurtherBtn" style="justify-content:center;margin-top:8px;">Evolve Further ↺</button>
@@ -692,9 +726,9 @@ function shareToX(beforeText, afterText, beforeScore, afterScore, toneName) {
   const isLinkedInMeme = toneName === "LinkedIn Bro";
   let tweetText = "";
   if (isLinkedInMeme) {
-    tweetText = `Reality vs. LinkedIn with @KaizenReply 改善:\n\nREALITY:\n"${beforeText.substring(0, 70)}"\n\nLINKEDIN:\n"${afterText.substring(0, 130)}"\n\nKaizen Score: ${beforeScore} ➔ ${afterScore} 🔥\nhttps://kaizenreply.js.org`;
+    tweetText = `Reality vs. LinkedIn with @KaizenReply 改善:\n\nREALITY:\n"${beforeText.substring(0, 70)}"\n\nLINKEDIN:\n"${afterText.substring(0, 130)}"\n\nKaizen Score: ${beforeScore} ➔ ${afterScore} 🔥\nhttps://kaizenreply.vercel.app`;
   } else {
-    tweetText = `Evolved my message with @KaizenReply 改善:\n\n"${afterText.substring(0, 180)}"\n\nKaizen Score: ${beforeScore} ➔ ${afterScore} 🔥\nhttps://kaizenreply.js.org`;
+    tweetText = `Evolved my message with @KaizenReply 改善:\n\n"${afterText.substring(0, 180)}"\n\nKaizen Score: ${beforeScore} ➔ ${afterScore} 🔥\nhttps://kaizenreply.vercel.app`;
   }
   window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, "_blank", "noopener,noreferrer");
 }
@@ -797,7 +831,8 @@ async function fetchKotowazaProverbs() {
       const data = await res.json();
       if (data && Array.isArray(data.quotes) && data.quotes.length > 0) {
         kotowazaList = data.quotes;
-        currentQuoteIndex = 0;
+        // Pick a random quote on every page load
+        currentQuoteIndex = Math.floor(Math.random() * kotowazaList.length);
         updateQuoteDisplay();
       }
     } else {
@@ -807,7 +842,8 @@ async function fetchKotowazaProverbs() {
         const rawData = await directRes.json();
         if (Array.isArray(rawData)) {
           kotowazaList = rawData;
-          currentQuoteIndex = 0;
+          // Pick a random quote on every page load
+          currentQuoteIndex = Math.floor(Math.random() * kotowazaList.length);
           updateQuoteDisplay();
         }
       }
@@ -836,33 +872,45 @@ function updateQuoteDisplay() {
   const q = list[currentQuoteIndex];
   if (!q) return;
 
-  const idxNum = $("quoteIndexNum");
-  const totNum = $("quoteTotalNum");
+  // Populate new CSS-class-based elements
   const cat = $("quoteCategory");
   const jlpt = $("quoteJlpt");
   const jp = $("quoteJp");
   const reading = $("quoteReading");
   const en = $("quoteEn");
   const literal = $("quoteLiteral");
+  const equiv = $("quoteEquivalent");
   const exJa = $("quoteExampleJa");
   const exEn = $("quoteExampleEn");
   const exBox = $("quoteExampleBox");
-  const equiv = $("quoteEquivalent");
-
-  if (idxNum) idxNum.textContent = String(currentQuoteIndex + 1).padStart(2, '0');
-  if (totNum) totNum.textContent = String(list.length).padStart(2, '0');
+  const card = $("quoteCard");
 
   const mainTag = (q.tags && q.tags[0]) ? q.tags[0] : "wisdom";
   if (cat) cat.textContent = `Kotowaza · ${mainTag.charAt(0).toUpperCase() + mainTag.slice(1)}`;
+
   if (jlpt) {
     jlpt.textContent = q.jlpt ? `JLPT ${q.jlpt}` : "Kotowaza";
-    jlpt.style.display = q.jlpt ? "inline-block" : "none";
   }
 
   if (jp) jp.textContent = q.japanese || "";
+  // Set the data-kanji attribute on the card for the watermark pseudo-element
+  if (card && q.japanese) card.setAttribute("data-kanji", (q.japanese || "").charAt(0));
+
   if (reading) reading.textContent = `${q.reading || ""} · ${q.romaji || ""}`;
-  if (en) en.textContent = `"${(q.meaning && q.meaning.en) ? q.meaning.en : (q.translation || "")}"`;
-  if (literal) literal.textContent = q.literal ? `Literal: ${q.literal}` : "";
+
+  const meaningText = (q.meaning && q.meaning.en) ? q.meaning.en : (q.translation || "");
+  if (en) en.textContent = meaningText;
+
+  if (literal) {
+    literal.textContent = q.literal ? `Literal: ${q.literal}` : "";
+    literal.style.display = q.literal ? "block" : "none";
+  }
+
+  if (equiv) {
+    const eqEn = q.equivalent && q.equivalent.en ? q.equivalent.en : "";
+    equiv.textContent = eqEn ? `Equivalent: "${eqEn}"` : "";
+    equiv.style.display = eqEn ? "block" : "none";
+  }
 
   if (q.examples && q.examples.length > 0) {
     const ex = q.examples[0];
@@ -873,10 +921,12 @@ function updateQuoteDisplay() {
     if (exBox) exBox.style.display = "none";
   }
 
-  if (equiv) {
-    const eqEn = q.equivalent && q.equivalent.en ? q.equivalent.en : "";
-    equiv.textContent = eqEn ? `Equivalent: "${eqEn}"` : "";
-    equiv.style.display = eqEn ? "inline" : "none";
+  // Animate the card on change
+  if (card) {
+    card.style.animation = "none";
+    requestAnimationFrame(() => {
+      card.style.animation = "fadeUp 0.5s cubic-bezier(0.25,0.46,0.45,0.94) both";
+    });
   }
 }
 
@@ -884,48 +934,88 @@ function updateQuoteDisplay() {
 function openEvolveCardModal(original, improved, score, tone, platform) {
   const modal = $("shareModal");
   const canvas = $("shareCardCanvas");
+  const wrapper = $("modalCanvasWrapper");
   if (!modal || !canvas) return;
 
-  renderCardCanvas(canvas, {
-    type: "evolve",
-    original,
-    improved,
-    score: score || 88,
-    tone: tone || "Professional",
-    platform: platform || "Email"
-  });
-
+  // Show generating animation
+  if (wrapper) {
+    wrapper.innerHTML = `
+      <div class="kaizen-loader" style="min-height:160px;">
+        <div class="kaizen-loader__circle"><div class="kaizen-loader__kanji">絵</div></div>
+        <div class="kaizen-loader__dots">
+          <div class="kaizen-loader__dot"></div><div class="kaizen-loader__dot"></div>
+          <div class="kaizen-loader__dot"></div><div class="kaizen-loader__dot"></div>
+          <div class="kaizen-loader__dot"></div>
+        </div>
+        <div class="kaizen-loader__text">Composing your card…</div>
+        <div class="kaizen-loader__sub">カードを作成中</div>
+      </div>
+    `;
+  }
   modal.classList.remove("hidden");
 
-  $("downloadCardBtn").onclick = () => downloadCanvasAsPng(canvas, "kaizenreply-evolution.png");
-  $("shareCardImageBtn").onclick = () => shareCanvasImage(canvas, "kaizenreply-evolution.png");
+  // Restore canvas and render after short animation delay
+  setTimeout(() => {
+    if (wrapper) wrapper.innerHTML = `<canvas id="shareCardCanvas" width="1200" height="630" style="width:100%;height:auto;display:block;"></canvas>`;
+    const newCanvas = $("shareCardCanvas");
+    if (!newCanvas) return;
+    renderCardCanvas(newCanvas, {
+      type: "evolve",
+      original,
+      improved,
+      score: score || 88,
+      tone: tone || "Professional",
+      platform: platform || "Email"
+    });
+    $("downloadCardBtn").onclick = () => downloadCanvasAsPng(newCanvas, "kaizenreply-evolution.png");
+    $("shareCardImageBtn").onclick = () => shareCanvasImage(newCanvas, "kaizenreply-evolution.png");
+  }, 600);
 }
 
 function openQuoteCardModal() {
   const modal = $("shareModal");
-  const canvas = $("shareCardCanvas");
-  if (!modal || !canvas) return;
+  const wrapper = $("modalCanvasWrapper");
+  if (!modal) return;
 
   const filtered = getFilteredQuotes();
   const list = filtered.length > 0 ? filtered : kotowazaList;
   const q = list[currentQuoteIndex] || kotowazaList[0];
 
-  renderCardCanvas(canvas, {
-    type: "quote",
-    japanese: q.japanese,
-    reading: q.reading,
-    romaji: q.romaji,
-    meaning: (q.meaning && q.meaning.en) ? q.meaning.en : (q.translation || ""),
-    literal: q.literal,
-    equivalent: q.equivalent && q.equivalent.en ? q.equivalent.en : "",
-    category: (q.tags && q.tags[0]) ? q.tags[0] : "Wisdom",
-    jlpt: q.jlpt || "Kotowaza"
-  });
-
+  // Show generating animation
+  if (wrapper) {
+    wrapper.innerHTML = `
+      <div class="kaizen-loader" style="min-height:160px;">
+        <div class="kaizen-loader__circle"><div class="kaizen-loader__kanji">絵</div></div>
+        <div class="kaizen-loader__dots">
+          <div class="kaizen-loader__dot"></div><div class="kaizen-loader__dot"></div>
+          <div class="kaizen-loader__dot"></div><div class="kaizen-loader__dot"></div>
+          <div class="kaizen-loader__dot"></div>
+        </div>
+        <div class="kaizen-loader__text">Composing your card…</div>
+        <div class="kaizen-loader__sub">カードを作成中</div>
+      </div>
+    `;
+  }
   modal.classList.remove("hidden");
 
-  $("downloadCardBtn").onclick = () => downloadCanvasAsPng(canvas, `kaizenreply-kotowaza-${q.id || 'proverb'}.png`);
-  $("shareCardImageBtn").onclick = () => shareCanvasImage(canvas, `kaizenreply-kotowaza-${q.id || 'proverb'}.png`);
+  setTimeout(() => {
+    if (wrapper) wrapper.innerHTML = `<canvas id="shareCardCanvas" width="1200" height="630" style="width:100%;height:auto;display:block;"></canvas>`;
+    const newCanvas = $("shareCardCanvas");
+    if (!newCanvas) return;
+    renderCardCanvas(newCanvas, {
+      type: "quote",
+      japanese: q.japanese,
+      reading: q.reading,
+      romaji: q.romaji,
+      meaning: (q.meaning && q.meaning.en) ? q.meaning.en : (q.translation || ""),
+      literal: q.literal,
+      equivalent: q.equivalent && q.equivalent.en ? q.equivalent.en : "",
+      category: (q.tags && q.tags[0]) ? q.tags[0] : "Wisdom",
+      jlpt: q.jlpt || "Kotowaza"
+    });
+    $("downloadCardBtn").onclick = () => downloadCanvasAsPng(newCanvas, `kaizenreply-kotowaza-${q.id || 'proverb'}.png`);
+    $("shareCardImageBtn").onclick = () => shareCanvasImage(newCanvas, `kaizenreply-kotowaza-${q.id || 'proverb'}.png`);
+  }, 600);
 }
 
 function renderCardCanvas(canvas, options) {
@@ -1078,7 +1168,7 @@ function renderCardCanvas(canvas, options) {
 
       ctx.font = "14px monospace";
       ctx.fillStyle = "#22c55e";
-      ctx.fillText("kaizenreply.js.org · Japanese Kotowaza Wisdom", 50, 575);
+      ctx.fillText("kaizenreply.vercel.app · Japanese Kotowaza Wisdom", 50, 575);
     }
   };
 

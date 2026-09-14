@@ -5,13 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>KaizenReply — Your message is good. Make it better.</title>
     <meta name="description" content="KaizenReply improves clarity, tone, and impact — without taking your voice away. Japanese precision & continuous improvement for your words." />
-    <link rel="icon" type="image/png" href="/static/logo.png" />
+    <link rel="icon" type="image/png" href="/static/logo-inkwash.png" />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://kaizenreply.js.org" />
-    <meta property="og:title" content="KaizenReply — Make Every Message Better" />
-    <meta property="og:description" content="KaizenReply improves clarity, tone, and impact without losing your voice." />
-    <meta property="og:image" content="/static/assets/kaizen-share.jpg" />
+    <meta property="og:url" content="https://kaizenreply.vercel.app" />
+    <meta property="og:title" content="KaizenReply — Your message is good. Make it better." />
+    <meta property="og:description" content="KaizenReply improves clarity, tone, and impact without losing your voice. Powered by Japanese precision and continuous improvement." />
+    <meta property="og:image" content="https://kaizenreply.vercel.app/static/og-image.png" />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://kaizenreply.vercel.app/static/og-image.png" />
     <link rel="stylesheet" href="/static/styles.css" />
   </head>
   <body>
@@ -19,8 +20,8 @@
     <header class="site-header">
       <nav class="nav-shell" aria-label="Main navigation">
         <a href="#top" class="brand-lockup">
-          <img src="/static/logo-light.jpg" class="brand-logo-img light-logo" alt="KaizenReply logo" />
-          <img src="/static/logo-dark.jpg" class="brand-logo-img dark-logo hidden" alt="KaizenReply logo" />
+          <img src="/static/logo-light.png" class="brand-logo-img light-logo" alt="KaizenReply logo" />
+          <img src="/static/logo-dark.png" class="brand-logo-img dark-logo hidden" alt="KaizenReply logo" />
           <b>KaizenReply</b>
         </a>
         <div class="nav-links">
@@ -79,8 +80,14 @@
         <!-- Live Mini Preview -->
         <div class="mini-preview">
           <div class="mini-tabs">
-            <span class="active">✨ Evolve Draft</span>
-            <span>Reply Mode</span>
+            <span class="active">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+              Evolve Draft
+            </span>
+            <span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              Reply Mode
+            </span>
           </div>
           <label>Your message</label>
           <p>bro send that report asap need it for client meeting</p>
@@ -111,8 +118,14 @@
           <!-- Input Draft Column -->
           <div class="desk-column draft-column">
             <div class="mode-tabs">
-              <button id="modeEvolve" class="active">✨ Evolve Draft</button>
-              <button id="modeReply">💬 Reply Mode</button>
+              <button id="modeEvolve" class="active">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+                Evolve Draft
+              </button>
+              <button id="modeReply">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                Reply Mode
+              </button>
             </div>
 
             <div class="desk-title">
@@ -121,8 +134,14 @@
                 <h3 id="deskTitleText">Your Draft</h3>
               </div>
               <div style="display:flex;align-items:center;gap:8px;">
-                <button id="pasteBtn" class="btn-paper" style="padding:4px 8px;font-size:11px;">📋 Paste</button>
-                <button id="suggestBtn" class="btn-paper" style="padding:4px 8px;font-size:11px;">💡 AI Suggest</button>
+                <button id="pasteBtn" class="btn-paper" style="padding:4px 8px;font-size:11px;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+                  Paste
+                </button>
+                <button id="suggestBtn" class="btn-paper" style="padding:4px 8px;font-size:11px;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  AI Suggest
+                </button>
                 <small><span id="charCount">0</span> / 3000</small>
               </div>
             </div>
@@ -138,7 +157,7 @@
             <div class="demo-row">
               <span>Try demo:</span>
               <button type="button" class="demo-btn" data-text="I ate the sandwich" data-tone="LinkedIn Bro" data-platform="LinkedIn">◈ LinkedIn Bro</button>
-              <button type="button" class="demo-btn" data-text="hey are you free to grab coffee this weekend?" data-tone="🔥 Roast My Draft" data-platform="WhatsApp">🔥 Roast My Draft</button>
+              <button type="button" class="demo-btn" data-text="hey are you free to grab coffee this weekend?" data-tone="🔥 Roast My Draft" data-platform="WhatsApp">◆ Roast My Draft</button>
               <button type="button" class="demo-btn" data-text="I like your profile, want to get coffee sometime?" data-tone="Dating App Opener" data-platform="WhatsApp">✦ Coffee Date</button>
               <button type="button" class="demo-btn" data-text="bro send that report asap need it for client meeting" data-tone="Professional" data-platform="Email">◇ Send Report</button>
             </div>
@@ -212,7 +231,7 @@
 
             <div id="outputContainer" class="evolved-result">
               <!-- Default Empty State -->
-              <div class="result-state">
+              <div class="result-state" id="emptyOutputState">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--primary);"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
                 <h3>Your evolved message will appear here.</h3>
                 <p>You will see what changed, why it changed, and how the message improved.</p>
@@ -221,8 +240,11 @@
 
             <!-- Recent History Section -->
             <div id="historySection" class="history-section hidden" style="margin-top:20px;border-top:1px solid var(--border);padding-top:14px;">
-              <div style="display:flex;align-items:center;justify-space:between;margin-bottom:10px;">
-                <span style="font-size:12px;font-weight:800;color:var(--muted-foreground);">📜 Recent Kaizen Evolutions</span>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                <span style="font-size:12px;font-weight:800;color:var(--muted-foreground);display:flex;align-items:center;gap:6px;">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h10"/><path d="M7 12h10"/><path d="M7 16h10"/></svg>
+                  Recent Kaizen Evolutions
+                </span>
                 <button id="clearHistoryBtn" style="background:none;border:none;color:var(--muted-foreground);font-size:11px;cursor:pointer;">Clear</button>
               </div>
               <div id="historyList" style="display:flex;flex-direction:column;gap:8px;max-height:220px;overflow-y:auto;"></div>
@@ -367,12 +389,13 @@
       <img src="/static/assets/kaizen-quote.jpg" alt="Misty Japanese mountains artwork" class="quote-art" />
       <div class="quote-overlay"></div>
       <div class="page-shell quote-layout">
-        <div class="quote-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+
+        <div class="quote-header">
           <div>
-            <p class="eyebrow" style="margin:0;">改善ことわざ · Kotowaza Wisdom</p>
-            <h2 style="font-size:24px;font-family:var(--font-serif);margin:4px 0 0;">Japanese Proverbs & Kaizen Philosophy</h2>
+            <p class="eyebrow" style="margin:0;color:rgba(34,197,94,0.8);">改善ことわざ · Kotowaza Wisdom</p>
+            <h2 style="font-size:clamp(1.6rem,3vw,2.2rem);font-family:var(--font-display);margin:6px 0 0;color:#fff;">Japanese Proverbs &amp; Kaizen Philosophy</h2>
           </div>
-          <div id="quoteTagFilters" class="quote-tags" style="display:flex;gap:6px;flex-wrap:wrap;">
+          <div id="quoteTagFilters" class="quote-tags">
             <button type="button" class="tag-btn active" data-tag="all">All</button>
             <button type="button" class="tag-btn" data-tag="motivation">Motivation</button>
             <button type="button" class="tag-btn" data-tag="kaizen">Kaizen</button>
@@ -381,42 +404,44 @@
           </div>
         </div>
 
-        <div class="quote-index">
-          <span id="quoteIndexNum">01</span> / <span id="quoteTotalNum">06</span>
-        </div>
-
-        <article class="quote-card" style="position:relative;">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;">
-            <p class="eyebrow" id="quoteCategory" style="margin:0;">Kotowaza · Resilience</p>
-            <div style="display:flex;gap:6px;align-items:center;">
-              <span id="quoteJlpt" style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:12px;background:rgba(22,166,106,0.15);color:var(--primary);">JLPT N4</span>
-            </div>
+        <article class="quote-card" id="quoteCard">
+          <!-- Top row: category + JLPT badge -->
+          <div class="quote-card__meta">
+            <span id="quoteCategory" class="quote-card__tag">Kotowaza · Wisdom</span>
+            <span id="quoteJlpt" class="quote-card__jlpt">JLPT N4</span>
           </div>
 
-          <blockquote>
-            <p lang="ja" id="quoteJp" style="font-size:clamp(2.4rem, 5vw, 3.6rem);font-family:'Noto Serif JP', serif;font-weight:700;line-height:1.2;margin:0 0 6px;color:var(--foreground);">七転び八起き</p>
-            <p id="quoteReading" style="font-size:15px;color:var(--muted-foreground);margin:0 0 14px;font-family:var(--font-mono);">ななころびやおき · Nanakorobi Yaoki</p>
-            <p id="quoteEn" style="font-size:18px;font-weight:500;line-height:1.5;margin:0 0 8px;color:var(--foreground);">"No matter how many times you fail, never give up and keep getting back up."</p>
-            <p id="quoteLiteral" style="font-size:13px;color:var(--muted-foreground);font-style:italic;margin:0 0 12px;">Literal: Fall seven times, rise eight times</p>
-          </blockquote>
+          <!-- Large Kanji -->
+          <p lang="ja" id="quoteJp" class="quote-card__kanji">七転び八起き</p>
 
-          <div id="quoteExampleBox" style="background:rgba(0,0,0,0.03);border-left:3px solid var(--primary);padding:10px 14px;border-radius:0 var(--radius) var(--radius) 0;margin-bottom:16px;font-size:13px;">
-            <strong style="color:var(--foreground);display:block;margin-bottom:4px;">Usage Example:</strong>
-            <span id="quoteExampleJa" lang="ja" style="display:block;font-family:'Noto Serif JP', serif;">「七転び八起き」の精神で、最後まで諦めずに頑張ろう。</span>
-            <span id="quoteExampleEn" style="color:var(--muted-foreground);">With the spirit of falling 7 times and rising 8, let's keep striving until the end without giving up.</span>
+          <!-- Reading -->
+          <p id="quoteReading" class="quote-card__reading">ななころびやおき · Nanakorobi Yaoki</p>
+
+          <!-- English meaning -->
+          <blockquote id="quoteEn" class="quote-card__meaning">"Fall down seven times, stand up eight."</blockquote>
+
+          <!-- Literal + Equivalent (minimal row) -->
+          <div class="quote-card__details">
+            <span id="quoteLiteral" class="quote-card__literal"></span>
+            <span id="quoteEquivalent" class="quote-card__equiv"></span>
           </div>
 
-          <div class="quote-meta" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
-            <span id="quoteEquivalent" style="font-size:12px;color:var(--muted-foreground);font-weight:600;">Equivalent: "If at first you don't succeed, try, try again."</span>
-            <b id="quoteSource" style="font-size:12px;color:var(--muted-foreground);">— Kotowaza Dataset (sepTN/kotowaza)</b>
+          <!-- Example sentence (clean box) -->
+          <div id="quoteExampleBox" class="quote-card__example">
+            <span id="quoteExampleJa" lang="ja" class="quote-card__example-ja"></span>
+            <span id="quoteExampleEn" class="quote-card__example-en"></span>
           </div>
 
-          <div class="quote-actions" style="margin-top:20px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-            <button id="prevQuoteBtn" class="btn-paper" aria-label="Previous quote">◄ Prev</button>
-            <button id="nextQuoteBtn" class="btn-paper" aria-label="Next quote">Next ►</button>
-            <button id="randomQuoteBtn" class="btn-paper">🎲 Random</button>
-            <button id="tryQuoteInDeskBtn" class="btn-paper">⚡ Evolve Proverb</button>
-            <button id="shareQuoteBtn" class="btn-hero" style="margin-left:auto;">Share Card 🎨</button>
+          <!-- Actions: only Share Card -->
+          <div class="quote-card__footer">
+            <span class="quote-card__refresh-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+              New quote on refresh
+            </span>
+            <button id="shareQuoteBtn" class="btn-hero">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              Share Card
+            </button>
           </div>
         </article>
       </div>
@@ -427,7 +452,9 @@
       <div class="modal-card">
         <div class="modal-head">
           <h3>Shareable Kaizen Card</h3>
-          <button id="closeModalBtn" class="btn-icon">✕</button>
+          <button id="closeModalBtn" class="btn-icon" aria-label="Close modal">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
         </div>
         <div class="modal-body" id="modalCanvasWrapper">
           <canvas id="shareCardCanvas" width="1200" height="630" style="width:100%;height:auto;display:block;"></canvas>
