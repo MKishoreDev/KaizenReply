@@ -768,86 +768,12 @@ window.loadHistoryItem = (text) => {
 };
 
 // Kotowaza Quotes State & Management
-let kotowazaList = [
-  {
-    id: "nanakorobi-yaoki",
-    japanese: "七転び八起き",
-    reading: "ななころびやおき",
-    romaji: "Nanakorobi Yaoki",
-    literal: "Fall seven times, rise eight times",
-    meaning: { en: "No matter how many times you fail, never give up and keep getting back up." },
-    tags: ["motivation", "life", "resilience"],
-    jlpt: "N4",
-    equivalent: { en: "If at first you don't succeed, try, try again." },
-    examples: [{ ja: "「七転び八起き」の精神で、最後まで諦めずに頑張ろう。", en: "With the spirit of falling 7 times and rising 8, let's keep striving until the end without giving up." }]
-  },
-  {
-    id: "ichigo-ichie",
-    japanese: "一期一会",
-    reading: "いちごいちえ",
-    romaji: "Ichigo Ichie",
-    literal: "One time, one meeting",
-    meaning: { en: "Every encounter is unique and will never happen again, so it must be treasured." },
-    tags: ["relationships", "philosophy", "mindfulness"],
-    jlpt: "N2",
-    equivalent: { en: "Once in a lifetime encounter." },
-    examples: [{ ja: "一期一会の精神で、ひとつひとつの出会いを大切にしたい。", en: "With the spirit of ichigo ichie, I want to treasure each and every encounter." }]
-  },
-  {
-    id: "chiri-mo-tsumoreba-yama-to-naru",
-    japanese: "塵も積もれば山となる",
-    reading: "ちりもつもればやまとなる",
-    romaji: "Chiri mo Tsumoreba Yama to Naru",
-    literal: "Even dust, if accumulated, becomes a mountain",
-    meaning: { en: "Small, continuous efforts over time lead to monumental achievements (The core philosophy of Kaizen)." },
-    tags: ["kaizen", "habits", "effort", "growth"],
-    jlpt: "N3",
-    equivalent: { en: "Drop by drop, the ocean is filled / Many a mickle makes a muckle." },
-    examples: [{ ja: "毎日少しずつ勉強を続ければ、塵も積もれば山となる。", en: "If you study a little every day, even dust will build up to become a mountain." }]
-  },
-  {
-    id: "keizoku-wa-chikara-nari",
-    japanese: "継続は力なり",
-    reading: "けいぞくはちからなり",
-    romaji: "Keizoku wa Chikara Nari",
-    literal: "Continuity is power",
-    meaning: { en: "Persisting in effort day after day becomes a formidable strength." },
-    tags: ["discipline", "kaizen", "perseverance"],
-    jlpt: "N3",
-    equivalent: { en: "Consistency is key / Persistence pays off." },
-    examples: [{ ja: "「継続は力なり」と言う通り、毎日続けることが成功の鍵だ。", en: "As the saying goes 'continuity is power', doing something every day is the key to success." }]
-  },
-  {
-    id: "ishin-denshin",
-    japanese: "以心伝心",
-    reading: "いしんでんしん",
-    romaji: "Ishin Denshin",
-    literal: "Transmitting from heart to heart",
-    meaning: { en: "Tacit understanding without needing spoken words; unspoken harmony between minds." },
-    tags: ["communication", "harmony", "connection"],
-    jlpt: "N2",
-    equivalent: { en: "Great minds think alike / Speaks louder than words." },
-    examples: [{ ja: "長年の友人とは以心伝心で、言葉がなくても互いの気持ちがわかる。", en: "With a longtime friend, through unspoken connection, we understand each other without words." }]
-  },
-  {
-    id: "saru-mo-ki-kara-ochiru",
-    japanese: "猿も木から落ちる",
-    reading: "さるもきからおちる",
-    romaji: "Saru mo Ki kara Ochiru",
-    literal: "Even monkeys fall from trees",
-    meaning: { en: "Even masters make mistakes. Stay humble and keep learning." },
-    tags: ["humility", "wisdom", "life"],
-    jlpt: "N3",
-    equivalent: { en: "Even Homer nods / Nobody is perfect." },
-    examples: [{ ja: "プロでも失敗することはある。猿も木から落ちるというね。", en: "Even pros make mistakes sometimes. As they say, even monkeys fall from trees." }]
-  }
-];
-
+let kotowazaList = [];
 let activeQuoteTag = "all";
 
 async function fetchKotowazaProverbs() {
   try {
-    const res = await fetch("/api/quotes?limit=50");
+    const res = await fetch("/api/quotes?limit=100");
     if (res.ok) {
       const data = await res.json();
       if (data && Array.isArray(data.quotes) && data.quotes.length > 0) {
@@ -855,9 +781,20 @@ async function fetchKotowazaProverbs() {
         currentQuoteIndex = 0;
         updateQuoteDisplay();
       }
+    } else {
+      // Direct fetch from sepTN/kotowaza repo if API route is unavailable
+      const directRes = await fetch("https://raw.githubusercontent.com/sepTN/kotowaza/main/data/kotowaza.json");
+      if (directRes.ok) {
+        const rawData = await directRes.json();
+        if (Array.isArray(rawData)) {
+          kotowazaList = rawData;
+          currentQuoteIndex = 0;
+          updateQuoteDisplay();
+        }
+      }
     }
   } catch (err) {
-    console.warn("Using default Kotowaza proverbs dataset:", err);
+    console.error("Kotowaza API fetch error:", err);
   }
 }
 
