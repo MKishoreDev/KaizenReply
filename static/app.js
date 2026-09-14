@@ -135,6 +135,15 @@ function setupEventListeners() {
   if (shareWebBtn) shareWebBtn.onclick = handleShareWeb;
   if (heroShareBtn) heroShareBtn.onclick = handleShareWeb;
 
+  // Showcase Card Preview
+  const showcaseCardBtn = $("showcaseCardBtn");
+  const showcaseImgCard = $("showcaseImgCard");
+  const handleShowcase = () => {
+    openEvolveCardModal("bro send that report asap", "Could you please send the report as soon as possible?", 88, "Professional", "Email");
+  };
+  if (showcaseCardBtn) showcaseCardBtn.onclick = handleShowcase;
+  if (showcaseImgCard) showcaseImgCard.onclick = handleShowcase;
+
   // Mode Switches
   const modeEvolve = $("modeEvolve");
   const modeReply = $("modeReply");
