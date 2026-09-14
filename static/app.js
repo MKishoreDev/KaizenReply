@@ -1059,7 +1059,7 @@ function renderCardCanvas(canvas, options) {
 
   const logoImg = new Image();
   logoImg.crossOrigin = "anonymous";
-  logoImg.src = "/static/logo-icon.png";
+  logoImg.src = isDark ? "/static/logo-dark.png" : "/static/logo-light.png";
 
   const drawAll = () => {
     // 1. Draw Landscape Background Image
