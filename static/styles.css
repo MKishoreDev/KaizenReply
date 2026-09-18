@@ -797,9 +797,8 @@ footer { padding: 40px 0; border-top: 1px solid var(--border); text-align: cente
 .brand-logo-img {
   height: 34px; width: 34px;
   border-radius: 6px;
-  object-fit: cover;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-  border: 1px solid var(--border);
+  object-fit: contain;
+  background: transparent;
 }
 
 

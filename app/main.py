@@ -6,7 +6,8 @@ import os
 import time
 
 import httpx
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, status
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv, find_dotenv
@@ -29,13 +30,13 @@ GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 FALLBACK_MODELS = [
     "llama-3.3-70b-versatile",
+    "llama-3.1-70b-versatile",
+    "qwen-2.5-coder-32b",
+    "mixtral-8x7b-32768",
+    "gemma2-9b-it",
     "llama-3.1-8b-instant",
     "llama-3.2-3b-preview",
     "llama-3.2-1b-preview",
-    "llama-3.1-70b-versatile",
-    "gemma2-9b-it",
-    "mixtral-8x7b-32768",
-    "qwen-2.5-coder-32b",
 ]
 
 _cached_models: list[str] = []
@@ -93,6 +94,22 @@ PLATFORM_GUIDANCE = {
 PLATFORM_LIMITS = {"SMS": 160, "X (Twitter)": 280}
 
 app = FastAPI(title="KaizenReply API", version="1.0.0")
+
+# Restrict CORS access to authorized domains only
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://kaizenreply.vercel.app",
+        "https://mkishore.is-a.dev",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+        "http://localhost:3000",
+        "http://localhost:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["*"],
+)
 
 
 def build_improve_prompt(req: ImproveRequest) -> str:
@@ -214,8 +231,13 @@ async def call_groq(
     available_models = await get_groq_models()
 
     candidate_models = []
-    for m in [primary_model] + available_models + FALLBACK_MODELS:
-        if m and m not in candidate_models:
+    if primary_model and primary_model not in candidate_models:
+        candidate_models.append(primary_model)
+    for m in FALLBACK_MODELS:
+        if m not in candidate_models:
+            candidate_models.append(m)
+    for m in available_models:
+        if m not in candidate_models:
             candidate_models.append(m)
 
     last_error_detail = ""
@@ -313,16 +335,23 @@ def get_ip(request: Request) -> str:
     return request.client.host if request.client else "unknown"
 
 
+from collections import defaultdict
+ip_history = defaultdict(list)
+RATE_LIMIT_WINDOW = 60.0  # 1 minute window
+RATE_LIMIT_MAX = 30       # max 30 requests per minute per IP
+
 def check_antispam(ip: str):
     now = time.time()
-    last = last_seen.get(ip, 0)
-    if now - last < ANTISPAM_DELAY:
+    # Remove timestamps older than 60s
+    history = [t for t in ip_history[ip] if now - t < RATE_LIMIT_WINDOW]
+    if len(history) >= RATE_LIMIT_MAX:
         raise HTTPException(
-            status_code=429,
-            detail="Too many requests. Slow down.",
-            headers={"Retry-After": "1"},
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Rate limit exceeded. Maximum 30 requests per minute allowed.",
+            headers={"Retry-After": "60"},
         )
-    last_seen[ip] = now
+    history.append(now)
+    ip_history[ip] = history
 
 
 _cached_kotowaza: list[dict] = []

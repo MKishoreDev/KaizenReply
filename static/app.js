@@ -113,17 +113,13 @@ function initScrollSpy() {
     let currentSection = "top";
     for (const secId of sections) {
       const el = document.getElementById(secId);
-      if (el) {
-        const top = el.offsetTop;
-        const height = el.offsetHeight;
-        if (scrollPos >= top && scrollPos < top + height) {
-          currentSection = secId;
-        }
+      if (el && scrollPos >= el.offsetTop - 60) {
+        currentSection = secId;
       }
     }
 
     // Special check for bottom of page
-    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 60) {
+    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 80) {
       currentSection = "quotes";
     }
 
@@ -256,13 +252,16 @@ async function fetchAvailableModels() {
   try {
     const res = await fetch("/api/models");
     if (!res.ok) return;
-    const models = await res.json();
-    if (Array.isArray(models) && models.length > 0) {
-      select.innerHTML = models.map((m) => `<option value="${m}">${m}</option>`).join("");
+    const data = await res.json();
+    const modelsList = Array.isArray(data) ? data : (data.models || []);
+    if (modelsList.length > 0) {
+      const currentSelected = select.value || data.current || "llama-3.3-70b-versatile";
+      select.innerHTML = modelsList
+        .map((m) => `<option value="${m}" ${m === currentSelected ? 'selected' : ''}>${m}</option>`)
+        .join("");
     }
   } catch (e) {
-    // Keep default static options fallback
-    select.innerHTML = `<option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile</option>`;
+    console.warn("Could not fetch models dynamically, using static fallback models:", e);
   }
 }
 
@@ -1233,7 +1232,7 @@ function renderCardCanvas(canvas, options) {
 
   const logoImg = new Image();
   logoImg.crossOrigin = "anonymous";
-  logoImg.src = isDark ? "/static/logo-dark.png" : "/static/logo-light.png";
+  logoImg.src = isDark ? "/static/logo-light.png" : "/static/logo-dark.png";
 
   const drawAll = () => {
     // 1. Draw Landscape Background Image
