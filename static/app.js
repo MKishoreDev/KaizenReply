@@ -87,17 +87,52 @@ let countdownInterval = null;
 
 const $ = (id) => document.getElementById(id);
 
+// Preloader Control Functions
+function updatePreloaderProgress(percent, label) {
+  const bar = $("preloaderBar");
+  const txt = $("preloaderText");
+  if (bar) bar.style.width = `${percent}%`;
+  if (txt && label) txt.textContent = label;
+}
+
+function hidePreloader() {
+  const preloader = $("appPreloader");
+  if (!preloader || preloader.classList.contains("preloader-hidden")) return;
+  updatePreloaderProgress(100, "Ready!");
+  setTimeout(() => {
+    preloader.classList.add("preloader-hidden");
+    setTimeout(() => {
+      if (preloader.parentNode) preloader.parentNode.removeChild(preloader);
+    }, 500);
+  }, 250);
+}
+
+// Safety fallback: dismiss preloader after 2.5s maximum
+setTimeout(hidePreloader, 2500);
+window.addEventListener("load", hidePreloader);
+
 // Initialize Page
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   initTheme();
+  updatePreloaderProgress(20, "Loading preferences & theme…");
   populateDropdownsAndChips();
-  fetchAvailableModels();
-  fetchKotowazaProverbs();
+  
+  updatePreloaderProgress(45, "Loading AI models & proverbs…");
+  const modelsPromise = fetchAvailableModels().catch(() => {});
+  const quotesPromise = fetchKotowazaProverbs().catch(() => {});
+  
   setupEventListeners();
+  updatePreloaderProgress(75, "Preparing Kaizen workspace…");
+  
+  await Promise.all([modelsPromise, quotesPromise]);
+  updatePreloaderProgress(90, "Finalizing UI components…");
+  
   updateQuoteDisplay();
   renderKaizenHistory();
   initHeroPreviewAnimation();
   initScrollSpy();
+
+  hidePreloader();
 });
 
 // Active Navigation Scroll Indicator
