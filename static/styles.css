@@ -83,8 +83,10 @@ body {
   -webkit-font-smoothing: antialiased;
   position: relative;
   min-height: 100vh;
+  overflow-x: hidden;
   transition: background 0.35s ease, color 0.35s ease;
 }
+img, svg, video, canvas { max-width: 100%; height: auto; }
 
 /* Washi Paper Noise Grain Overlay */
 body::before {
@@ -690,13 +692,15 @@ textarea.desk-textarea:focus { border-color: var(--primary); }
 
 .quote-card__kanji {
   font-family: 'Noto Serif JP', serif;
-  font-size: clamp(2.8rem, 6vw, 4.5rem);
+  font-size: clamp(1.5rem, 4vw, 3.2rem);
   font-weight: 700;
-  line-height: 1.1;
+  line-height: 1.25;
   margin: 0 0 12px;
   color: #ffffff;
   text-shadow: 0 4px 24px rgba(0,0,0,0.5);
   letter-spacing: 0.04em;
+  word-break: break-word;
+  max-width: 100%;
 }
 
 .quote-card__reading {
@@ -793,13 +797,34 @@ footer { padding: 40px 0; border-top: 1px solid var(--border); text-align: cente
 .footer-grid div { display: flex; gap: 20px; }
 .footer-grid a { color: var(--foreground); text-decoration: none; font-weight: 600; }
 
-/* ── Brand Logo ──────────────────────────────────────────────────────── */
-.brand-logo-img {
-  height: 34px; width: 34px;
-  border-radius: 6px;
-  object-fit: contain;
-  background: transparent;
+/* ── Interactive Kaizen Word Diff Marks ────────────────────────────────── */
+.kaizen-diff-mark {
+  background: rgba(22, 166, 106, 0.14);
+  color: var(--primary-emphasis);
+  border-bottom: 2px dashed var(--primary);
+  border-radius: 3px;
+  padding: 1px 4px;
+  cursor: pointer;
+  position: relative;
+  font-weight: 700;
+  transition: all 0.2s ease;
+  display: inline;
 }
+.kaizen-diff-mark:hover {
+  background: rgba(22, 166, 106, 0.26);
+  box-shadow: 0 0 12px rgba(22, 166, 106, 0.25);
+}
+.dark .kaizen-diff-mark {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+  border-bottom-color: #22c55e;
+}
+.dark .kaizen-diff-mark:hover {
+  background: rgba(34, 197, 94, 0.35);
+  box-shadow: 0 0 14px rgba(34, 197, 94, 0.35);
+}
+
+/* ── Brand Mark & Logo ────────────────────────────────────────────────── */
 
 
 /* ── Dark Mode — Premium Redesign ──────────────────────────────────────── */
@@ -1002,35 +1027,37 @@ footer { padding: 40px 0; border-top: 1px solid var(--border); text-align: cente
 .showcase-card-overlay {
   position: absolute;
   inset: 0;
-  padding: 6% 7%;
+  padding: 5% 6%;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  background: linear-gradient(135deg, rgba(247, 247, 243, 0.45) 0%, rgba(247, 247, 243, 0.1) 100%);
+  background: linear-gradient(135deg, rgba(247, 247, 243, 0.75) 0%, rgba(247, 247, 243, 0.35) 55%, transparent 100%);
+  pointer-events: none;
 }
 .showcase-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
+  max-width: 62%;
 }
 .showcase-brand-lockup {
   display: inline-flex !important;
   flex-direction: row !important;
   align-items: center !important;
-  gap: 10px !important;
+  gap: 8px !important;
   white-space: nowrap !important;
 }
 .showcase-brand-lockup .card-logo-icon {
-  height: 28px !important;
-  width: 28px !important;
+  height: 26px !important;
+  width: 26px !important;
   object-fit: contain !important;
   flex-shrink: 0 !important;
   display: inline-block !important;
   margin: 0 !important;
 }
 .showcase-brand-lockup b {
-  font-size: 16px !important;
+  font-size: 15px !important;
   font-weight: 700 !important;
   line-height: 1 !important;
   margin: 0 !important;
@@ -1063,17 +1090,24 @@ footer { padding: 40px 0; border-top: 1px solid var(--border); text-align: cente
 }
 .showcase-heading {
   font-family: "Georgia", "Noto Serif JP", serif;
-  font-size: clamp(1.4rem, 2.6vw, 2.4rem);
-  line-height: 0.98;
-  margin: 8px 0 12px;
+  font-size: clamp(1.1rem, 2.2vw, 2.1rem);
+  line-height: 1.05;
+  margin: 4px 0 8px;
   color: #17201c;
   font-weight: 400;
+  max-width: 62%;
 }
 .showcase-heading .green-text {
   color: #16a66a;
 }
+.showcase-body-content {
+  max-width: 62%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
 .showcase-section {
-  max-width: 58%;
+  width: 100%;
 }
 .showcase-label {
   display: block;
@@ -1107,7 +1141,7 @@ footer { padding: 40px 0; border-top: 1px solid var(--border); text-align: cente
   filter: brightness(0.4) saturate(0.7);
 }
 .dark .showcase-card-overlay {
-  background: linear-gradient(135deg, rgba(14, 20, 32, 0.85) 0%, rgba(8, 12, 18, 0.65) 100%);
+  background: linear-gradient(135deg, rgba(14, 20, 32, 0.88) 0%, rgba(14, 20, 32, 0.45) 55%, transparent 100%);
 }
 .dark .showcase-heading {
   color: #e8eef6;
@@ -1146,8 +1180,10 @@ footer { padding: 40px 0; border-top: 1px solid var(--border); text-align: cente
   .process-grid, .feature-grid { grid-template-columns: 1fr 1fr; }
   .five-s-grid { grid-template-columns: repeat(5, 1fr); }
   .nav-links { display: none; }
-  .share-showcase-grid { grid-template-columns: 1fr; }
+  .share-showcase-grid { grid-template-columns: 1fr; gap: 24px; }
   .quote-header { flex-direction: column; align-items: flex-start; }
+
+  .showcase-header, .showcase-heading, .showcase-body-content { max-width: 70%; }
 }
 
 @media (max-width: 768px) {
@@ -1157,7 +1193,7 @@ footer { padding: 40px 0; border-top: 1px solid var(--border); text-align: cente
   .nav-actions .btn-hero { padding: 8px 12px; font-size: 12px; }
   .nav-actions .btn-icon { width: 34px; height: 34px; }
 
-  .hero h1 { font-size: clamp(2.2rem, 8vw, 3.8rem); }
+  .hero h1 { font-size: clamp(2rem, 7.5vw, 3.4rem); }
   .hero-lede { font-size: 14px; margin: 16px 0; }
   .hero-actions { flex-direction: column; gap: 8px; }
   .hero-actions .btn-hero, .hero-actions .btn-paper { width: 100%; justify-content: center; }
@@ -1165,8 +1201,10 @@ footer { padding: 40px 0; border-top: 1px solid var(--border); text-align: cente
   .desk-section { padding: 40px 0; }
   .desk-frame { padding: 14px; gap: 16px; }
 
-  .demo-row { overflow-x: auto; padding-bottom: 4px; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
+  .demo-row { overflow-x: auto; padding-bottom: 6px; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
   .demo-row button { flex-shrink: 0; }
+
+  .chips-wrap { overflow-x: auto; padding-bottom: 4px; flex-wrap: wrap; }
 
   .draft-actions { flex-direction: column; gap: 8px; }
   .draft-actions button { width: 100%; }
@@ -1175,17 +1213,18 @@ footer { padding: 40px 0; border-top: 1px solid var(--border); text-align: cente
   #modelSelect { width: 100%; }
 
   /* Quote card responsive */
-  .quote-section { padding: 60px 0 50px; }
-  .quote-layout { padding-inline: 16px; }
-  .quote-card { padding: 28px 24px; border-radius: 16px; }
-  .quote-card__kanji { font-size: clamp(2.2rem, 8vw, 3.5rem); }
-  .quote-card__meaning { font-size: 1.05rem; }
+  .quote-section { padding: 50px 0 40px; }
+  .quote-layout { padding-inline: 12px; }
+  .quote-card { padding: 24px 18px; border-radius: 16px; }
+  .quote-card__kanji { font-size: clamp(1.4rem, 5vw, 2.4rem); }
+  .quote-card__meaning { font-size: 1rem; padding-left: 14px; }
   .quote-card__footer { flex-direction: column; align-items: stretch; gap: 12px; }
   .quote-card__footer .btn-hero { width: 100%; justify-content: center; }
   .quote-tags { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; }
   .quote-tags .tag-btn { flex-shrink: 0; }
 
   .five-s-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .showcase-header, .showcase-heading, .showcase-body-content { max-width: 80%; }
 }
 
 @media (max-width: 600px) {
@@ -1194,13 +1233,14 @@ footer { padding: 40px 0; border-top: 1px solid var(--border); text-align: cente
   .share-showcase-grid { grid-template-columns: 1fr !important; }
   .five-s-grid { grid-template-columns: 1fr; }
 
-  .modal-card { max-width: 96vw; padding: 16px; gap: 12px; }
+  .modal-card { max-width: 96vw; padding: 14px; gap: 10px; }
   .modal-actions { flex-direction: column; gap: 8px; }
   .modal-actions button { width: 100%; }
 
-  .quote-card { padding: 20px 16px; }
-  .quote-card__kanji { font-size: 2rem; margin-bottom: 8px; }
-  .quote-card__meaning { font-size: 1rem; }
+  .quote-card { padding: 20px 14px; }
+  .quote-card__kanji { font-size: clamp(1.3rem, 4.8vw, 2.1rem); margin-bottom: 8px; }
+  .quote-card__meaning { font-size: 0.95rem; }
+  .showcase-header, .showcase-heading, .showcase-body-content { max-width: 90%; }
 }
 
 .dark .desk-frame {
@@ -1381,61 +1421,6 @@ footer { padding: 40px 0; border-top: 1px solid var(--border); text-align: cente
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 #showcaseImgCard:hover { transform: translateY(-6px); box-shadow: 0 32px 64px rgba(0,0,0,0.18); }
-
-/* ── Responsive Media Queries ─────────────────────────────────────────── */
-@media (max-width: 960px) {
-  .hero { min-height: auto; padding-bottom: 40px; }
-  .hero-grid { grid-template-columns: 1fr; gap: 32px; padding-block: 24px; min-height: auto; }
-  .hero-copy { padding-left: 0; max-width: 100%; }
-  .vertical-kaizen { display: none; }
-  .mini-preview { width: 100%; max-width: 100%; }
-
-  .desk-frame { grid-template-columns: 1fr; }
-  .output-column { border-left: none; border-top: 1px solid var(--border); padding-left: 0; padding-top: 24px; }
-  .section-heading { grid-template-columns: 1fr; gap: 16px; margin-bottom: 24px; }
-  .philosophy-grid { grid-template-columns: 1fr; }
-  .process-grid, .feature-grid { grid-template-columns: 1fr 1fr; }
-  .five-s-grid { grid-template-columns: repeat(5, 1fr); }
-  .nav-links { display: none; }
-  .share-showcase-grid { grid-template-columns: 1fr; }
-}
-
-@media (max-width: 768px) {
-  .page-shell { width: calc(100% - 24px); }
-  .nav-shell {
-    display: flex; justify-content: space-between; align-items: center;
-    height: 60px; width: 100%; padding-inline: 12px;
-  }
-  .nav-actions { gap: 4px; }
-  .nav-actions .btn-hero { padding: 8px 12px; font-size: 12px; }
-  .nav-actions .btn-icon { width: 34px; height: 34px; }
-
-  .hero h1 { font-size: clamp(2.2rem, 8vw, 3.8rem); }
-  .hero-lede { font-size: 14px; margin: 16px 0; }
-  .hero-actions { flex-direction: column; gap: 8px; }
-  .hero-actions .btn-hero, .hero-actions .btn-paper { width: 100%; justify-content: center; }
-
-  .desk-section { padding: 40px 0; }
-  .desk-frame { padding: 14px; gap: 16px; }
-
-  .demo-row { overflow-x: auto; padding-bottom: 4px; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
-  .demo-row button { flex-shrink: 0; }
-
-  .draft-actions { flex-direction: column; gap: 8px; }
-  .draft-actions button { width: 100%; }
-
-  #modelSelectRow { flex-direction: column; align-items: flex-start; gap: 4px; }
-  #modelSelect { width: 100%; }
-
-  .quote-layout { padding-inline: 8px; }
-  .quote-card { padding: 20px; }
-  .quote-card blockquote p[lang="ja"] { font-size: 2rem; }
-  .quote-actions { flex-direction: column; gap: 8px; }
-  .quote-actions button { width: 100%; justify-content: center; }
-  #quoteTagFilters { width: 100%; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; }
-
-  .five-s-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
-}
 
 /* ── Kaizen Toast Notification System ────────────────────────────────── */
 .kaizen-toast-container {

@@ -788,6 +788,21 @@ function startRateLimitCooldown(seconds) {
 // Render Evolve Output
 function renderEvolveOutput(data, original, tone, platform) {
   const outputContainer = $("outputContainer");
+
+  // Format improved message with interactive diff marks if notes are available
+  let formattedImproved = escapeHtml(data.improved);
+  if (data.notes && data.notes.length) {
+    data.notes.forEach((n, i) => {
+      if (n.replacement && n.replacement.trim()) {
+        const repEsc = escapeHtml(n.replacement);
+        const origEsc = escapeHtml(n.original);
+        const reasonEsc = escapeHtml(n.reason);
+        const markTag = `<mark class="kaizen-diff-mark" data-note-idx="${i}" title="“${origEsc}” → “${repEsc}”: ${reasonEsc}">${repEsc}</mark>`;
+        formattedImproved = formattedImproved.replace(repEsc, markTag);
+      }
+    });
+  }
+
   const notesHtml = data.notes && data.notes.length
     ? data.notes.map(n => `
         <div class="note-row">
@@ -820,8 +835,8 @@ function renderEvolveOutput(data, original, tone, platform) {
           <p>${escapeHtml(original)}</p>
         </article>
         <article class="after">
-          <span>Kaizen · Evolved</span>
-          <p>${escapeHtml(data.improved)}</p>
+          <span>Kaizen · Evolved <small style="opacity:0.75;">(click highlights for notes)</small></span>
+          <p>${formattedImproved}</p>
         </article>
       </div>
 
@@ -873,6 +888,17 @@ function renderEvolveOutput(data, original, tone, platform) {
       <button class="btn-hero" id="evolveFurtherBtn" style="justify-content:center;margin-top:8px;">Evolve Further ↺</button>
     </div>
   `;
+
+  // Attach click listeners on diff marks
+  outputContainer.querySelectorAll(".kaizen-diff-mark").forEach((mark) => {
+    mark.onclick = () => {
+      const idx = parseInt(mark.getAttribute("data-note-idx"), 10);
+      const note = data.notes && data.notes[idx];
+      if (note) {
+        showKaizenToast(`“${note.original}” → “${note.replacement}”: ${note.reason}`, "info", 4500);
+      }
+    };
+  });
 
   // Action Buttons Listeners
   $("copyResultBtn").onclick = () => {
@@ -951,13 +977,27 @@ function renderReplyOutput(data, incomingMsg) {
           <span>Reply Option 0${idx + 1}</span>
           <p>${escapeHtml(s)}</p>
           <div>
-            <button class="btn-paper" onclick="copyReplyText('${escapeJsString(s)}')">Copy</button>
-            <button class="btn-paper" onclick="shareReplyText('${escapeJsString(s)}')">Share</button>
+            <button class="btn-paper reply-copy-btn" data-index="${idx}">Copy</button>
+            <button class="btn-paper reply-share-btn" data-index="${idx}">Share</button>
           </div>
         </article>
       `).join("")}
     </div>
   `;
+
+  outputContainer.querySelectorAll(".reply-copy-btn").forEach((btn) => {
+    btn.onclick = () => {
+      const idx = parseInt(btn.getAttribute("data-index"), 10);
+      if (suggestions[idx]) copyReplyText(suggestions[idx]);
+    };
+  });
+
+  outputContainer.querySelectorAll(".reply-share-btn").forEach((btn) => {
+    btn.onclick = () => {
+      const idx = parseInt(btn.getAttribute("data-index"), 10);
+      if (suggestions[idx]) shareReplyText(suggestions[idx]);
+    };
+  });
 }
 
 window.copyReplyText = (text) => {
@@ -1003,12 +1043,20 @@ function renderKaizenHistory() {
     }
 
     section.classList.remove("hidden");
-    listContainer.innerHTML = list.map((item) => `
-      <div class="history-item" onclick="loadHistoryItem('${escapeJsString(item.improved)}')">
+    listContainer.innerHTML = list.map((item, idx) => `
+      <div class="history-item" data-index="${idx}">
         <span>${escapeHtml(item.tone || 'Kaizen')} · Score: <strong style="color:var(--primary);">${item.scoreAfter}</strong></span>
         <small style="color:var(--muted-foreground);">${item.timestamp}</small>
       </div>
     `).join("");
+
+    listContainer.querySelectorAll(".history-item").forEach((el) => {
+      el.onclick = () => {
+        const idx = parseInt(el.getAttribute("data-index"), 10);
+        const item = list[idx];
+        if (item && item.improved) loadHistoryItem(item.improved);
+      };
+    });
   } catch (err) {
     console.error("History render error:", err);
   }
@@ -1263,11 +1311,15 @@ function renderCardCanvas(canvas, options) {
 
   const bgImg = new Image();
   bgImg.crossOrigin = "anonymous";
-  bgImg.src = options.type === "quote" ? "/static/assets/kaizen-quote.jpg" : "/static/assets/kaizen-share.jpg";
 
   const logoImg = new Image();
   logoImg.crossOrigin = "anonymous";
-  logoImg.src = isDark ? "/static/logo-light.png" : "/static/logo-dark.png";
+
+  bgImg.onload = () => drawAll();
+  logoImg.onload = () => drawAll();
+
+  bgImg.src = options.type === "quote" ? "/static/assets/kaizen-quote.jpg" : "/static/assets/kaizen-share.jpg";
+  logoImg.src = "/static/logo-icon.png";
 
   const drawAll = () => {
     // 1. Draw Landscape Background Image
@@ -1377,9 +1429,9 @@ function renderCardCanvas(canvas, options) {
     }
   };
 
-  bgImg.onload = drawAll;
-  logoImg.onload = drawAll;
-  if (bgImg.complete && logoImg.complete) drawAll();
+  if (bgImg.complete && logoImg.complete) {
+    drawAll();
+  }
 }
 
 function drawRoundRect(ctx, x, y, w, h, r) {
@@ -1398,24 +1450,30 @@ function drawRoundRect(ctx, x, y, w, h, r) {
 
 
 function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight) {
-  const words = (text || "").split(" ");
-  let line = "";
+  const paragraphs = (text || "").split("\n");
   let currentY = y;
-  for (let n = 0; n < words.length; n++) {
-    const testLine = line + words[n] + " ";
-    if (ctx.measureText(testLine).width > maxWidth && n > 0) {
-      ctx.fillText(line, x, currentY);
-      line = words[n] + " ";
-      currentY += lineHeight;
-      if (currentY > y + 260) {
-        ctx.fillText("...", x, currentY);
-        return;
+
+  for (let p = 0; p < paragraphs.length; p++) {
+    const words = paragraphs[p].split(" ");
+    let line = "";
+    for (let n = 0; n < words.length; n++) {
+      const testLine = line + words[n] + " ";
+      if (ctx.measureText(testLine).width > maxWidth && n > 0) {
+        ctx.fillText(line.trim(), x, currentY);
+        line = words[n] + " ";
+        currentY += lineHeight;
+        if (currentY > y + 260) {
+          ctx.fillText("...", x, currentY);
+          return;
+        }
+      } else {
+        line = testLine;
       }
-    } else {
-      line = testLine;
     }
+    ctx.fillText(line.trim(), x, currentY);
+    currentY += lineHeight;
+    if (currentY > y + 260) return;
   }
-  ctx.fillText(line, x, currentY);
 }
 
 function downloadCanvasAsPng(canvas, filename) {
