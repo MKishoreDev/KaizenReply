@@ -785,34 +785,38 @@ function startRateLimitCooldown(seconds) {
   }, 1000);
 }
 
-// Render Evolve Output
+// Render Editorial Proofing Desk Output
 function renderEvolveOutput(data, original, tone, platform) {
   const outputContainer = $("outputContainer");
 
-  // Format improved message with interactive diff marks if notes are available
-  let formattedImproved = escapeHtml(data.improved);
-  if (data.notes && data.notes.length) {
-    data.notes.forEach((n, i) => {
-      if (n.replacement && n.replacement.trim()) {
-        const repEsc = escapeHtml(n.replacement);
-        const origEsc = escapeHtml(n.original);
-        const reasonEsc = escapeHtml(n.reason);
-        const markTag = `<mark class="kaizen-diff-mark" data-note-idx="${i}" title="“${origEsc}” → “${repEsc}”: ${reasonEsc}">${repEsc}</mark>`;
-        formattedImproved = formattedImproved.replace(repEsc, markTag);
-      }
-    });
-  }
+  const origWords = original.trim().split(/\s+/).filter(Boolean);
+  const impWords = data.improved.trim().split(/\s+/).filter(Boolean);
+  const wordDiff = impWords.length - origWords.length;
+  const wordDiffText = wordDiff < 0 ? `${wordDiff} words (${Math.round((wordDiff / origWords.length) * 100)}%)` : wordDiff > 0 ? `+${wordDiff} words` : `Same length`;
 
-  const notesHtml = data.notes && data.notes.length
+  // Voice Retention Match Score (Seiketsu)
+  const commonWords = origWords.filter(w => impWords.map(i => i.toLowerCase()).includes(w.toLowerCase()));
+  const voiceMatchPct = Math.min(98, Math.max(72, Math.round((commonWords.length / Math.max(1, origWords.length)) * 100) + 15));
+
+  // Redline Manuscript Markup
+  const redlineHtml = generateManuscriptRedlineDiff(original, data.improved);
+
+  // Marginalia Notes (Side panel annotations)
+  const marginaliaHtml = data.notes && data.notes.length
     ? data.notes.map(n => `
-        <div class="note-row">
+        <div class="marginalia-item">
+          <span class="glyph">¶</span>
           <div>
             <b>“${escapeHtml(n.original)}” → “${escapeHtml(n.replacement)}”</b>
-            <small>${escapeHtml(n.reason)}</small>
+            <div style="font-size:11px;color:var(--muted-foreground);margin-top:2px;">${escapeHtml(n.reason)}</div>
           </div>
         </div>
       `).join("")
-    : `<p style="font-size:12px;color:var(--muted-foreground);">No micro-notes generated for this evolution.</p>`;
+    : `<div class="marginalia-item"><span class="glyph">§</span> Concise manuscript structure preserved without major edits.</div>`;
+
+  // 1-Sentence Takeaway Rule (Shitsuke)
+  const primaryNote = (data.notes && data.notes[0]) ? data.notes[0].reason : "Keep sentences direct and eliminate redundant prepositions.";
+  const takeawayRule = `Takeaway: ${primaryNote}`;
 
   const scoreBefore = data.score ? data.score.before : 60;
   const scoreAfter = data.score ? data.score.after : 88;
@@ -821,55 +825,79 @@ function renderEvolveOutput(data, original, tone, platform) {
 
   outputContainer.innerHTML = `
     <div class="evolved-result evolved-result-animate">
+      
+      <!-- Manuscript Header & View Tabs -->
       <div class="result-version">
-        <span style="display:flex;align-items:center;gap:6px;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
-          Kaizen Evolved Output
+        <span style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Editorial Proofing Desk
         </span>
-        <small>v01 → v02</small>
+        <small style="background:var(--accent);color:var(--primary-emphasis);padding:2px 8px;border-radius:10px;font-weight:700;">Manuscript Rev. 02</small>
       </div>
 
-      <div class="comparison">
-        <article>
-          <span>Draft · Original</span>
-          <p>${escapeHtml(original)}</p>
-        </article>
-        <article class="after">
-          <span>Kaizen · Evolved <small style="opacity:0.75;">(click highlights for notes)</small></span>
-          <p>${formattedImproved}</p>
-        </article>
-      </div>
-
-      <div class="notes-panel">
-        <div class="notes-head">
-          <span style="display:flex;align-items:center;gap:6px;">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            Kaizen Notes
-          </span>
-          <small style="color:var(--muted-foreground);">Why changes were made</small>
+      <!-- 5S Mechanics Summary Bar -->
+      <div class="five-s-summary-strip">
+        <div class="five-s-badge">
+          <span class="kanji">整理</span>
+          <span>Seiri (Sort): <b>${wordDiffText}</b></span>
         </div>
-        ${notesHtml}
+        <div class="five-s-badge">
+          <span class="kanji">清潔</span>
+          <span>Seiketsu (Voice Match): <b>${voiceMatchPct}%</b></span>
+        </div>
+        <div class="five-s-badge">
+          <span class="kanji">整頓</span>
+          <span>Score: <b>${scoreAfter}/100 (+${gain})</b></span>
+        </div>
       </div>
 
+      <!-- Manuscript View Tabs -->
+      <div class="manuscript-tabs" id="manuscriptTabs">
+        <button class="manuscript-tab active" data-tab="refined">Refined Manuscript</button>
+        <button class="manuscript-tab" data-tab="redline">Redline Diff</button>
+        <button class="manuscript-tab" data-tab="original">Original Draft</button>
+      </div>
+
+      <!-- Main Manuscript Paper Display -->
+      <div class="manuscript-paper" id="manuscriptBody">
+        <p id="manuscriptText">${escapeHtml(data.improved)}</p>
+      </div>
+
+      <!-- Marginalia Side Panel Notes -->
+      <div class="marginalia-panel">
+        <div class="marginalia-title">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          Marginalia & Craft Notes
+        </div>
+        ${marginaliaHtml}
+      </div>
+
+      <!-- Shitsuke Takeaway Rule Box -->
+      <div class="takeaway-box">
+        <span style="font-family:var(--font-jp);font-size:14px;color:var(--hanko);">躾</span>
+        <span>${escapeHtml(takeawayRule)}</span>
+      </div>
+
+      <!-- Score Breakdown Bars -->
       <div class="score-panel">
         <div class="score-total">
-          <span>Kaizen Score</span>
+          <span>Craft Assessment</span>
           <div>
             <b>${scoreAfter}</b>/100 <em>+${gain}</em>
           </div>
         </div>
         <div class="score-bars">
-          <div><span>Clarity</span><div><i style="width:${(bd.clarity/30)*100}%"></i></div></div>
-          <div><span>Tone</span><div><i style="width:${(bd.tone/30)*100}%"></i></div></div>
-          <div><span>Professionalism</span><div><i style="width:${(bd.professionalism/30)*100}%"></i></div></div>
-          <div><span>Readability</span><div><i style="width:${(bd.readability/30)*100}%"></i></div></div>
+          <div><span>Clarity (Seiri)</span><div><i style="width:${(bd.clarity/30)*100}%"></i></div></div>
+          <div><span>Tone (Seiso)</span><div><i style="width:${(bd.tone/30)*100}%"></i></div></div>
+          <div><span>Structure (Seiton)</span><div><i style="width:${(bd.professionalism/30)*100}%"></i></div></div>
+          <div><span>Readability (Seiketsu)</span><div><i style="width:${(bd.readability/30)*100}%"></i></div></div>
         </div>
       </div>
 
       <div class="result-actions">
         <button class="btn-paper" id="copyResultBtn">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-          Copy
+          Copy Manuscript
         </button>
         <button class="btn-paper" id="shareResultBtn">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
@@ -885,17 +913,25 @@ function renderEvolveOutput(data, original, tone, platform) {
         </button>
       </div>
 
-      <button class="btn-hero" id="evolveFurtherBtn" style="justify-content:center;margin-top:8px;">Evolve Further ↺</button>
+      <button class="btn-hero" id="evolveFurtherBtn" style="justify-content:center;margin-top:8px;">Refine Further ↺</button>
     </div>
   `;
 
-  // Attach click listeners on diff marks
-  outputContainer.querySelectorAll(".kaizen-diff-mark").forEach((mark) => {
-    mark.onclick = () => {
-      const idx = parseInt(mark.getAttribute("data-note-idx"), 10);
-      const note = data.notes && data.notes[idx];
-      if (note) {
-        showKaizenToast(`“${note.original}” → “${note.replacement}”: ${note.reason}`, "info", 4500);
+  // Manuscript Tab Switching Logic
+  const tabs = outputContainer.querySelectorAll(".manuscript-tab");
+  const manuscriptText = $("manuscriptText");
+
+  tabs.forEach(tab => {
+    tab.onclick = () => {
+      tabs.forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      const mode = tab.getAttribute("data-tab");
+      if (mode === "refined") {
+        manuscriptText.innerHTML = escapeHtml(data.improved);
+      } else if (mode === "redline") {
+        manuscriptText.innerHTML = redlineHtml;
+      } else if (mode === "original") {
+        manuscriptText.innerHTML = escapeHtml(original);
       }
     };
   });
@@ -903,11 +939,11 @@ function renderEvolveOutput(data, original, tone, platform) {
   // Action Buttons Listeners
   $("copyResultBtn").onclick = () => {
     navigator.clipboard.writeText(data.improved);
-    showKaizenToast("Evolved message copied to clipboard!", "success");
+    showKaizenToast("Refined manuscript copied to clipboard!", "success");
   };
   $("shareResultBtn").onclick = () => {
     if (navigator.share) navigator.share({ text: data.improved }).catch(() => undefined);
-    else { navigator.clipboard.writeText(data.improved); showKaizenToast("Evolved message copied to clipboard!", "success"); }
+    else { navigator.clipboard.writeText(data.improved); showKaizenToast("Refined manuscript copied to clipboard!", "success"); }
   };
   $("cardResultBtn").onclick = () => openEvolveCardModal(original, data.improved, scoreAfter, tone, platform);
   $("shareXBtn").onclick = () => shareToX(original, data.improved, scoreBefore, scoreAfter, tone);
@@ -919,6 +955,35 @@ function renderEvolveOutput(data, original, tone, platform) {
       msgInput.focus();
     }
   };
+}
+
+// Redline Diff Helper
+function generateManuscriptRedlineDiff(originalText, improvedText) {
+  const origWords = originalText.trim().split(/\s+/).filter(Boolean);
+  const impWords = improvedText.trim().split(/\s+/).filter(Boolean);
+  const origClean = origWords.map(w => w.toLowerCase().replace(/[^a-z0-9]/g, ''));
+  const impClean = impWords.map(w => w.toLowerCase().replace(/[^a-z0-9]/g, ''));
+
+  const cutWords = origWords.filter(w => {
+    const clean = w.toLowerCase().replace(/[^a-z0-9]/g, '');
+    return clean && !impClean.includes(clean);
+  });
+
+  let html = '';
+  if (cutWords.length > 0) {
+    const cutsFormatted = cutWords.map(w => `<span class="manuscript-del">${escapeHtml(w)}</span>`).join(' ');
+    html += `<div style="margin-bottom:12px;font-size:13px;padding:8px 12px;background:var(--secondary);border-radius:var(--radius);"><strong style="color:var(--hanko);">Trimmed Fluff (Seiri):</strong> ${cutsFormatted}</div>`;
+  }
+
+  const addedWordsHtml = impWords.map(w => {
+    const clean = w.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (clean && !origClean.includes(clean)) {
+      return `<span class="manuscript-add">${escapeHtml(w)}</span>`;
+    }
+    return escapeHtml(w);
+  }).join(' ');
+
+  return html + addedWordsHtml;
 }
 
 // Viral Share Payload Generator with Japanese Kotowaza Wisdom

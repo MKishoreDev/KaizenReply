@@ -84,18 +84,12 @@
           <h1>Your message is good.<br /><em>Make it better.</em></h1>
           <p class="hero-lede">KaizenReply improves clarity, tone, and impact — without taking your voice away.</p>
           <div class="hero-actions">
-            <a href="#desk" class="btn-hero">Start Improving →</a>
+            <a href="#desk" class="btn-hero">Refine Your Draft →</a>
             <button id="heroShareBtn" class="btn-paper">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-              Share
+              Share Desk
             </button>
           </div>
-          <ul class="trust-list">
-            <li><span>✓</span> No signup required</li>
-            <li><span>✓</span> Free to try</li>
-            <li><span>✓</span> Your voice stays yours</li>
-            <li><span>✓</span> Instant results</li>
-          </ul>
         </div>
 
         <!-- Live Mini Preview -->
@@ -176,23 +170,23 @@
             <textarea id="messageInput" class="desk-textarea" rows="5" maxlength="3000" placeholder="Paste your message here…  e.g. bro send that report asap"></textarea>
 
             <div class="demo-row">
-              <span>Try demo:</span>
-              <button type="button" class="demo-btn" data-text="I ate the sandwich" data-tone="LinkedIn Bro" data-platform="LinkedIn">◈ LinkedIn Bro</button>
-              <button type="button" class="demo-btn" data-text="hey are you free to grab coffee this weekend?" data-tone="🔥 Roast My Draft" data-platform="WhatsApp">◆ Roast My Draft</button>
-              <button type="button" class="demo-btn" data-text="I like your profile, want to get coffee sometime?" data-tone="Dating App Opener" data-platform="WhatsApp">✦ Coffee Date</button>
-              <button type="button" class="demo-btn" data-text="bro send that report asap need it for client meeting" data-tone="Professional" data-platform="Email">◇ Send Report</button>
+              <span>Try sample:</span>
+              <button type="button" class="demo-btn" data-text="I ate the sandwich" data-tone="LinkedIn Bro" data-platform="LinkedIn">§ Executive Bio</button>
+              <button type="button" class="demo-btn" data-text="hey are you free to grab coffee this weekend?" data-tone="Direct & Punchy" data-platform="WhatsApp">¶ Direct Pitch</button>
+              <button type="button" class="demo-btn" data-text="I like your profile, want to get coffee sometime?" data-tone="Friendly & Warm" data-platform="WhatsApp">· Warm Greeting</button>
+              <button type="button" class="demo-btn" data-text="bro send that report asap need it for client meeting" data-tone="Professional" data-platform="Email">§ Work Update</button>
             </div>
 
             <!-- Dynamic Model Selector Row -->
             <div id="modelSelectRow" style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;">
-              <span style="font-weight:700;color:var(--muted-foreground);">AI Model <small style="opacity:0.7">· dynamic</small></span>
+              <span style="font-weight:700;color:var(--muted-foreground);">AI Model Engine <small style="opacity:0.7">· selectable</small></span>
               <select id="modelSelect" style="padding:4px 8px;font-size:12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--card);color:var(--foreground);cursor:pointer;">
-                <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile</option>
-                <option value="llama-3.1-70b-versatile">llama-3.1-70b-versatile</option>
-                <option value="qwen-2.5-coder-32b">qwen-2.5-coder-32b</option>
-                <option value="mixtral-8x7b-32768">mixtral-8x7b-32768</option>
-                <option value="gemma2-9b-it">gemma2-9b-it</option>
-                <option value="llama-3.1-8b-instant">llama-3.1-8b-instant</option>
+                <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile (Default)</option>
+                <option value="llama-3.1-70b-versatile">llama-3.1-70b-versatile (Executive)</option>
+                <option value="qwen-2.5-coder-32b">qwen-2.5-coder-32b (Precision Cut)</option>
+                <option value="mixtral-8x7b-32768">mixtral-8x7b-32768 (Prose Craft)</option>
+                <option value="gemma2-9b-it">gemma2-9b-it (Balanced)</option>
+                <option value="llama-3.1-8b-instant">llama-3.1-8b-instant (Fast Draft)</option>
               </select>
             </div>
 
@@ -202,9 +196,9 @@
                 <span style="font-size:12px;font-weight:700;color:var(--muted-foreground);">Tone <small style="opacity:0.7">· required</small></span>
                 <div id="toneCategoryFilters" class="tone-cat-filters" style="display:flex;gap:4px;">
                   <button type="button" class="tone-cat-btn active" data-cat="All">All</button>
-                  <button type="button" class="tone-cat-btn" data-cat="Viral">◈ Viral</button>
-                  <button type="button" class="tone-cat-btn" data-cat="Work">◇ Work</button>
-                  <button type="button" class="tone-cat-btn" data-cat="Social">✦ Social</button>
+                  <button type="button" class="tone-cat-btn" data-cat="Viral">§ Punchy</button>
+                  <button type="button" class="tone-cat-btn" data-cat="Work">¶ Executive</button>
+                  <button type="button" class="tone-cat-btn" data-cat="Social">· Warm</button>
                 </div>
               </div>
               <div id="toneChips" class="chips-wrap"></div>
@@ -238,7 +232,7 @@
             <div class="draft-actions">
               <button id="fixGrammarBtn" class="btn-paper">Fix Grammar</button>
               <button id="evolveBtn" class="btn-hero">
-                <span id="evolveBtnText">Evolve Message →</span>
+                <span id="evolveBtnText">Refine Draft →</span>
               </button>
             </div>
 

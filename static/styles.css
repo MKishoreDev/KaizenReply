@@ -5,70 +5,70 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700;800&family=Noto+Serif+JP:wght@400;600;700&display=swap');
 
-/* ── Design Tokens ──────────────────────────────────────────────────────── */
+/* ── Design Tokens — Matte Washi Paper & Deep Moss Palette ───────────────── */
 :root {
   --radius: 0.375rem;
-  --background: #f7f7f3;
-  --foreground: #17201c;
-  --card: #ffffff;
-  --card-foreground: #17201c;
-  --popover: #ffffff;
-  --popover-foreground: #17201c;
-  --primary: #16a66a;
-  --primary-emphasis: #087443;
+  --background: #f5f5f0;
+  --foreground: #1c2420;
+  --card: #fcfcfa;
+  --card-foreground: #1c2420;
+  --popover: #fcfcfa;
+  --popover-foreground: #1c2420;
+  --primary: #1b4332;
+  --primary-emphasis: #123023;
   --primary-foreground: #ffffff;
-  --secondary: #f0f2ee;
-  --secondary-foreground: #17201c;
-  --muted: #f0f2ee;
-  --muted-foreground: #737a75;
-  --accent: #e3f5eb;
-  --accent-foreground: #087443;
+  --secondary: #ecece5;
+  --secondary-foreground: #1c2420;
+  --muted: #ecece5;
+  --muted-foreground: #6b726d;
+  --accent: #e2ede7;
+  --accent-foreground: #1b4332;
   --destructive: #c94a36;
   --destructive-foreground: #ffffff;
-  --border: #e3e6e2;
-  --input: #d8dcd6;
-  --ring: #16a66a;
+  --border: #e2e5dc;
+  --input: #daddd3;
+  --ring: #1b4332;
   --hanko: #c94a36;
-  --washi-deep: #f0f2ee;
+  --washi-deep: #ebebe4;
   --font-sans: 'Manrope', system-ui, sans-serif;
   --font-display: 'Instrument Serif', 'Noto Serif JP', serif;
   --font-jp: 'Noto Serif JP', serif;
   --font-mono: 'Manrope', monospace;
 
-  /* Glassmorphism variables */
-  --glass-bg: rgba(247, 247, 243, 0.72);
-  --glass-border: rgba(255, 255, 255, 0.6);
-  --glass-shadow: 0 8px 32px rgba(22, 166, 106, 0.06), 0 1px 0 rgba(255,255,255,0.8) inset;
+  /* Tactile Matte Washi Paper variables */
+  --glass-bg: #fcfcf9;
+  --glass-border: #e2e5dc;
+  --glass-shadow: 0 4px 20px rgba(27, 67, 50, 0.04), 0 1px 0 #ffffff inset;
 }
 
 [data-theme="dark"], .dark {
-  --background: #0b0e14;
-  --foreground: #e8edf3;
-  --card: #13181f;
-  --card-foreground: #e8edf3;
-  --popover: #13181f;
-  --popover-foreground: #e8edf3;
-  --primary: #22c55e;
-  --primary-emphasis: #16a34a;
-  --primary-foreground: #0b0e14;
-  --secondary: #1a202c;
-  --secondary-foreground: #e8edf3;
-  --muted: #1a202c;
-  --muted-foreground: #8892a4;
-  --accent: #162d22;
-  --accent-foreground: #4ade80;
+  --background: #0d1117;
+  --foreground: #e6edf3;
+  --card: #151b23;
+  --card-foreground: #e6edf3;
+  --popover: #151b23;
+  --popover-foreground: #e6edf3;
+  --primary: #2d6a4f;
+  --primary-emphasis: #1b4332;
+  --primary-foreground: #ffffff;
+  --secondary: #1f2630;
+  --secondary-foreground: #e6edf3;
+  --muted: #1f2630;
+  --muted-foreground: #8b949e;
+  --accent: #193226;
+  --accent-foreground: #52b788;
   --destructive: #e54d38;
   --destructive-foreground: #ffffff;
-  --border: #242c38;
-  --input: #1e2530;
-  --ring: #22c55e;
+  --border: #262e3a;
+  --input: #202732;
+  --ring: #2d6a4f;
   --hanko: #e54d38;
-  --washi-deep: #0d1219;
+  --washi-deep: #0a0e14;
 
-  /* Dark glassmorphism */
-  --glass-bg: rgba(19, 24, 31, 0.78);
-  --glass-border: rgba(255, 255, 255, 0.06);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 1px 0 rgba(255,255,255,0.03) inset;
+  /* Dark Matte Paper variables */
+  --glass-bg: #151b23;
+  --glass-border: #262e3a;
+  --glass-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255,255,255,0.03) inset;
 }
 
 /* ── Reset & Base ─────────────────────────────────────────────────────── */
@@ -519,6 +519,151 @@ textarea.desk-textarea:focus { border-color: var(--primary); }
 .comparison article span { font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--muted-foreground); display: block; margin-bottom: 4px; }
 .comparison article.after span { color: var(--primary-emphasis); }
 .comparison article p { font-size: 13px; margin: 0; line-height: 1.5; }
+
+/* ── Editorial Proofing Desk & Redline Manuscript ───────────────────────── */
+.manuscript-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--secondary);
+  padding: 4px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.manuscript-tab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  border-radius: calc(var(--radius) - 2px);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+.manuscript-tab.active {
+  background: var(--card);
+  color: var(--foreground);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.manuscript-paper {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--foreground);
+  min-height: 140px;
+  max-width: 100%;
+  position: relative;
+}
+
+.manuscript-paper p {
+  margin: 0;
+  white-space: pre-wrap;
+  max-width: 68ch;
+}
+
+/* Redline Diff formatting */
+.manuscript-del {
+  text-decoration: line-through;
+  color: var(--muted-foreground);
+  opacity: 0.75;
+  background: rgba(201, 74, 54, 0.08);
+  padding: 1px 4px;
+  border-radius: 2px;
+  margin-right: 2px;
+}
+.dark .manuscript-del {
+  background: rgba(229, 77, 56, 0.15);
+  color: #a0a6b0;
+}
+
+.manuscript-add {
+  background: var(--accent);
+  border-bottom: 2px solid var(--primary);
+  color: var(--foreground);
+  font-weight: 600;
+  padding: 1px 4px;
+  border-radius: 2px;
+}
+
+/* Marginalia Notes Side Panel */
+.marginalia-panel {
+  background: var(--secondary);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--hanko);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.marginalia-title {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted-foreground);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.marginalia-item {
+  font-size: 12px;
+  color: var(--foreground);
+  line-height: 1.4;
+}
+.marginalia-item span.glyph {
+  color: var(--hanko);
+  font-weight: 700;
+}
+
+/* 5S Product Mechanics Summary Bar */
+.five-s-summary-strip {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.five-s-badge {
+  padding: 4px 10px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--foreground);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.five-s-badge span.kanji {
+  font-family: var(--font-jp);
+  color: var(--primary-emphasis);
+  font-size: 12px;
+}
+
+.takeaway-box {
+  background: var(--accent);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--primary);
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary-emphasis);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
 .notes-panel { background: var(--secondary); padding: 14px; border-radius: var(--radius); }
 .notes-head { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 700; margin-bottom: 10px; }
