@@ -74,6 +74,7 @@
 /* ── Reset & Base ─────────────────────────────────────────────────────── */
 * { box-sizing: border-box; margin: 0; padding: 0; border-color: var(--border); }
 html { scroll-behavior: smooth; }
+section[id], [id] { scroll-margin-top: 80px; }
 body {
   margin: 0;
   background: var(--background);
@@ -1189,28 +1190,34 @@ footer { padding: 40px 0; border-top: 1px solid var(--border); text-align: cente
 @media (max-width: 768px) {
   .page-shell { width: calc(100% - 24px); }
   .nav-shell { display: flex; justify-content: space-between; align-items: center; height: 60px; width: 100%; padding-inline: 12px; }
-  .nav-actions { gap: 4px; }
-  .nav-actions .btn-hero { padding: 8px 12px; font-size: 12px; }
-  .nav-actions .btn-icon { width: 34px; height: 34px; }
+  .nav-actions { gap: 8px; }
+  .nav-actions .btn-hero { padding: 10px 16px; font-size: 13px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+  .nav-actions .btn-icon { width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+
+  /* Touch hit target optimization for mobile */
+  .btn-hero, .btn-paper, .chip, .demo-btn, .tag-btn, .mode-switch button {
+    min-height: 44px;
+    touch-action: manipulation;
+  }
 
   .hero h1 { font-size: clamp(2rem, 7.5vw, 3.4rem); }
   .hero-lede { font-size: 14px; margin: 16px 0; }
-  .hero-actions { flex-direction: column; gap: 8px; }
-  .hero-actions .btn-hero, .hero-actions .btn-paper { width: 100%; justify-content: center; }
+  .hero-actions { flex-direction: column; gap: 10px; }
+  .hero-actions .btn-hero, .hero-actions .btn-paper { width: 100%; justify-content: center; min-height: 48px; }
 
   .desk-section { padding: 40px 0; }
   .desk-frame { padding: 14px; gap: 16px; }
 
-  .demo-row { overflow-x: auto; padding-bottom: 6px; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
-  .demo-row button { flex-shrink: 0; }
+  .demo-row { overflow-x: auto; padding-bottom: 6px; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; }
+  .demo-row button { flex-shrink: 0; scroll-snap-align: start; }
 
-  .chips-wrap { overflow-x: auto; padding-bottom: 4px; flex-wrap: wrap; }
+  .chips-wrap { overflow-x: auto; padding-bottom: 6px; flex-wrap: wrap; -webkit-overflow-scrolling: touch; }
 
-  .draft-actions { flex-direction: column; gap: 8px; }
-  .draft-actions button { width: 100%; }
+  .draft-actions { flex-direction: column; gap: 10px; }
+  .draft-actions button { width: 100%; min-height: 48px; }
 
   #modelSelectRow { flex-direction: column; align-items: flex-start; gap: 4px; }
-  #modelSelect { width: 100%; }
+  #modelSelect { width: 100%; min-height: 44px; }
 
   /* Quote card responsive */
   .quote-section { padding: 50px 0 40px; }
@@ -1219,9 +1226,9 @@ footer { padding: 40px 0; border-top: 1px solid var(--border); text-align: cente
   .quote-card__kanji { font-size: clamp(1.4rem, 5vw, 2.4rem); }
   .quote-card__meaning { font-size: 1rem; padding-left: 14px; }
   .quote-card__footer { flex-direction: column; align-items: stretch; gap: 12px; }
-  .quote-card__footer .btn-hero { width: 100%; justify-content: center; }
-  .quote-tags { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; }
-  .quote-tags .tag-btn { flex-shrink: 0; }
+  .quote-card__footer .btn-hero { width: 100%; justify-content: center; min-height: 48px; }
+  .quote-tags { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
+  .quote-tags .tag-btn { flex-shrink: 0; min-height: 40px; }
 
   .five-s-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
   .showcase-header, .showcase-heading, .showcase-body-content { max-width: 80%; }
