@@ -49,6 +49,7 @@
         <a href="#top" class="brand-lockup">
           <img src="/static/logo-icon.png" class="brand-logo-img" alt="KaizenReply emblem" />
           <b>KaizenReply</b>
+          <div class="brand-tagline">Continuous improvement for your words</div>
         </a>
         <div class="nav-links">
           <a href="#top">Home</a>
@@ -71,16 +72,26 @@
           </button>
           <a href="#desk" class="btn-hero">Start Improving →</a>
         </div>
+        <button id="mobileMenuBtn" class="btn-icon lg-hide" aria-label="Open navigation">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
       </nav>
     </header>
+    <div id="mobileMenuPanel" class="mobile-nav hidden">
+      <a href="#top">Home</a>
+      <a href="#desk">Desk</a>
+      <a href="#how">How it works</a>
+      <a href="#philosophy">Philosophy</a>
+    </div>
 
     <!-- Hero Section -->
     <section class="hero" id="top">
       <img src="/static/assets/kaizen-hero.jpg" class="hero-art" alt="Misty Japanese mountain landscape on Washi paper" />
       <div class="hero-wash"></div>
+      <div class="hero-gradient-overlay"></div>
       <div class="page-shell hero-grid">
         <div class="hero-copy">
-          <p class="eyebrow">Continuous improvement for your words</p>
+          <p class="eyebrow" style="font-family: var(--font-mono);">Editorial proofing desk / 編集卓</p>
           <h1>Your message is good.<br /><em>Make it better.</em></h1>
           <p class="hero-lede">KaizenReply improves clarity, tone, and impact — without taking your voice away.</p>
           <div class="hero-actions">
@@ -131,6 +142,7 @@
           <img src="/static/assets/kaizen-desk.jpg" alt="Ink path artwork" class="desk-art" />
           
           <!-- Input Draft Column -->
+          <div class="desk-frame-inner">
           <div class="desk-column draft-column">
             <div class="mode-tabs">
               <button id="modeEvolve" class="active">
@@ -250,17 +262,32 @@
               <small>Understand → Learn → Share</small>
             </div>
 
+            <div class="proof-tab-bar">
+              <div class="manuscript-tabs" id="manuscriptTabs">
+                <button class="manuscript-tab active" data-tab="refined">Inline diff</button>
+                <button class="manuscript-tab" data-tab="sidebyside">Side by side</button>
+                <button class="manuscript-tab" data-tab="original">Clean final</button>
+              </div>
+              <div class="proof-word-stats" id="proofWordStats"></div>
+            </div>
             <div id="outputContainer" class="evolved-result">
-              <!-- Default Empty State -->
               <div class="result-state" id="emptyOutputState">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--primary);"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
-                <h3>Your evolved message will appear here.</h3>
-                <p>You will see what changed, why it changed, and how the message improved.</p>
+                <h3>Your revision is ready when you are.</h3>
+                <p>Choose your intent, then refine the draft.</p>
               </div>
             </div>
 
+            
+          <aside class="desk-column desk-marginalia-aside" id="marginaliaAside">
+            <div class="desk-panel-head">
+              <div class="desk-panel-eyebrow">Marginalia / 注釈</div>
+              <h3 class="desk-panel-title">Why these edits</h3>
+            </div>
+            <div id="marginaliaPanel" class="divide-notes"></div>
+            <div id="takeawayPanel" class="takeaway-box hidden"></div>
             <!-- Recent History Section -->
-            <div id="historySection" class="history-section hidden" style="margin-top:20px;border-top:1px solid var(--border);padding-top:14px;">
+            <div id="historySection" class="history-section hidden" style="border-top:1px solid var(--border);padding-top:14px;">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
                 <span style="font-size:12px;font-weight:800;color:var(--muted-foreground);display:flex;align-items:center;gap:6px;">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h10"/><path d="M7 12h10"/><path d="M7 16h10"/></svg>
@@ -270,7 +297,8 @@
               </div>
               <div id="historyList" style="display:flex;flex-direction:column;gap:8px;max-height:220px;overflow-y:auto;"></div>
             </div>
-          </div>
+          </aside>
+        </div>
         </div>
       </div>
     </section>
@@ -523,13 +551,9 @@
         <a href="#top" class="brand-lockup">
           <img src="/static/logo-icon.png" class="brand-logo-img" alt="KaizenReply logo" />
           <b>KaizenReply</b>
+          <div class="brand-tagline">Continuous improvement for your words</div>
         </a>
-        <p>Improve every message. One Kaizen at a time.</p>
-        <div>
-          <a href="https://github.com/MKishoreDev/KaizenReply" target="_blank" rel="noreferrer">GitHub</a>
-          <a href="https://github.com/MKishoreDev/KaizenReply/blob/main/LICENSE" target="_blank" rel="noreferrer">MIT Open Source</a>
-          <span>Built by MKishoreDev</span>
-        </div>
+        <p class="footer-made">Made with care · 改善</p>
       </div>
     </footer>
 

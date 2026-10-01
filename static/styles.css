@@ -3,72 +3,53 @@
    v3.0 — Glassmorphism · Dark Mode Elegance · Kaizen Animations
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700;800&family=Noto+Serif+JP:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Serif+JP:wght@400;600;700&display=swap');
 
 /* ── Design Tokens — Matte Washi Paper & Deep Moss Palette ───────────────── */
 :root {
   --radius: 0.375rem;
-  --background: #f5f5f0;
-  --foreground: #1c2420;
-  --card: #fcfcfa;
-  --card-foreground: #1c2420;
-  --popover: #fcfcfa;
-  --popover-foreground: #1c2420;
-  --primary: #1b4332;
-  --primary-emphasis: #123023;
-  --primary-foreground: #ffffff;
-  --secondary: #ecece5;
-  --secondary-foreground: #1c2420;
-  --muted: #ecece5;
-  --muted-foreground: #6b726d;
-  --accent: #e2ede7;
-  --accent-foreground: #1b4332;
-  --destructive: #c94a36;
-  --destructive-foreground: #ffffff;
-  --border: #e2e5dc;
-  --input: #daddd3;
-  --ring: #1b4332;
-  --hanko: #c94a36;
-  --washi-deep: #ebebe4;
-  --font-sans: 'Manrope', system-ui, sans-serif;
+  --background: oklch(0.975 0.008 106);
+  --foreground: oklch(0.225 0.018 153);
+  --card: oklch(1 0 0);
+  --primary: oklch(0.30 0.055 151);
+  --primary-foreground: oklch(0.98 0.006 105);
+  --secondary: oklch(0.948 0.010 105);
+  --muted: oklch(0.952 0.007 105);
+  --muted-foreground: oklch(0.49 0.018 145);
+  --accent: oklch(0.93 0.025 151);
+  --accent-foreground: oklch(0.28 0.05 151);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.91 0.009 112);
+  --input: oklch(0.88 0.010 112);
+  --ring: oklch(0.48 0.08 151);
+  --seal: oklch(0.56 0.16 34);
+  --proof: oklch(0.992 0.004 105);
+  --ink-soft: oklch(0.40 0.018 153);
+  --hanko: var(--seal);
+  --font-sans: 'Work Sans', system-ui, sans-serif;
   --font-display: 'Instrument Serif', 'Noto Serif JP', serif;
   --font-jp: 'Noto Serif JP', serif;
-  --font-mono: 'Manrope', monospace;
-
-  /* Tactile Matte Washi Paper variables */
-  --glass-bg: #fcfcf9;
-  --glass-border: #e2e5dc;
-  --glass-shadow: 0 4px 20px rgba(27, 67, 50, 0.04), 0 1px 0 #ffffff inset;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --glass-bg: var(--card);
 }
 
 [data-theme="dark"], .dark {
-  --background: #0d1117;
-  --foreground: #e6edf3;
-  --card: #151b23;
-  --card-foreground: #e6edf3;
-  --popover: #151b23;
-  --popover-foreground: #e6edf3;
-  --primary: #2d6a4f;
-  --primary-emphasis: #1b4332;
-  --primary-foreground: #ffffff;
-  --secondary: #1f2630;
-  --secondary-foreground: #e6edf3;
-  --muted: #1f2630;
-  --muted-foreground: #8b949e;
-  --accent: #193226;
-  --accent-foreground: #52b788;
-  --destructive: #e54d38;
-  --destructive-foreground: #ffffff;
-  --border: #262e3a;
-  --input: #202732;
-  --ring: #2d6a4f;
-  --hanko: #e54d38;
-  --washi-deep: #0a0e14;
-
-  /* Dark Matte Paper variables */
-  --glass-bg: #151b23;
-  --glass-border: #262e3a;
-  --glass-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255,255,255,0.03) inset;
+  --background: oklch(0.17 0.018 156);
+  --foreground: oklch(0.94 0.012 105);
+  --card: oklch(0.205 0.018 156);
+  --primary: oklch(0.73 0.105 151);
+  --primary-foreground: oklch(0.15 0.025 156);
+  --secondary: oklch(0.245 0.018 156);
+  --muted: oklch(0.245 0.018 156);
+  --muted-foreground: oklch(0.72 0.018 115);
+  --accent: oklch(0.28 0.035 151);
+  --border: oklch(0.36 0.018 156);
+  --input: oklch(0.40 0.018 156);
+  --ring: oklch(0.67 0.10 151);
+  --seal: oklch(0.64 0.17 34);
+  --proof: oklch(0.19 0.014 156);
+  --ink-soft: oklch(0.77 0.018 115);
+  --glass-bg: var(--card);
 }
 
 /* ── Reset & Base ─────────────────────────────────────────────────────── */
@@ -86,8 +67,11 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   transition: background 0.35s ease, color 0.35s ease;
+  background-image: radial-gradient(circle at 20% 20%, color-mix(in oklab, var(--foreground) 4%, transparent) 0.6px, transparent 0.8px);
+  background-size: 12px 12px;
 }
 img, svg, video, canvas { max-width: 100%; height: auto; }
+::selection { background: color-mix(in oklab, var(--seal) 18%, transparent); }
 
 /* Washi Paper Noise Grain Overlay */
 body::before {
@@ -114,11 +98,8 @@ button, input, select, textarea { font-family: var(--font-sans); }
   position: sticky;
   top: 0;
   z-index: 200;
-  background: var(--glass-bg);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border-bottom: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
   transition: background 0.35s ease, box-shadow 0.35s ease;
 }
 
@@ -549,16 +530,17 @@ textarea.desk-textarea:focus { border-color: var(--primary); }
 }
 
 .manuscript-paper {
-  background: var(--card);
+  background: var(--proof);
+  font-family: var(--font-display);
+  font-size: 22px;
+  line-height: 1.8;
+  padding: 32px 36px;
+  position: relative;
+  min-height: 400px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 20px 24px;
-  font-size: 15px;
-  line-height: 1.7;
   color: var(--foreground);
-  min-height: 140px;
   max-width: 100%;
-  position: relative;
 }
 
 .manuscript-paper p {
@@ -990,9 +972,12 @@ footer { padding: 40px 0; border-top: 1px solid var(--border); text-align: cente
 
 /* Header — premium glassmorphism */
 .dark .site-header {
-  background: rgba(7, 11, 17, 0.85);
-  border-bottom-color: rgba(255,255,255,0.05);
-  box-shadow: 0 1px 0 rgba(255,255,255,0.03), 0 8px 32px rgba(0,0,0,0.4);
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  transition: background 0.35s ease, box-shadow 0.35s ease;
 }
 
 /* Cards — elevated surfaces with subtle depth layers */
@@ -1818,3 +1803,56 @@ footer { padding: 40px 0; border-top: 1px solid var(--border); text-align: cente
   0%, 100% { transform: scale(1); opacity: 0.9; }
   50% { transform: scale(1.08); opacity: 1; }
 }
+
+@keyframes seal-in {
+  from { opacity: 0; transform: rotate(-8deg) scale(1.25); }
+  to { opacity: 1; transform: rotate(-4deg) scale(1); }
+}
+.kaizen-hanko-seal {
+  position: absolute; bottom: 24px; right: 24px;
+  width: 72px; height: 72px;
+  border-radius: 50%; border: 2px solid var(--seal);
+  display: grid; place-items: center; text-align: center;
+  color: var(--seal); transform: rotate(-4deg);
+  font-family: var(--font-display);
+  animation: seal-in 380ms cubic-bezier(.2,.8,.2,1) both;
+  pointer-events: none;
+}
+.kaizen-hanko-seal span { font-size: 18px; display: block; }
+.kaizen-hanko-seal small { font-family: var(--font-mono); font-size: 6px; text-transform: uppercase; letter-spacing: 0.1em; display: block; }
+
+del.manuscript-del { color: var(--seal); opacity: 0.7; text-decoration: line-through; text-decoration-thickness: 1px; background: transparent; padding: 0; }
+.manuscript-ins { text-decoration: none; border-left: 3px solid var(--primary); padding-left: 20px; display: block; margin-top: 24px; font-style: normal; }
+.desk-frame-inner {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 1280px) {
+  .desk-frame-inner {
+    grid-template-columns: 360px minmax(0,1fr) 310px;
+  }
+}
+/* Mobile Nav */
+.mobile-nav { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--border); background: var(--card); }
+.mobile-nav a { padding: 16px 20px; font-size: 14px; font-weight: 500; text-decoration: none; color: var(--foreground); }
+.mobile-nav a:hover { background: var(--secondary); }
+.hero-gradient-overlay { position: absolute; inset: 0; z-index: 1; background: linear-gradient(90deg, var(--background) 8%, color-mix(in oklab, var(--background) 88%, transparent) 48%, color-mix(in oklab, var(--background) 36%, transparent) 100%); }
+.hero-copy { position: relative; z-index: 2; }
+.brand-tagline { font-family: var(--font-mono); font-size: 8px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--muted-foreground); margin-top: 1px; }
+.brand-tagline-footer { font-family: var(--font-mono); font-size: 8px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--muted-foreground); margin-top: 4px; }
+.proof-tab-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; background: var(--secondary); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.proof-word-stats { font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--muted-foreground); white-space: nowrap; }
+.proof-sidebyside { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+.proof-label { font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--muted-foreground); margin-bottom: 12px; }
+.manuscript-clean { font-family: var(--font-display); font-size: 22px; line-height: 1.8; margin: 0; }
+.desk-panel-head { border-bottom: 1px solid var(--border); padding: 16px 20px; }
+.desk-panel-eyebrow { font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--muted-foreground); }
+.desk-panel-title { margin-top: 4px; font-family: var(--font-display); font-size: 20px; font-weight: 400; margin-bottom: 0; }
+.divide-notes { }
+.marginalia-note-item { padding: 20px; border-bottom: 1px solid var(--border); }
+.marginalia-note-num { font-family: var(--font-mono); font-size: 9px; color: var(--seal); margin-bottom: 8px; }
+.marginalia-note-title { font-size: 14px; font-weight: 600; margin: 0 0 6px; }
+.desk-marginalia-aside { border-top: 1px solid var(--border); background: var(--secondary); }
+@media (min-width: 1280px) { .desk-marginalia-aside { border-top: none; border-left: 1px solid var(--border); } }
+.footer-made { font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--muted-foreground); }
+@media (max-width: 768px) { .proof-sidebyside { grid-template-columns: 1fr; } }
