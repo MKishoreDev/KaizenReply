@@ -382,7 +382,12 @@ function renderRecipientChips() {
 function setupEventListeners() {
   const mobileMenuBtn = $("mobileMenuBtn");
   const mobileMenuPanel = $("mobileMenuPanel");
-  if(mobileMenuBtn && mobileMenuPanel) mobileMenuBtn.onclick = () => mobileMenuPanel.classList.toggle("hidden");
+  if (mobileMenuBtn && mobileMenuPanel) {
+    mobileMenuBtn.onclick = () => mobileMenuPanel.classList.toggle("hidden");
+    mobileMenuPanel.querySelectorAll("a").forEach(a => {
+      a.onclick = () => mobileMenuPanel.classList.add("hidden");
+    });
+  }
 
   // Theme Toggle
   const themeBtn = $("themeToggle");
@@ -710,6 +715,67 @@ async function runKaizenAction(overrideTone = null) {
   const loadingText = currentMode === "reply" ? "Crafting replies…" : "Evolving your words…";
   const loadingSub = currentMode === "reply" ? "Generating thoughtful responses" : "Refining style & clarity";
   outputContainer.innerHTML = `
+    <div class="kaizen-loader">
+      <div class="kaizen-loader__dots">
+        <div class="kaizen-loader__dot"></div>
+        <div class="kaizen-loader__dot"></div>
+        <div class="kaizen-loader__dot"></div>
+        <div class="kaizen-loader__dot"></div>
+        <div class="kaizen-loader__dot"></div>
+      </div>
+      <div class="kaizen-loader__text">${loadingText}</div>
+      <div class="kaizen-loader__sub">${loadingSub}</div>
+    </div>
+  `;
+
+  try {
+    const endpoint = currentMode === "reply" ? "/api/reply" : "/api/improve";
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.status === 429) {
+      startRateLimitCooldown(5);
+      throw new Error("Rate limit reached. Please wait a moment.");
+    }
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "Request failed");
+
+    if (currentMode === "reply") {
+      renderReplyOutput(data, payload.message);
+    } else {
+      lastEvolvedData = { original: payload.message, ...data, tone: payload.tone, platform: payload.platform };
+      saveToKaizenHistory(payload.message, data.improved, data.score, payload.tone);
+      renderEvolveOutput(data, payload.message, payload.tone, payload.platform);
+    }
+  } catch (err) {
+    if (errorBanner) {
+      errorBanner.textContent = err.message || "The Kaizen service is temporarily unavailable. Your draft is safe.";
+      errorBanner.classList.remove("hidden");
+    }
+    outputContainer.innerHTML = `
+      <div class="result-state" style="color:var(--hanko);">
+        <h3>The message could not evolve</h3>
+        <p>${escapeHtml(err.message || "Please check your network and try again.")}</p>
+      </div>
+    `;
+  }
+}
+
+// Render Editorial Proofing Desk Output
+function renderEvolveOutput(data, original, tone, platform) {
+  const outputContainer = $("outputContainer");
+
+  const origWords = original.trim().split(/\s+/).filter(Boolean);
+  const impWords = data.improved.trim().split(/\s+/).filter(Boolean);
+  const wordDiff = impWords.length - origWords.length;
+  const wordDiffText = wordDiff < 0 ? `${wordDiff} words (${Math.round((wordDiff / origWords.length) * 100)}%)` : wordDiff > 0 ? `+${wordDiff} words` : `Same length`;
+  const statsText = `${origWords.length} → ${impWords.length} words · ${platform || "All"}`;
+
+  outputContainer.innerHTML = `
     <div class="evolved-result evolved-result-animate">
       <div class="proof-tab-bar">
         <div class="manuscript-tabs" id="manuscriptTabs">
@@ -717,7 +783,7 @@ async function runKaizenAction(overrideTone = null) {
           <button class="manuscript-tab" data-tab="sidebyside">Side by side</button>
           <button class="manuscript-tab" data-tab="original">Clean final</button>
         </div>
-        <div class="proof-word-stats" id="proofWordStats">${origWords.length} → ${impWords.length} words · ${platform || 'All'}</div>
+        <div class="proof-word-stats" id="proofWordStats">${statsText}</div>
       </div>
 
       <div class="manuscript-paper" id="manuscriptBody">
@@ -778,8 +844,8 @@ async function runKaizenAction(overrideTone = null) {
     if (navigator.share) navigator.share({ text: data.improved }).catch(() => undefined);
     else { navigator.clipboard.writeText(data.improved); showKaizenToast("Refined manuscript copied to clipboard!", "success"); }
   };
-  $("cardResultBtn").onclick = () => openEvolveCardModal(original, data.improved, scoreAfter, tone, platform);
-  $("shareXBtn").onclick = () => shareToX(original, data.improved, scoreBefore, scoreAfter, tone);
+  $("cardResultBtn").onclick = () => openEvolveCardModal(original, data.improved, data.score ? data.score.after : 88, tone, platform);
+  $("shareXBtn").onclick = () => shareToX(original, data.improved, data.score ? data.score.before : 60, data.score ? data.score.after : 88, tone);
   $("evolveFurtherBtn").onclick = () => {
     const msgInput = $("messageInput");
     if (msgInput) {
@@ -789,19 +855,20 @@ async function runKaizenAction(overrideTone = null) {
     }
   };
 
-  const margPanel = $('marginaliaPanel');
+  // Update Marginalia Aside Panel
+  const margPanel = $("marginaliaPanel");
   if (margPanel && data.notes && data.notes.length) {
-    margPanel.innerHTML = data.notes.slice(0,3).map((n, i) => `
+    margPanel.innerHTML = data.notes.slice(0, 3).map((n, i) => `
       <div class="marginalia-note-item">
-        <div class="marginalia-note-num">0${i+1}</div>
-        <h4 class="marginalia-note-title">${escapeHtml(n.reason.split('.')[0])}</h4>
+        <div class="marginalia-note-num">0${i + 1}</div>
+        <h4 class="marginalia-note-title">${escapeHtml(n.reason.split(".")[0])}</h4>
         <p class="marginalia-item">${escapeHtml(n.reason)}</p>
       </div>
-    `).join('');
+    `).join("");
   }
-  const takeEl = $('takeawayPanel');
+  const takeEl = $("takeawayPanel");
   if (takeEl) {
-    takeEl.classList.remove('hidden');
+    takeEl.classList.remove("hidden");
     const takeawayRule = (data.notes && data.notes[0]) ? data.notes[0].reason : "Keep sentences direct and eliminate redundant prepositions.";
     takeEl.innerHTML = '<div class="marginalia-title" style="color:var(--seal);font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:0.16em;">Sustained takeaway</div><p style="margin-top:8px;font-size:14px;line-height:1.6;">' + escapeHtml(takeawayRule) + '</p>';
   }
