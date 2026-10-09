@@ -249,9 +249,11 @@ async def call_groq(
     temperature: float = 0.6,
     max_tokens: int = 400,
     requested_model: str | None = None,
+    api_key: str | None = None,
 ) -> str:
     global GROQ_MODEL
-    if not GROQ_API_KEY:
+    active_key = api_key or GROQ_API_KEY
+    if not active_key:
         raise HTTPException(
             status_code=503,
             detail="AI model not available. GROQ_API_KEY is not configured in environment variables."
@@ -294,7 +296,7 @@ async def call_groq(
                     res = await client.post(
                         GROQ_URL,
                         headers={
-                            "Authorization": f"Bearer {GROQ_API_KEY}",
+                            "Authorization": f"Bearer {active_key}",
                             "User-Agent": "KaizenReply/1.0",
                         },
                         json=payload,
@@ -490,6 +492,7 @@ async def improve(req: ImproveRequest, request: Request) -> ImproveResponse:
             temperature=0.6,
             max_tokens=400,
             requested_model=req.model or None,
+            api_key=request.headers.get("x-groq-api-key"),
         )
         parsed = json.loads(content)
     except HTTPException:
@@ -561,6 +564,7 @@ async def analyze(req: AnalyzeRequest, request: Request) -> AnalyzeResponse:
             temperature=0.3,
             max_tokens=100,
             requested_model=req.model or None,
+            api_key=request.headers.get("x-groq-api-key"),
         )
         parsed = json.loads(content)
         result = AnalyzeResponse(
@@ -644,6 +648,7 @@ Respond with strict JSON only: {{"suggestions": [string, string, string]}}"""
             temperature=temperature,
             max_tokens=500,
             requested_model=req.model or None,
+            api_key=request.headers.get("x-groq-api-key"),
         )
         parsed = json.loads(content)
         suggestions = parsed.get("suggestions", [])
