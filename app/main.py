@@ -16,6 +16,7 @@ from app.models import (
     ImproveResponse,
     Breakdown,
     KaizenScore,
+    KaizenNote,
     AnalyzeRequest,
     AnalyzeResponse,
     ReplyRequest,
