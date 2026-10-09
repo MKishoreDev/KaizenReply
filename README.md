@@ -119,6 +119,31 @@ That is KaizenReply.
 
 ---
 
+## 🌐 The Migration to Cloudflare & The Story of `kaizenreply.us.ci`
+
+Initially, KaizenReply was prototyped on Vercel (`kaizenreply.vercel.app`). While Vercel is great for early drafts, an artisanal editorial tool designed for the exact moment right before you press "Send" demands relentless speed, zero cold starts, and unmetered edge infrastructure.
+
+### Why We Moved from Vercel to Cloudflare Pages & Edge
+
+1. **Sub-Millisecond Global Edge Delivery**: Cloudflare operates across **330+ edge data centers worldwide**. By deploying on Cloudflare Pages, our tactile Washi paper desk loads in under 50ms anywhere on earth with zero cold starts.
+2. **Unmetered Bandwidth & Enterprise DNS**: Rather than worrying about serverless execution quotas or bandwidth limits on Vercel's free tier, Cloudflare provides unmetered global edge bandwidth, built-in DDoS mitigation, and enterprise-grade DNS resolution.
+3. **Native Edge Functions & Zero-CORS Routing**: We moved API routing to Cloudflare Pages Functions (`functions/api/`), proxying AI inference seamlessly at the edge with zero CORS friction and instant SSL handshakes. All legacy domains (`kaizenreply.vercel.app` and `kaizenreply.pages.dev`) now permanently 301-redirect to our official domain.
+
+### What Does `kaizenreply.us.ci` Actually Stand For?
+
+When selecting our permanent home, we moved away from generic defaults. Every character in **`kaizenreply.us.ci`** was chosen with intentional craftsmanship:
+
+- **`.ci` = Continuous Improvement**: In engineering and manufacturing, **CI** stands for Continuous Integration & Continuous Improvement. In Japanese, **改善 (Kaizen)** literally translates to **Continuous Improvement**. There is no domain extension on the web more poetically aligned with a continuous writing refinement desk than `.ci`.
+- **`us` = All of Us / Community**: Language is a bridge between people, not a prompt into a corporate void. The `us` represents all of us striving to communicate with clarity, empathy, and conviction without having AI overwrite our humanity.
+
+### 💖 A Heartfelt Thank You to DNSHE
+
+A massive shoutout and deep gratitude to **[DNSHE](https://my.dnshe.com)** for providing free, community-first domain registration and rock-solid DNS infrastructure. 
+
+For indie developers, student builders, and open-source creators who want to build and launch without being gatekept by expensive commercial domain registrars, platforms like DNSHE make the open web truly open and accessible. Thank you for powering `kaizenreply.us.ci`!
+
+---
+
 ## 🥊 How Does KaizenReply Compare?
 
 | Feature | KaizenReply (改善) | Grammarly | LanguageTool / Harper | ChatGPT / Claude |
