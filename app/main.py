@@ -115,7 +115,6 @@ app.add_middleware(
         "https://kaizenreply.pages.dev",
         "https://kaizenreply.us.ci",
         "https://www.kaizenreply.us.ci",
-        "https://mkishore.is-a.dev",
         "http://localhost:8000",
         "http://127.0.0.1:8000",
         "http://localhost:3000",
@@ -126,12 +125,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Redirect old domains (vercel.app, pages.dev, is-a.dev) to official domain https://kaizenreply.us.ci
+# Redirect old domains (vercel.app, pages.dev) to official domain https://kaizenreply.us.ci
 @app.middleware("http")
 async def redirect_old_domains(request: Request, call_next):
     host = request.headers.get("host", "").lower().split(":")[0]
     path = request.url.path
-    old_hosts = ["kaizenreply.vercel.app", "kaizenreply.pages.dev", "mkishore.is-a.dev"]
+    old_hosts = ["kaizenreply.vercel.app", "kaizenreply.pages.dev"]
     if host in old_hosts:
         # Only redirect frontend/browser navigation; do not redirect API requests
         if not path.startswith("/api/") and path not in ["/health", "/api/models", "/api/quotes"]:
