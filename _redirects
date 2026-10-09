@@ -1,0 +1,7 @@
+# Cloudflare Pages Redirects & Rewrites
+# Rewrites root to static application
+/  /static/index.html  200
+
+# Proxy API routes to active backend (avoids CORS issues on Cloudflare Pages)
+/api/*   https://kaizenreply.vercel.app/api/:splat  200
+/health  https://kaizenreply.vercel.app/health      200
