@@ -112,6 +112,8 @@ app.add_middleware(
     allow_origins=[
         "https://kaizenreply.vercel.app",
         "https://kaizenreply.pages.dev",
+        "https://kaizenreply.us.ci",
+        "https://www.kaizenreply.us.ci",
         "https://mkishore.is-a.dev",
         "http://localhost:8000",
         "http://127.0.0.1:8000",
