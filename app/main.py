@@ -30,54 +30,64 @@ GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 FALLBACK_MODELS = [
+    "qwen/qwen3.8-27b",
+    "openai/gpt-oss-120b",
+    "openai/gpt-oss-20b",
+    "allam-2-7b",
     "llama-3.3-70b-versatile",
-    "llama-3.1-70b-versatile",
-    "qwen-2.5-coder-32b",
-    "mixtral-8x7b-32768",
-    "gemma2-9b-it",
-    "llama-3.1-8b-instant",
-    "llama-3.2-3b-preview",
-    "llama-3.2-1b-preview",
 ]
 
 _cached_models: list[str] = []
 _cached_models_time: float = 0.0
+_failed_models: set[str] = set()
 MODEL_CACHE_TTL = 3600  # 1 hour cache
 
 
 async def get_groq_models() -> list[str]:
-    global _cached_models, _cached_models_time
+    global _cached_models, _cached_models_time, GROQ_MODEL
     now = time.time()
     if _cached_models and (now - _cached_models_time < MODEL_CACHE_TTL):
-        return _cached_models
+        return [m for m in _cached_models if m not in _failed_models]
 
     if not GROQ_API_KEY:
-        return FALLBACK_MODELS
+        return [m for m in FALLBACK_MODELS if m not in _failed_models]
 
     try:
         async with httpx.AsyncClient(timeout=10) as client:
             res = await client.get(
                 "https://api.groq.com/openai/v1/models",
-                headers={"Authorization": f"Bearer {GROQ_API_KEY}"},
+                headers={
+                    "Authorization": f"Bearer {GROQ_API_KEY}",
+                    "User-Agent": "KaizenReply/1.0",
+                },
             )
             if res.status_code == 200:
                 data = res.json()
                 models_data = data.get("data", [])
+                excluded_keywords = ["whisper", "audio", "embed", "vision", "guard", "orpheus"]
                 active_models = [
                     m["id"]
                     for m in models_data
                     if m.get("active", True)
                     and isinstance(m.get("id"), str)
-                    and not any(w in m["id"].lower() for w in ["whisper", "audio", "embed", "vision", "guard"])
+                    and not any(w in m["id"].lower() for w in excluded_keywords)
+                    and m["id"] not in _failed_models
                 ]
                 if active_models:
                     _cached_models = active_models
                     _cached_models_time = now
+                    if GROQ_MODEL not in active_models:
+                        for pref in ["qwen/qwen3.8-27b", "openai/gpt-oss-120b", "openai/gpt-oss-20b", "allam-2-7b"]:
+                            if pref in active_models:
+                                GROQ_MODEL = pref
+                                break
+                        else:
+                            GROQ_MODEL = active_models[0]
                     return active_models
     except Exception as e:
         print(f"[Groq Models Warning] Failed to fetch live models list from Groq API: {e}")
 
-    return FALLBACK_MODELS
+    return [m for m in FALLBACK_MODELS if m not in _failed_models]
 
 
 PLATFORM_GUIDANCE = {
@@ -228,17 +238,17 @@ async def call_groq(
             detail="AI model not available. GROQ_API_KEY is not configured in environment variables."
         )
 
-    primary_model = requested_model or GROQ_MODEL or "llama-3.3-70b-versatile"
+    primary_model = requested_model or GROQ_MODEL or "qwen/qwen3.8-27b"
     available_models = await get_groq_models()
 
     candidate_models = []
-    if primary_model and primary_model not in candidate_models:
+    if primary_model and primary_model not in _failed_models:
         candidate_models.append(primary_model)
-    for m in FALLBACK_MODELS:
-        if m not in candidate_models:
-            candidate_models.append(m)
     for m in available_models:
-        if m not in candidate_models:
+        if m not in candidate_models and m not in _failed_models:
+            candidate_models.append(m)
+    for m in FALLBACK_MODELS:
+        if m not in candidate_models and m not in _failed_models:
             candidate_models.append(m)
 
     last_error_detail = ""
@@ -264,7 +274,10 @@ async def call_groq(
                 async with httpx.AsyncClient(timeout=30) as client:
                     res = await client.post(
                         GROQ_URL,
-                        headers={"Authorization": f"Bearer {GROQ_API_KEY}"},
+                        headers={
+                            "Authorization": f"Bearer {GROQ_API_KEY}",
+                            "User-Agent": "KaizenReply/1.0",
+                        },
                         json=payload,
                     )
                 if res.status_code == 429 and attempt < retries - 1:
@@ -276,8 +289,8 @@ async def call_groq(
 
                 if res.status_code in (400, 404):
                     err_text = res.text[:400]
-                    if any(kw in err_text.lower() for kw in ["model", "decommissioned", "not found", "invalid", "deprecated", "does not exist"]):
-                        print(f"[Groq Fallback] Model '{target_model}' failed ({res.status_code}): {err_text}. Trying next model...")
+                    if any(kw in err_text.lower() for kw in ["model", "decommissioned", "not found", "invalid", "deprecated", "does not exist", "terms acceptance"]):
+                        _failed_models.add(target_model)
                         model_failed = True
                         last_error_detail = err_text
                         break
