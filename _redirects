@@ -1,7 +1,3 @@
 # Redirect direct visits to /static/ back to the clean root domain
 /static/  /  301
 /static   /  301
-
-# Proxy API routes to active backend (zero CORS issues on Cloudflare Pages)
-/api/*   https://kaizenreply.vercel.app/api/:splat  200
-/health  https://kaizenreply.vercel.app/health      200
