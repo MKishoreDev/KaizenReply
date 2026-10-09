@@ -331,7 +331,7 @@ async def call_groq(
                     break
 
     print(f"[Groq Warning] All candidate models failed: {last_error_detail}")
-    raise HTTPException(status_code=503, detail="AI model not available.")
+    raise HTTPException(status_code=503, detail=f"AI model not available: {last_error_detail}")
 
 
 last_seen: dict = {}
