@@ -26,7 +26,9 @@ from app.models import (
 load_dotenv(find_dotenv(usecwd=True), override=False)
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+GROQ_MODEL = os.getenv("GROQ_MODEL") or "qwen/qwen3.8-27b"
+if GROQ_MODEL in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]:
+    GROQ_MODEL = "qwen/qwen3.8-27b"
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 FALLBACK_MODELS = [
@@ -34,7 +36,6 @@ FALLBACK_MODELS = [
     "openai/gpt-oss-120b",
     "openai/gpt-oss-20b",
     "allam-2-7b",
-    "llama-3.3-70b-versatile",
 ]
 
 _cached_models: list[str] = []
