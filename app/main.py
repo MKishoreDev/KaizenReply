@@ -8,7 +8,7 @@ import time
 import httpx
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv, find_dotenv
 from app.models import (
@@ -124,6 +124,21 @@ app.add_middleware(
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
+
+# Redirect old domains (vercel.app, pages.dev, is-a.dev) to official domain https://kaizenreply.us.ci
+@app.middleware("http")
+async def redirect_old_domains(request: Request, call_next):
+    host = request.headers.get("host", "").lower().split(":")[0]
+    path = request.url.path
+    old_hosts = ["kaizenreply.vercel.app", "kaizenreply.pages.dev", "mkishore.is-a.dev"]
+    if host in old_hosts:
+        # Only redirect frontend/browser navigation; do not redirect API requests
+        if not path.startswith("/api/") and path not in ["/health", "/api/models", "/api/quotes"]:
+            return RedirectResponse(
+                url=f"https://kaizenreply.us.ci{path}",
+                status_code=status.HTTP_301_MOVED_PERMANENTLY,
+            )
+    return await call_next(request)
 
 
 def build_improve_prompt(req: ImproveRequest) -> str:

@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://kaizenreply.vercel.app"><img src="https://img.shields.io/badge/Live%20Demo-kaizenreply.vercel.app-000000?style=for-the-badge&logo=vercel" alt="Live Demo on Vercel" /></a>
+  <a href="https://kaizenreply.us.ci"><img src="https://img.shields.io/badge/Live%20Demo-kaizenreply.us.ci-000000?style=for-the-badge&logo=cloudflare" alt="Live on kaizenreply.us.ci" /></a>
   <a href="https://github.com/MKishoreDev/KaizenReply/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/MKishoreDev/KaizenReply/ci.yml?branch=main&style=for-the-badge&label=CI&logo=githubactions&logoColor=white" alt="CI Status" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/MKishoreDev/KaizenReply?style=for-the-badge&color=22c55e" alt="License" /></a>
   <img src="https://img.shields.io/badge/Python-3.11%20%7C%203.12%20%7C%203.13-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python Versions" />

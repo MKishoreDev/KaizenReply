@@ -892,7 +892,7 @@ function generateKaizenSharePayload() {
   const selectedHook = hooks[Math.floor(Math.random() * hooks.length)];
 
   const shareText = `${selectedHook}\n\nKotowaza Wisdom:\n${quoteLine}\n\nYour message is good. Make it better:`;
-  const shareUrl = "https://kaizenreply.vercel.app";
+  const shareUrl = "https://kaizenreply.us.ci";
 
   return {
     title: "KaizenReply — Your message is good. Make it better.",
@@ -907,9 +907,9 @@ function shareToX(beforeText, afterText, beforeScore, afterScore, toneName) {
   const isLinkedInMeme = toneName === "LinkedIn Bro";
   let tweetText = "";
   if (isLinkedInMeme) {
-    tweetText = `Reality vs. LinkedIn with @KaizenReply:\n\nREALITY:\n"${beforeText.substring(0, 70)}"\n\nLINKEDIN:\n"${afterText.substring(0, 130)}"\n\nKaizen Score: ${beforeScore} ➔ ${afterScore} 🔥\nhttps://kaizenreply.vercel.app`;
+    tweetText = `Reality vs. LinkedIn with @KaizenReply:\n\nREALITY:\n"${beforeText.substring(0, 70)}"\n\nLINKEDIN:\n"${afterText.substring(0, 130)}"\n\nKaizen Score: ${beforeScore} ➔ ${afterScore} 🔥\nhttps://kaizenreply.us.ci`;
   } else {
-    tweetText = `Evolved my message with @KaizenReply:\n\n"${afterText.substring(0, 180)}"\n\nKaizen Score: ${beforeScore} ➔ ${afterScore} 🔥\nhttps://kaizenreply.vercel.app`;
+    tweetText = `Evolved my message with @KaizenReply:\n\n"${afterText.substring(0, 180)}"\n\nKaizen Score: ${beforeScore} ➔ ${afterScore} 🔥\nhttps://kaizenreply.us.ci`;
   }
   window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, "_blank", "noopener,noreferrer");
 }
@@ -1396,7 +1396,7 @@ async function renderCardCanvas(canvas, options) {
     // 8. Bottom Footer Info
     ctx.font = "13px 'IBM Plex Mono', monospace";
     ctx.fillStyle = "#22c55e";
-    ctx.fillText("kaizenreply.vercel.app · Japanese Kotowaza Wisdom", 60, 578);
+    ctx.fillText("kaizenreply.us.ci · Japanese Kotowaza Wisdom", 60, 578);
 
     ctx.fillStyle = "#94a3b8";
     ctx.font = "12px 'IBM Plex Mono', monospace";
