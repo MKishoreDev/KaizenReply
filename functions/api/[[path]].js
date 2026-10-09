@@ -5,6 +5,10 @@ export async function onRequest(context) {
   const reqHeaders = new Headers(context.request.headers);
   reqHeaders.set("Host", "kaizenreply.vercel.app");
 
+  if (context.env && context.env.GROQ_API_KEY) {
+    reqHeaders.set("X-Groq-Api-Key", context.env.GROQ_API_KEY);
+  }
+
   const init = {
     method: context.request.method,
     headers: reqHeaders,
