@@ -730,8 +730,8 @@ textarea.desk-textarea:focus { border-color: var(--primary); }
 .score-bars div > div { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
 .score-bars i { display: block; height: 100%; background: var(--primary); transition: width 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
 
-.result-actions { display: flex; gap: 8px; }
-.result-actions button { flex: 1; justify-content: center; }
+.result-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.result-actions button { flex: 1 1 auto; justify-content: center; min-width: 90px; }
 
 /* ── Reply Mode Output Cards ─────────────────────────────────────────── */
 .reply-results { display: flex; flex-direction: column; gap: 12px; width: 100%; }
@@ -1453,8 +1453,14 @@ footer { padding: 40px 0; border-top: 1px solid var(--border); text-align: cente
   textarea.desk-textarea, input, select, .form-control {
     font-size: 16px !important;
   }
-  .btn-hero, .btn-paper, .chip, .demo-btn, .tag-btn, .mode-switch button, .draft-actions > * {
+  .btn-hero, .btn-paper, .mode-switch button, .draft-actions > * {
     min-height: 44px;
+    touch-action: manipulation;
+  }
+  .chip, .demo-btn, .tag-btn {
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
     touch-action: manipulation;
   }
 
@@ -1471,7 +1477,8 @@ footer { padding: 40px 0; border-top: 1px solid var(--border); text-align: cente
   .divide-notes { display: flex; flex-direction: column; gap: 0; padding: 0; }
   .marginalia-note-item { border-right: none; border-bottom: 1px solid var(--border); padding: 16px 20px; }
 
-  .manuscript-paper { padding: 18px 14px; min-height: 220px; font-size: 18px; }
+  .manuscript-paper { padding: 18px 14px 40px; min-height: 220px; font-size: 18px; }
+  .result-state { min-height: 220px; padding: 24px 16px; }
 
   .demo-row { overflow-x: auto; padding-bottom: 6px; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; }
   .demo-row button { flex-shrink: 0; scroll-snap-align: start; }
@@ -1510,6 +1517,15 @@ footer { padding: 40px 0; border-top: 1px solid var(--border); text-align: cente
   .modal-card { max-width: 96vw; padding: 14px; gap: 10px; }
   .modal-actions { flex-direction: column; gap: 8px; }
   .modal-actions button { width: 100%; }
+
+  .result-actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .result-actions #copyResultBtn {
+    grid-column: 1 / -1;
+  }
 
   .proof-tab-bar { flex-direction: column; align-items: stretch; gap: 8px; }
   .manuscript-tabs { width: 100%; display: flex; }
@@ -1987,9 +2003,9 @@ del.manuscript-del { color: var(--seal); opacity: 0.7; text-decoration: line-thr
 .studio-bottom {
   margin-top: 18px;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  flex-wrap: wrap;
+  text-align: center;
   gap: 12px;
   color: var(--muted-foreground);
   font-size: 11px;
