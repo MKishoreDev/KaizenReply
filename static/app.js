@@ -423,7 +423,7 @@ function setupEventListeners() {
   if (showcaseCardBtn) showcaseCardBtn.onclick = handleShowcase;
   if (showcaseImgCard) showcaseImgCard.onclick = handleShowcase;
 
-  // Studio Desk vs My History Tabs (Lovable Pattern)
+  // Studio Tabs: KaizenReply vs My History
   const studioTabDesk = $("studioTabDesk");
   const studioTabHistory = $("studioTabHistory");
   const deskWorkstation = $("deskWorkstation");
@@ -853,7 +853,7 @@ function renderEvolveOutput(data, original, tone, platform) {
     };
   });
 
-  // In-Place Edit Button Listener (Lovable Pattern)
+  // In-Place Manuscript Edit Listener
   let isEditing = false;
   const editBtn = $("editResultBtn");
   if (editBtn) {
@@ -903,7 +903,7 @@ function renderEvolveOutput(data, original, tone, platform) {
     }
   };
 
-  // Update Marginalia Aside Panel & Score Box (Lovable Pattern)
+  // Update Marginalia Aside Panel & Score Box
   const margPanel = $("marginaliaPanel");
   if (margPanel && data.notes && data.notes.length) {
     let notesHtml = data.notes.slice(0, 3).map((n, i) => `
@@ -1127,7 +1127,7 @@ function renderKaizenHistory() {
       }
     }
 
-    // Update Dedicated Studio View (Lovable Pattern)
+    // Update Dedicated Studio View
     if (studioGrid && studioEmpty && studioActions) {
       if (!list.length) {
         studioGrid.innerHTML = "";
