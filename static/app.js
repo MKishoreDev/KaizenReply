@@ -721,23 +721,10 @@ function setupEventListeners() {
   const showcaseCardBtn = $("showcaseCardBtn");
   const showcaseImgCard = $("showcaseImgCard");
   const handleShowcase = () => {
-    if (lastEvolvedData) {
-      openEvolveCardModal(
-        lastEvolvedData.original,
-        lastEvolvedData.improved,
-        lastEvolvedData.score ? lastEvolvedData.score.after : 88,
-        lastEvolvedData.tone || state.tone,
-        lastEvolvedData.platform || state.platform
-      );
-    } else {
-      openEvolveCardModal(
-        "bro send that report asap need it for client meeting",
-        "Could you please send the report as soon as possible for the client meeting?",
-        88,
-        "Professional",
-        "Email"
-      );
-    }
+    openLinkedInMemeModal(
+      "I ate a sandwich at 2 PM because I forgot to have lunch.",
+      "Executed a precision mid-day nutritional sprint. Optimized metabolic throughput and sustained high-velocity cognitive output across cross-functional workstreams."
+    );
   };
   if (showcaseCardBtn) showcaseCardBtn.onclick = handleShowcase;
   if (showcaseImgCard) showcaseImgCard.onclick = handleShowcase;
@@ -940,7 +927,17 @@ function setupEventListeners() {
     };
   }
   if (shareQuote) {
-    shareQuote.onclick = () => openQuoteCardModal();
+    shareQuote.onclick = () => {
+      const q = (kotowazaList && kotowazaList[currentQuoteIndex]) || QUOTES[0];
+      const meaning = (q.meaning && q.meaning.en) ? q.meaning.en : (q.translation || "");
+      const shareText = `"${q.japanese}" (${q.romaji}) — ${meaning}\n\nKaizen Kotowaza · https://kaizenreply.us.ci`;
+      if (navigator.share) {
+        navigator.share({ title: "Kaizen Kotowaza", text: shareText }).catch(() => undefined);
+      } else {
+        navigator.clipboard.writeText(shareText);
+        showKaizenToast("Proverb copied to clipboard! 🌸", "success");
+      }
+    };
   }
 
   // Kotowaza Tag Filters
@@ -1175,10 +1172,12 @@ function renderEvolveOutput(data, original, tone, platform) {
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
           Share
         </button>
-        <button class="btn-paper" id="cardResultBtn">
+        ${tone === "LinkedIn Bro" ? `
+        <button class="btn-paper" id="cardResultBtn" style="color:var(--seal);font-weight:600;" title="Generate Reality vs LinkedIn Meme Card">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          Card
+          Meme Card
         </button>
+        ` : ""}
         <button class="btn-paper" id="shareXBtn">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4l16 16M4 20L20 4"/></svg>
           Post X
@@ -1274,7 +1273,10 @@ function renderEvolveOutput(data, original, tone, platform) {
     if (navigator.share) navigator.share({ text: data.improved }).catch(() => undefined);
     else { navigator.clipboard.writeText(data.improved); showKaizenToast("Refined manuscript copied to clipboard!", "success"); }
   };
-  $("cardResultBtn").onclick = () => openEvolveCardModal(original, data.improved, data.score ? data.score.after : 88, tone, platform);
+  const cardBtn = $("cardResultBtn");
+  if (cardBtn) {
+    cardBtn.onclick = () => openLinkedInMemeModal(original, data.improved);
+  }
   $("shareXBtn").onclick = () => shareToX(original, data.improved, data.score ? data.score.before : 60, data.score ? data.score.after : 88, tone);
   $("evolveFurtherBtn").onclick = () => {
     const msgInput = $("messageInput");
@@ -1751,10 +1753,13 @@ function loadCanvasImage(url) {
   });
 }
 
-function openEvolveCardModal(original, improved, score, tone, platform) {
+function openLinkedInMemeModal(reality, linkedin) {
   const modal = $("shareModal");
   const wrapper = $("modalCanvasWrapper");
   if (!modal) return;
+
+  const modalTitle = modal.querySelector("h3");
+  if (modalTitle) modalTitle.textContent = "Reality vs LinkedIn Meme";
 
   if (wrapper) {
     wrapper.innerHTML = `
@@ -1765,413 +1770,98 @@ function openEvolveCardModal(original, improved, score, tone, platform) {
           <div class="kaizen-loader__dot"></div><div class="kaizen-loader__dot"></div>
           <div class="kaizen-loader__dot"></div>
         </div>
-        <div class="kaizen-loader__text">Composing your card…</div>
-        <div class="kaizen-loader__sub">カードを作成中</div>
+        <div class="kaizen-loader__text">Composing meme artwork…</div>
+        <div class="kaizen-loader__sub">ミームを作成中</div>
       </div>
     `;
   }
   modal.classList.remove("hidden");
 
   setTimeout(async () => {
-    const isLinkedInMeme = tone === "LinkedIn Bro";
-    const canvasWidth = isLinkedInMeme ? 1024 : 1200;
-    const canvasHeight = isLinkedInMeme ? 682 : 630;
-    if (wrapper) wrapper.innerHTML = `<canvas id="shareCardCanvas" width="${canvasWidth}" height="${canvasHeight}" style="width:100%;max-width:${canvasWidth}px;height:auto;display:block;margin:0 auto;border-radius:var(--radius);"></canvas>`;
+    if (wrapper) wrapper.innerHTML = `<canvas id="shareCardCanvas" width="1024" height="682" style="width:100%;max-width:1024px;height:auto;display:block;margin:0 auto;border-radius:var(--radius);"></canvas>`;
     const newCanvas = $("shareCardCanvas");
     if (!newCanvas) return;
-    await renderCardCanvas(newCanvas, {
-      type: "evolve",
-      original,
-      improved,
-      score: score || 88,
-      tone: tone || "Professional",
-      platform: platform || "Email"
-    });
-    const filename = isLinkedInMeme ? "reality-vs-linkedin-meme.png" : "kaizenreply-evolution.png";
+    await renderLinkedInMemeCanvas(newCanvas, reality, linkedin);
+    const filename = "reality-vs-linkedin-meme.png";
     $("downloadCardBtn").onclick = () => downloadCanvasAsPng(newCanvas, filename);
     $("shareCardImageBtn").onclick = () => shareCanvasImage(newCanvas, filename);
-  }, 400);
+  }, 350);
 }
 
-function openQuoteCardModal() {
-  const modal = $("shareModal");
-  const wrapper = $("modalCanvasWrapper");
-  if (!modal) return;
-
-  const filtered = getFilteredQuotes();
-  const list = filtered.length > 0 ? filtered : kotowazaList;
-  const q = list[currentQuoteIndex] || kotowazaList[0] || {
-    japanese: "七転び八起き",
-    reading: "ななころびやおき",
-    romaji: "Nana korobi ya oki",
-    meaning: { en: "Fall down seven times, stand up eight. Resilience brings victory." },
-    literal: "Seven falls, eight getting up",
-    equivalent: { en: "Perseverance brings success." },
-    tags: ["Resilience"],
-    jlpt: "N3"
-  };
-
-  // Show generating animation
-  if (wrapper) {
-    wrapper.innerHTML = `
-      <div class="kaizen-loader" style="min-height:160px;">
-        <div class="kaizen-loader__circle"><div class="kaizen-loader__kanji">絵</div></div>
-        <div class="kaizen-loader__dots">
-          <div class="kaizen-loader__dot"></div><div class="kaizen-loader__dot"></div>
-          <div class="kaizen-loader__dot"></div><div class="kaizen-loader__dot"></div>
-          <div class="kaizen-loader__dot"></div>
-        </div>
-        <div class="kaizen-loader__text">Composing your card…</div>
-        <div class="kaizen-loader__sub">カードを作成中</div>
-      </div>
-    `;
-  }
-  modal.classList.remove("hidden");
-
-  setTimeout(async () => {
-    if (wrapper) wrapper.innerHTML = `<canvas id="shareCardCanvas" width="1200" height="630" style="width:100%;height:auto;display:block;"></canvas>`;
-    const newCanvas = $("shareCardCanvas");
-    if (!newCanvas) return;
-    await renderCardCanvas(newCanvas, {
-      type: "quote",
-      japanese: q.japanese,
-      reading: q.reading,
-      romaji: q.romaji,
-      meaning: (q.meaning && q.meaning.en) ? q.meaning.en : (q.translation || ""),
-      literal: q.literal,
-      equivalent: (q.equivalent && q.equivalent.en) ? q.equivalent.en : (typeof q.equivalent === "string" ? q.equivalent : ""),
-      category: (q.tags && q.tags[0]) ? q.tags[0] : "Wisdom",
-      jlpt: q.jlpt ? (String(q.jlpt).toUpperCase().startsWith("N") ? `JLPT ${q.jlpt}` : q.jlpt) : "Kotowaza"
-    });
-    $("downloadCardBtn").onclick = () => downloadCanvasAsPng(newCanvas, `kaizenreply-kotowaza-${q.id || 'proverb'}.png`);
-    $("shareCardImageBtn").onclick = () => shareCanvasImage(newCanvas, `kaizenreply-kotowaza-${q.id || 'proverb'}.png`);
-  }, 400);
-}
-
-async function renderCardCanvas(canvas, options) {
+async function renderLinkedInMemeCanvas(canvas, original, improved) {
   const ctx = canvas.getContext("2d");
   const width = canvas.width;
   const height = canvas.height;
 
-  const isDark = document.documentElement.classList.contains("dark");
-  const bgUrl = options.type === "quote" ? "/static/assets/kaizen-quote.jpg" : "/static/assets/kaizen-share.jpg";
-  const logoUrl = "/static/logo-icon.png";
-
-  const [bgImg, logoImg] = await Promise.all([
-    loadCanvasImage(bgUrl),
-    loadCanvasImage(logoUrl)
-  ]);
-
-  if (options.type === "quote") {
-    // ------------------------------------------
-    // Japanese Kotowaza Wisdom Card (Editorial Japanese Print)
-    // ------------------------------------------
-
-    // 1. Japanese Landscape Artwork Background
-    if (bgImg && bgImg.naturalWidth !== 0) {
-      ctx.drawImage(bgImg, 0, 0, width, height);
-      // Subtle dusk mist overlay so mountains and pagoda shine through
-      ctx.fillStyle = "rgba(10, 15, 24, 0.65)";
-      ctx.fillRect(0, 0, width, height);
-    } else {
-      const grad = ctx.createLinearGradient(0, 0, width, height);
-      grad.addColorStop(0, "#0a0f18");
-      grad.addColorStop(1, "#151e2e");
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, width, height);
-    }
-
-    // 2. Outer Border Frame (Double Scroll Border)
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.22)";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(26, 26, width - 52, height - 52);
-
-    ctx.strokeStyle = "rgba(201, 74, 54, 0.35)"; // Hanko vermilion inner hairline
-    ctx.lineWidth = 1;
-    ctx.strokeRect(32, 32, width - 64, height - 64);
-
-    // 3. Top-Right Red Hanko Seal (改善)
-    ctx.fillStyle = "#c94a36";
-    drawRoundRect(ctx, width - 122, 46, 64, 64, 6);
-    ctx.fill();
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 26px 'Noto Serif JP', serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText("改善", width - 90, 78);
-    ctx.textAlign = "start";
-    ctx.textBaseline = "alphabetic";
-
-    // 4. Top-Left Brand Lockup Header
-    const logoSize = 36;
-    const logoX = 60;
-    const logoY = 48;
-    if (logoImg && logoImg.naturalWidth !== 0) {
-      ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize);
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 28px 'Work Sans', system-ui, sans-serif";
-      ctx.textBaseline = "middle";
-      ctx.fillText("KaizenReply", logoX + logoSize + 12, logoY + (logoSize / 2));
-      ctx.textBaseline = "alphabetic";
-    } else {
-      ctx.fillStyle = "#c94a36";
-      drawRoundRect(ctx, logoX, logoY, 32, 32, 4);
-      ctx.fill();
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 18px 'Noto Serif JP', serif";
-      ctx.fillText("改", logoX + 8, logoY + 23);
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 28px 'Work Sans', system-ui, sans-serif";
-      ctx.fillText("KaizenReply", logoX + 44, logoY + 24);
-    }
-
-    ctx.fillStyle = "#22c55e";
-    ctx.font = "bold 13px 'IBM Plex Mono', monospace";
-    ctx.fillText("KAIZEN WISDOM · KOTOWAZA", logoX + logoSize + 12, logoY + logoSize + 12);
-
-    // 5. Header Divider Line
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.16)";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(60, 114);
-    ctx.lineTo(width - 60, 114);
-    ctx.stroke();
-
-    // 6. Center Frosted Glass Box Container
-    ctx.fillStyle = "rgba(13, 17, 23, 0.82)";
-    drawRoundRect(ctx, 60, 136, width - 120, 396, 14);
-    ctx.fill();
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    // 7. Inside Frosted Box Content
-    // Category & JLPT
-    ctx.fillStyle = "#22c55e";
-    ctx.font = "bold 13px 'IBM Plex Mono', monospace";
-    const catTag = `KOTOWAZA · ${(options.category || "Wisdom").toUpperCase()} · ${(options.jlpt || "Kotowaza").toUpperCase()}`;
-    ctx.fillText(catTag, 92, 178);
-
-    // Japanese Kanji Proverb
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 56px 'Noto Serif JP', serif";
-    ctx.fillText(options.japanese || "", 92, 250);
-
-    // Reading & Romaji
-    ctx.font = "500 17px 'IBM Plex Mono', monospace";
-    ctx.fillStyle = "#94a3b8";
-    const readingLine = [options.reading, options.romaji].filter(Boolean).join(" · ");
-    ctx.fillText(readingLine, 92, 290);
-
-    // English Meaning (Instrument Serif font)
-    ctx.font = "italic 30px 'Instrument Serif', Georgia, serif";
-    ctx.fillStyle = "#ffffff";
-    wrapCanvasText(ctx, `"${options.meaning || ""}"`, 92, 344, width - 184, 40);
-
-    // Literal & Equivalent Details
-    let detailY = 444;
-    if (options.literal) {
-      ctx.font = "15px 'Work Sans', system-ui, sans-serif";
-      ctx.fillStyle = "#cbd5e1";
-      ctx.fillText(`Literal: ${options.literal}`, 92, detailY);
-      detailY += 26;
-    }
-    if (options.equivalent) {
-      ctx.font = "italic 15px 'Work Sans', system-ui, sans-serif";
-      ctx.fillStyle = "#94a3b8";
-      ctx.fillText(`Equivalent: "${options.equivalent}"`, 92, detailY);
-    }
-
-    // 8. Bottom Footer Info
-    ctx.font = "13px 'IBM Plex Mono', monospace";
-    ctx.fillStyle = "#22c55e";
-    ctx.fillText("kaizenreply.us.ci · Japanese Kotowaza Wisdom", 60, 578);
-
-    ctx.fillStyle = "#94a3b8";
-    ctx.font = "12px 'IBM Plex Mono', monospace";
-    ctx.fillText("改善 · Continuous Improvement", width - 320, 578);
-
-  } else if (options.tone === "LinkedIn Bro" || options.type === "meme") {
-    // ------------------------------------------
-    // Reality vs LinkedIn Meme Card (Custom Template)
-    // ------------------------------------------
-    const memeImg = await loadCanvasImage("/static/linkedin-meme-template.jpg");
-    if (memeImg && memeImg.naturalWidth !== 0) {
-      ctx.drawImage(memeImg, 0, 0, width, height);
-    } else {
-      ctx.fillStyle = "#f5f3ec";
-      ctx.fillRect(0, 0, width, height);
-    }
-
-    let reality = options.original || "";
-    let linkedin = options.improved || "";
-
-    if (linkedin.includes("Reality:") && linkedin.includes("LinkedIn:")) {
-      const parts = linkedin.split(/LinkedIn:/i);
-      const rPart = parts[0].replace(/Reality:/i, "").trim();
-      if (rPart) reality = rPart;
-      linkedin = (parts[1] || "").trim();
-    } else {
-      reality = reality.replace(/^Reality:\s*/i, "").trim();
-      linkedin = linkedin.replace(/^LinkedIn:\s*/i, "").trim();
-    }
-
-    function renderMemeBox(text, boxX, maxW, boxY, boxH) {
-      const fontSizes = [24, 22, 20, 18, 16];
-      let bestFont = "20px 'Georgia', serif";
-      let bestLines = [];
-      let bestLh = 30;
-
-      for (const size of fontSizes) {
-        ctx.font = `${size}px 'Georgia', 'Noto Serif JP', serif`;
-        const lh = Math.round(size * 1.48);
-        const words = text.split(/\s+/).filter(Boolean);
-        const lines = [];
-        let cur = "";
-        for (const w of words) {
-          const test = cur ? cur + " " + w : w;
-          if (ctx.measureText(test).width <= maxW) {
-            cur = test;
-          } else {
-            if (cur) lines.push(cur);
-            cur = w;
-          }
-        }
-        if (cur) lines.push(cur);
-
-        const totalH = lines.length * lh;
-        if (totalH <= boxH || size === 16) {
-          bestFont = `${size}px 'Georgia', 'Noto Serif JP', serif`;
-          bestLines = lines;
-          bestLh = lh;
-          break;
-        }
-      }
-
-      ctx.font = bestFont;
-      ctx.fillStyle = "#1b2621";
-      const totalH = bestLines.length * bestLh;
-      let startY = boxY + Math.max(10, Math.floor((boxH - totalH) / 3));
-
-      for (const line of bestLines) {
-        ctx.fillText(line, boxX, startY);
-        startY += bestLh;
-      }
-    }
-
-    // Left Box: Reality
-    renderMemeBox(reality, 92, 365, 245, 290);
-
-    // Right Box: LinkedIn Profile
-    renderMemeBox(linkedin, 565, 365, 245, 290);
-
+  const memeImg = await loadCanvasImage("/static/linkedin-meme-template.jpg");
+  if (memeImg && memeImg.naturalWidth !== 0) {
+    ctx.drawImage(memeImg, 0, 0, width, height);
   } else {
-    // ------------------------------------------
-    // Evolve Before / After Card
-    // ------------------------------------------
-    const colors = isDark ? {
-      bgOverlay1: "rgba(14, 20, 32, 0.88)",
-      bgOverlay2: "rgba(8, 12, 18, 0.70)",
-      heading: "#e8eef6",
-      accent: "#22c55e",
-      accentDark: "#4ade80",
-      muted: "#6b7a95",
-      text: "#d4dde8"
-    } : {
-      bgOverlay1: "rgba(247, 247, 243, 0.60)",
-      bgOverlay2: "rgba(247, 247, 243, 0.25)",
-      heading: "#17201c",
-      accent: "#16a66a",
-      accentDark: "#087443",
-      muted: "#6b7280",
-      text: "#17201c"
-    };
-
-    // 1. Background image
-    if (bgImg && bgImg.naturalWidth !== 0) {
-      ctx.drawImage(bgImg, 0, 0, width, height);
-    } else {
-      ctx.fillStyle = isDark ? "#080c12" : "#f7f7f3";
-      ctx.fillRect(0, 0, width, height);
-    }
-
-    // Gradient overlay
-    const overlayGrad = ctx.createLinearGradient(0, 0, width, height);
-    overlayGrad.addColorStop(0, colors.bgOverlay1);
-    overlayGrad.addColorStop(1, colors.bgOverlay2);
-    ctx.fillStyle = overlayGrad;
+    ctx.fillStyle = "#f5f3ec";
     ctx.fillRect(0, 0, width, height);
+  }
 
-    // 2. Top-Left Brand Lockup (Pixel-perfect icon & text)
-    const logoSize = 34;
-    const logoX = 60;
-    const logoY = 48;
-    if (logoImg && logoImg.naturalWidth !== 0) {
-      ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize);
-      ctx.fillStyle = colors.heading;
-      ctx.font = "bold 28px 'Work Sans', system-ui, sans-serif";
-      ctx.textBaseline = "middle";
-      ctx.fillText("KaizenReply", logoX + logoSize + 12, logoY + (logoSize / 2));
-      ctx.textBaseline = "alphabetic";
-    } else {
-      ctx.fillStyle = colors.heading;
-      ctx.font = "bold 28px 'Work Sans', system-ui, sans-serif";
-      ctx.fillText("KaizenReply", logoX, logoY + 28);
+  let reality = original || "";
+  let linkedin = improved || "";
+
+  if (linkedin.includes("Reality:") && linkedin.includes("LinkedIn:")) {
+    const parts = linkedin.split(/LinkedIn:/i);
+    const rPart = parts[0].replace(/Reality:/i, "").trim();
+    if (rPart) reality = rPart;
+    linkedin = (parts[1] || "").trim();
+  } else {
+    reality = reality.replace(/^Reality:\s*/i, "").trim();
+    linkedin = linkedin.replace(/^LinkedIn:\s*/i, "").trim();
+  }
+
+  function renderMemeBox(text, boxX, maxW, boxY, boxH) {
+    const fontSizes = [24, 22, 20, 18, 16];
+    let bestFont = "20px 'Georgia', serif";
+    let bestLines = [];
+    let bestLh = 30;
+
+    for (const size of fontSizes) {
+      ctx.font = `${size}px 'Georgia', 'Noto Serif JP', serif`;
+      const lh = Math.round(size * 1.48);
+      const words = text.split(/\s+/).filter(Boolean);
+      const lines = [];
+      let cur = "";
+      for (const w of words) {
+        const test = cur ? cur + " " + w : w;
+        if (ctx.measureText(test).width <= maxW) {
+          cur = test;
+        } else {
+          if (cur) lines.push(cur);
+          cur = w;
+        }
+      }
+      if (cur) lines.push(cur);
+
+      const totalH = lines.length * lh;
+      if (totalH <= boxH || size === 16) {
+        bestFont = `${size}px 'Georgia', 'Noto Serif JP', serif`;
+        bestLines = lines;
+        bestLh = lh;
+        break;
+      }
     }
 
-    // 3. Top-Right Version Tag
-    ctx.fillStyle = colors.accent;
-    ctx.font = "bold 16px 'IBM Plex Mono', monospace";
-    ctx.fillText("V01 → V02", width - 180, 72);
+    ctx.font = bestFont;
+    ctx.fillStyle = "#1b2621";
+    const totalH = bestLines.length * bestLh;
+    let startY = boxY + Math.max(10, Math.floor((boxH - totalH) / 3));
 
-    // 4. Main Heading
-    ctx.fillStyle = colors.heading;
-    ctx.font = "400 42px 'Georgia', 'Noto Serif JP', serif";
-    ctx.fillText("Small improvements.", 60, 165);
-
-    ctx.fillStyle = colors.accent;
-    ctx.fillText("Better messages.", 60, 215);
-
-    // 5. BEFORE Section
-    ctx.fillStyle = colors.muted;
-    ctx.font = "bold 13px 'IBM Plex Mono', monospace";
-    ctx.fillText("BEFORE", 60, 275);
-
-    ctx.fillStyle = colors.text;
-    ctx.font = "600 20px 'Work Sans', system-ui, sans-serif";
-    wrapCanvasText(ctx, options.original || "Original draft message...", 60, 310, 620, 30);
-
-    // 6. AFTER Section
-    ctx.fillStyle = colors.accent;
-    ctx.font = "bold 13px 'IBM Plex Mono', monospace";
-    ctx.fillText("AFTER", 60, 405);
-
-    ctx.fillStyle = colors.accentDark;
-    ctx.font = "bold 24px 'Georgia', serif";
-    wrapCanvasText(ctx, options.improved || "Evolved message...", 60, 442, 650, 34);
-
-    // 7. Bottom Score Info
-    ctx.fillStyle = colors.accent;
-    ctx.font = "bold 22px 'Work Sans', system-ui, sans-serif";
-    ctx.fillText(`Kaizen Score: ${options.score || 88}/100`, 60, 565);
-
-    ctx.fillStyle = colors.muted;
-    ctx.font = "15px 'IBM Plex Mono', monospace";
-    const infoText = [options.tone, options.platform].filter(Boolean).join(" · ") || "Continuous Improvement";
-    ctx.fillText(infoText, 340, 565);
-
-    // 8. Bottom-Right Hanko Seal Stamp
-    ctx.fillStyle = "#c94a36";
-    drawRoundRect(ctx, width - 110, height - 100, 54, 54, 4);
-    ctx.fill();
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 22px 'Noto Serif JP', serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText("改善", width - 83, height - 73);
-    ctx.textAlign = "start";
-    ctx.textBaseline = "alphabetic";
+    for (const line of bestLines) {
+      ctx.fillText(line, boxX, startY);
+      startY += bestLh;
+    }
   }
+
+  // Left Box: Reality (x=92, w=365, y=245, h=290)
+  renderMemeBox(reality, 92, 365, 245, 290);
+
+  // Right Box: LinkedIn Profile (x=565, w=365, y=245, h=290)
+  renderMemeBox(linkedin, 565, 365, 245, 290);
 }
 
 function drawRoundRect(ctx, x, y, w, h, r) {
