@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kaizenreply-v2.6';
+const CACHE_NAME = 'kaizenreply-v3.0';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -8,14 +8,24 @@ const ASSETS_TO_CACHE = [
   '/static/logo.png',
   '/static/logo-icon.png',
   '/static/logo-inkwash.png',
+  '/static/icon-192.png',
+  '/static/icon-512.png',
+  '/static/icon-maskable-512.png',
   '/static/banner.png',
   '/static/data/kotowaza.json'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
+    caches.open(CACHE_NAME).then(async (cache) => {
+      // Robust caching: add individually so a single network/cache failure never aborts install
+      await Promise.allSettled(
+        ASSETS_TO_CACHE.map((url) =>
+          cache.add(url).catch((err) => {
+            console.warn(`[SW] Pre-cache failed for ${url}:`, err);
+          })
+        )
+      );
     })
   );
   self.skipWaiting();

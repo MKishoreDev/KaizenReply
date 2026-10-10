@@ -370,13 +370,22 @@ function renderRecipientChips() {
 // PWA Service Worker Registration & Offline Support
 function initServiceWorker() {
   if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("/sw.js").then((reg) => {
-        console.log("KaizenReply ServiceWorker active:", reg.scope);
-      }).catch((err) => {
-        console.warn("ServiceWorker registration failed:", err);
-      });
-    });
+    const registerSW = () => {
+      navigator.serviceWorker
+        .register("/sw.js", { scope: "/" })
+        .then((reg) => {
+          console.log("KaizenReply ServiceWorker active:", reg.scope);
+        })
+        .catch((err) => {
+          console.warn("ServiceWorker registration failed:", err);
+        });
+    };
+
+    if (document.readyState === "complete") {
+      registerSW();
+    } else {
+      window.addEventListener("load", registerSW);
+    }
   }
 }
 

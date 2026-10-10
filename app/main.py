@@ -556,15 +556,27 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/manifest.json")
 async def manifest():
-    return FileResponse("static/manifest.json", media_type="application/manifest+json")
+    return FileResponse(
+        "static/manifest.json",
+        media_type="application/manifest+json",
+        headers={"Cache-Control": "no-cache, no-store, must-revalidate"}
+    )
 
 
 @app.get("/sw.js")
 async def service_worker():
-    return FileResponse("static/sw.js", media_type="application/javascript")
+    return FileResponse(
+        "static/sw.js",
+        media_type="application/javascript",
+        headers={
+            "Service-Worker-Allowed": "/",
+            "Cache-Control": "no-cache, no-store, must-revalidate"
+        }
+    )
 
 
 @app.get("/")
+@app.get("/index.html")
 @app.get("/share-target")
 async def index():
     return FileResponse("index.html")

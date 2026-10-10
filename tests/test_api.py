@@ -33,12 +33,25 @@ def test_static_and_root_endpoints(client):
     assert res_root.status_code == 200
     assert "KaizenReply" in res_root.text
 
+    res_index = client.get("/index.html")
+    assert res_index.status_code == 200
+    assert "KaizenReply" in res_index.text
+
     res_manifest = client.get("/manifest.json")
     assert res_manifest.status_code == 200
     assert "application/manifest+json" in res_manifest.headers.get("content-type", "")
+    manifest_data = res_manifest.json()
+    assert manifest_data.get("display") == "standalone"
+    assert len(manifest_data.get("icons", [])) >= 2
 
     res_sw = client.get("/sw.js")
     assert res_sw.status_code == 200
+    assert res_sw.headers.get("Service-Worker-Allowed") == "/"
+    assert "application/javascript" in res_sw.headers.get("content-type", "")
+
+    res_icon_192 = client.get("/static/icon-192.png")
+    assert res_icon_192.status_code == 200
+    assert res_icon_192.headers.get("content-type") == "image/png"
 
 
 def test_quotes_endpoints(client):
