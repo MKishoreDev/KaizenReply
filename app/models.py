@@ -59,3 +59,8 @@ class ReplyRequest(BaseModel):
 
 class ReplyResponse(BaseModel):
     suggestions: List[str]
+
+
+class MemeRequest(BaseModel):
+    reality: str = Field(min_length=1, max_length=500)
+    linkedin: str = Field(min_length=1, max_length=1000)

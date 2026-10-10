@@ -175,3 +175,23 @@ def test_linkedin_bro_satire_engine(mock_groq, client):
     assert "LinkedIn Bro — Reality vs LinkedIn Satire Engine v3.0" in system_prompt
     assert "Reality vs LinkedIn" in system_prompt
     assert "One-liner" in system_prompt
+
+
+def test_meme_generation_endpoints(client):
+    # Test POST /api/meme/generate
+    res = client.post(
+        "/api/meme/generate",
+        json={
+            "reality": "I took a nap during the work meeting.",
+            "linkedin": "Strategically preserved cognitive bandwidth to maximize executive clarity."
+        }
+    )
+    assert res.status_code == 200
+    assert res.headers.get("content-type") == "image/jpeg"
+    assert len(res.content) > 10000
+
+    # Test GET /api/meme/demo
+    demo_res = client.get("/api/meme/demo")
+    assert demo_res.status_code == 200
+    assert demo_res.headers.get("content-type") == "image/jpeg"
+    assert len(demo_res.content) > 10000

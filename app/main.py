@@ -7,8 +7,10 @@ import os
 import time
 
 import httpx
+from io import BytesIO
 from pathlib import Path
-from fastapi import FastAPI, HTTPException, Request, status
+from PIL import Image, ImageDraw, ImageFont
+from fastapi import FastAPI, HTTPException, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -23,6 +25,7 @@ from app.models import (
     AnalyzeResponse,
     ReplyRequest,
     ReplyResponse,
+    MemeRequest,
 )
 
 load_dotenv(find_dotenv(usecwd=True), override=False)
@@ -831,3 +834,87 @@ Respond with strict JSON only: {{"suggestions": [string, string, string]}}"""
 
     set_cached(key, result)
     return result
+
+
+def create_reality_vs_linkedin_meme(reality: str, linkedin: str) -> bytes:
+    template_path = os.path.join("static", "linkedin-meme-template.jpg")
+    if not os.path.exists(template_path):
+        raise HTTPException(status_code=500, detail="Meme template image not found")
+
+    img = Image.open(template_path).convert("RGB")
+    draw = ImageDraw.Draw(img)
+
+    r_text = reality.strip()
+    if r_text.lower().startswith("reality:"):
+        r_text = r_text[8:].strip()
+
+    l_text = linkedin.strip()
+    if l_text.lower().startswith("linkedin:"):
+        l_text = l_text[9:].strip()
+
+    def get_font_and_lines(text, max_w, max_h):
+        for size in [24, 22, 20, 18, 16]:
+            try:
+                font = ImageFont.truetype("georgia.ttf", size)
+            except Exception:
+                font = ImageFont.load_default()
+            line_height = int(size * 1.48)
+            words = text.split()
+            lines = []
+            cur_line = ""
+            for w in words:
+                test = (cur_line + " " + w).strip()
+                bbox = draw.textbbox((0, 0), test, font=font)
+                if (bbox[2] - bbox[0]) <= max_w:
+                    cur_line = test
+                else:
+                    if cur_line:
+                        lines.append(cur_line)
+                    cur_line = w
+            if cur_line:
+                lines.append(cur_line)
+            total_h = len(lines) * line_height
+            if total_h <= max_h or size == 16:
+                return font, lines, line_height, total_h
+        return ImageFont.load_default(), [text], 20, 20
+
+    rx, rw, box_y, box_h = 92, 365, 245, 290
+    r_font, r_lines, r_lh, r_th = get_font_and_lines(r_text, rw, box_h)
+    r_start_y = box_y + max(10, (box_h - r_th) // 3)
+    for line in r_lines:
+        draw.text((rx, r_start_y), line, fill="#1b2621", font=r_font)
+        r_start_y += r_lh
+
+    lx, lw = 565, 365
+    l_font, l_lines, l_lh, l_th = get_font_and_lines(l_text, lw, box_h)
+    l_start_y = box_y + max(10, (box_h - l_th) // 3)
+    for line in l_lines:
+        draw.text((lx, l_start_y), line, fill="#1b2621", font=l_font)
+        l_start_y += l_lh
+
+    buf = BytesIO()
+    img.save(buf, format="JPEG", quality=95)
+    return buf.getvalue()
+
+
+@app.post("/api/meme/generate")
+async def generate_meme_endpoint(req: MemeRequest):
+    img_bytes = create_reality_vs_linkedin_meme(req.reality, req.linkedin)
+    return Response(
+        content=img_bytes,
+        media_type="image/jpeg",
+        headers={"Content-Disposition": 'inline; filename="reality-vs-linkedin-meme.jpg"'}
+    )
+
+
+@app.get("/api/meme/demo")
+async def demo_meme_endpoint():
+    img_bytes = create_reality_vs_linkedin_meme(
+        "I ate a sandwich at 2 PM because I forgot to have lunch.",
+        "Executed a precision mid-day nutritional sprint. Optimized metabolic throughput and sustained high-velocity cognitive output across cross-functional workstreams."
+    )
+    return Response(
+        content=img_bytes,
+        media_type="image/jpeg",
+        headers={"Content-Disposition": 'inline; filename="reality-vs-linkedin-demo.jpg"'}
+    )

@@ -1773,7 +1773,10 @@ function openEvolveCardModal(original, improved, score, tone, platform) {
   modal.classList.remove("hidden");
 
   setTimeout(async () => {
-    if (wrapper) wrapper.innerHTML = `<canvas id="shareCardCanvas" width="1200" height="630" style="width:100%;height:auto;display:block;"></canvas>`;
+    const isLinkedInMeme = tone === "LinkedIn Bro";
+    const canvasWidth = isLinkedInMeme ? 1024 : 1200;
+    const canvasHeight = isLinkedInMeme ? 682 : 630;
+    if (wrapper) wrapper.innerHTML = `<canvas id="shareCardCanvas" width="${canvasWidth}" height="${canvasHeight}" style="width:100%;max-width:${canvasWidth}px;height:auto;display:block;margin:0 auto;border-radius:var(--radius);"></canvas>`;
     const newCanvas = $("shareCardCanvas");
     if (!newCanvas) return;
     await renderCardCanvas(newCanvas, {
@@ -1784,8 +1787,9 @@ function openEvolveCardModal(original, improved, score, tone, platform) {
       tone: tone || "Professional",
       platform: platform || "Email"
     });
-    $("downloadCardBtn").onclick = () => downloadCanvasAsPng(newCanvas, "kaizenreply-evolution.png");
-    $("shareCardImageBtn").onclick = () => shareCanvasImage(newCanvas, "kaizenreply-evolution.png");
+    const filename = isLinkedInMeme ? "reality-vs-linkedin-meme.png" : "kaizenreply-evolution.png";
+    $("downloadCardBtn").onclick = () => downloadCanvasAsPng(newCanvas, filename);
+    $("shareCardImageBtn").onclick = () => shareCanvasImage(newCanvas, filename);
   }, 400);
 }
 
@@ -1986,6 +1990,80 @@ async function renderCardCanvas(canvas, options) {
     ctx.fillStyle = "#94a3b8";
     ctx.font = "12px 'IBM Plex Mono', monospace";
     ctx.fillText("改善 · Continuous Improvement", width - 320, 578);
+
+  } else if (options.tone === "LinkedIn Bro" || options.type === "meme") {
+    // ------------------------------------------
+    // Reality vs LinkedIn Meme Card (Custom Template)
+    // ------------------------------------------
+    const memeImg = await loadCanvasImage("/static/linkedin-meme-template.jpg");
+    if (memeImg && memeImg.naturalWidth !== 0) {
+      ctx.drawImage(memeImg, 0, 0, width, height);
+    } else {
+      ctx.fillStyle = "#f5f3ec";
+      ctx.fillRect(0, 0, width, height);
+    }
+
+    let reality = options.original || "";
+    let linkedin = options.improved || "";
+
+    if (linkedin.includes("Reality:") && linkedin.includes("LinkedIn:")) {
+      const parts = linkedin.split(/LinkedIn:/i);
+      const rPart = parts[0].replace(/Reality:/i, "").trim();
+      if (rPart) reality = rPart;
+      linkedin = (parts[1] || "").trim();
+    } else {
+      reality = reality.replace(/^Reality:\s*/i, "").trim();
+      linkedin = linkedin.replace(/^LinkedIn:\s*/i, "").trim();
+    }
+
+    function renderMemeBox(text, boxX, maxW, boxY, boxH) {
+      const fontSizes = [24, 22, 20, 18, 16];
+      let bestFont = "20px 'Georgia', serif";
+      let bestLines = [];
+      let bestLh = 30;
+
+      for (const size of fontSizes) {
+        ctx.font = `${size}px 'Georgia', 'Noto Serif JP', serif`;
+        const lh = Math.round(size * 1.48);
+        const words = text.split(/\s+/).filter(Boolean);
+        const lines = [];
+        let cur = "";
+        for (const w of words) {
+          const test = cur ? cur + " " + w : w;
+          if (ctx.measureText(test).width <= maxW) {
+            cur = test;
+          } else {
+            if (cur) lines.push(cur);
+            cur = w;
+          }
+        }
+        if (cur) lines.push(cur);
+
+        const totalH = lines.length * lh;
+        if (totalH <= boxH || size === 16) {
+          bestFont = `${size}px 'Georgia', 'Noto Serif JP', serif`;
+          bestLines = lines;
+          bestLh = lh;
+          break;
+        }
+      }
+
+      ctx.font = bestFont;
+      ctx.fillStyle = "#1b2621";
+      const totalH = bestLines.length * bestLh;
+      let startY = boxY + Math.max(10, Math.floor((boxH - totalH) / 3));
+
+      for (const line of bestLines) {
+        ctx.fillText(line, boxX, startY);
+        startY += bestLh;
+      }
+    }
+
+    // Left Box: Reality
+    renderMemeBox(reality, 92, 365, 245, 290);
+
+    // Right Box: LinkedIn Profile
+    renderMemeBox(linkedin, 565, 365, 245, 290);
 
   } else {
     // ------------------------------------------
