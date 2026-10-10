@@ -633,6 +633,7 @@ function switchMode(mode) {
   const modeReply = $("modeReply");
   const deskTitle = $("deskTitleText");
   const evolveBtnText = $("evolveBtnText");
+  const fixGrammarBtn = $("fixGrammarBtn");
   const msgInput = $("messageInput");
 
   if (modeEvolve && modeReply) {
@@ -642,12 +643,39 @@ function switchMode(mode) {
   if (deskTitle) {
     deskTitle.textContent = mode === "evolve" ? "Your Draft" : "Message you received";
   }
+  if (fixGrammarBtn) {
+    if (mode === "reply") {
+      fixGrammarBtn.classList.add("hidden");
+    } else {
+      fixGrammarBtn.classList.remove("hidden");
+    }
+  }
   if (evolveBtnText) {
     evolveBtnText.textContent = mode === "evolve" ? "Refine Draft →" : "Get Replies →";
   }
   if (msgInput) {
     msgInput.placeholder = mode === "evolve" ? "Paste your message here…  e.g. bro send that report asap" : "Paste the message you received…  e.g. Can you send the report by tomorrow?";
   }
+}
+
+function startRateLimitCooldown(seconds = 5) {
+  const evolveBtn = $("evolveBtn");
+  const evolveBtnText = $("evolveBtnText");
+  if (!evolveBtn) return;
+  evolveBtn.disabled = true;
+  const originalText = evolveBtnText ? evolveBtnText.textContent : (currentMode === "reply" ? "Get Replies →" : "Refine Draft →");
+  let remaining = seconds;
+  if (evolveBtnText) evolveBtnText.textContent = `Wait ${remaining}s…`;
+  const interval = setInterval(() => {
+    remaining--;
+    if (remaining <= 0) {
+      clearInterval(interval);
+      evolveBtn.disabled = false;
+      if (evolveBtnText) evolveBtnText.textContent = originalText;
+    } else if (evolveBtnText) {
+      evolveBtnText.textContent = `Wait ${remaining}s…`;
+    }
+  }, 1000);
 }
 
 // Execute AI Action (Evolve or Reply)
@@ -658,6 +686,8 @@ async function runKaizenAction(overrideTone = null) {
   const modelSelect = $("modelSelect");
   const outputContainer = $("outputContainer");
   const errorBanner = $("errorBanner");
+  const evolveBtn = $("evolveBtn");
+  const fixGrammarBtn = $("fixGrammarBtn");
 
   if (errorBanner) errorBanner.classList.add("hidden");
 
@@ -700,6 +730,9 @@ async function runKaizenAction(overrideTone = null) {
     }
   }
 
+  if (evolveBtn) evolveBtn.disabled = true;
+  if (fixGrammarBtn) fixGrammarBtn.disabled = true;
+
   try {
     const endpoint = currentMode === "reply" ? "/api/reply" : "/api/improve";
     const res = await fetch(endpoint, {
@@ -734,6 +767,9 @@ async function runKaizenAction(overrideTone = null) {
         <p>${escapeHtml(err.message || "Please check your network and try again.")}</p>
       </div>
     `;
+  } finally {
+    if (evolveBtn) evolveBtn.disabled = false;
+    if (fixGrammarBtn) fixGrammarBtn.disabled = false;
   }
 }
 

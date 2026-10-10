@@ -409,8 +409,35 @@ textarea.desk-textarea:focus { border-color: var(--primary); }
 .context-drawer label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; font-weight: 700; color: var(--muted-foreground); }
 .context-drawer input, .context-drawer textarea { padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); color: var(--foreground); font-size: 13px; }
 
-.draft-actions { display: flex; gap: 8px; margin-top: 10px; }
-.draft-actions button { flex: 1; justify-content: center; white-space: nowrap; padding: 10px 12px; font-size: 13px; }
+.draft-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  align-items: stretch;
+}
+.draft-actions button {
+  flex: 1 1 0%;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+  padding: 10px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  min-height: 42px;
+  line-height: 1;
+}
+.draft-actions button span,
+#evolveBtnText {
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
 .shortcut { font-size: 11px; color: var(--muted-foreground); text-align: center; margin: 0; }
 
 /* ── Desk Columns ─────────────────────────────────────────────────────── */
