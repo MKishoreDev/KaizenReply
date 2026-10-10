@@ -169,7 +169,7 @@ For indie developers, student builders, and open-source creators who want to bui
 - 🔄 **Reply Mode**: Paste an incoming message from a client or colleague to generate 3 ready-to-send reply options (Concise, Conversational, Detailed).
 - 📊 **Kaizen Quality Scores**: Multi-metric before/after scores evaluating Clarity, Tone, Professionalism, and Readability.
 - 📜 **Kotowaza (ことわざ) Wisdom Engine**: 100% offline bundled Japanese cultural proverbs with JLPT ratings, romaji, kanji, and philosophy matching Kaizen principles.
-- 🎨 **Editorial Social Share Cards**: Export high-resolution 1200x630 Japanese Woodblock art cards with vermilion Hanko seal stamps.
+- 💼 **Reality vs LinkedIn Satire Meme Generator**: One-click export of viral 1024×682 Japanese parchment artwork meme comparison cards featuring everyday actions reframed as corporate achievements.
 - 🌗 **Washi Paper Light & Ink Dark Themes**: Built with modern CSS `oklch()` color tokens, smooth transitions, and zero layout shift.
 - 🛡️ **Built-in Security & Rate Limiter**: 30 requests/minute per-IP rate limiting and in-memory caching to protect API quotas.
 
@@ -185,13 +185,13 @@ KaizenReply/
 │   ├── main.py              # FastAPI application, Groq LPU engine, caching & rate limits
 │   └── models.py            # Pydantic validation schemas
 ├── static/
-│   ├── index.html           # Accessible, semantic 3-panel editorial desk
 │   ├── styles.css           # OKLCH design system, Washi textures, Hanko keyframe animations
-│   ├── app.js               # Reactive desk controller, HTML diff engine, Canvas card generator
-│   └── assets/              # Woodblock landscapes, Hanko seals, and icons
+│   ├── app.js               # Reactive desk controller, HTML diff engine, Meme card generator
+│   └── linkedin-meme-template.jpg # 1024x682 Japanese parchment meme artwork
+├── index.html               # Accessible, semantic 3-panel editorial desk
 ├── tests/
 │   ├── __init__.py
-│   └── test_api.py          # Complete pytest suite (9 tests, 100% pass)
+│   └── test_api.py          # Complete pytest suite (11 tests, 100% pass)
 ├── .github/
 │   ├── workflows/ci.yml     # Multi-version Python CI
 │   └── ISSUE_TEMPLATE/      # Community issue & PR templates
@@ -352,7 +352,7 @@ While anime is beloved, thrilling, and highly entertaining, it belongs to charac
 Instead of relying on loud pop-culture tropes, pairing your writing desk with Kotowaza grounds your daily correspondence in the mindful, patient spirit of Japanese craftsmanship.
 
 ### 📚 Dataset Credits & Acknowledgments
-The proverbs featured in KaizenReply's carousel, desk inspiration injector, and shareable social cards are bundled locally in [`data/kotowaza.json`](data/kotowaza.json) (100% offline, zero network latency):
+The proverbs featured in KaizenReply's carousel and desk inspiration injector are bundled locally in [`data/kotowaza.json`](data/kotowaza.json) (100% offline, zero network latency):
 - Sourced from the wonderful open-source project **[sepTN/kotowaza](https://github.com/sepTN/kotowaza)** by [@sepTN](https://github.com/sepTN) (licensed under MIT).
 - Includes Japanese Kanji, Hiragana reading, Romaji, literal translation, English/Indonesian explanations, and JLPT difficulty levels.
 - Deep gratitude to [@sepTN](https://github.com/sepTN) and the open-source community for preserving and cataloging this cultural wisdom.

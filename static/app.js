@@ -1340,35 +1340,6 @@ function renderEvolveOutput(data, original, tone, platform) {
   }
 }
 
-// Redline Diff Helper
-function generateManuscriptRedlineDiff(originalText, improvedText) {
-  const origWords = originalText.trim().split(/\s+/).filter(Boolean);
-  const impWords = improvedText.trim().split(/\s+/).filter(Boolean);
-  const origClean = origWords.map(w => w.toLowerCase().replace(/[^a-z0-9]/g, ''));
-  const impClean = impWords.map(w => w.toLowerCase().replace(/[^a-z0-9]/g, ''));
-
-  const cutWords = origWords.filter(w => {
-    const clean = w.toLowerCase().replace(/[^a-z0-9]/g, '');
-    return clean && !impClean.includes(clean);
-  });
-
-  let html = '';
-  if (cutWords.length > 0) {
-    const cutsFormatted = cutWords.map(w => `<span class="manuscript-del">${escapeHtml(w)}</span>`).join(' ');
-    html += `<div style="margin-bottom:12px;font-size:13px;padding:8px 12px;background:var(--secondary);border-radius:var(--radius);"><strong style="color:var(--hanko);">Trimmed Fluff (Seiri):</strong> ${cutsFormatted}</div>`;
-  }
-
-  const addedWordsHtml = impWords.map(w => {
-    const clean = w.toLowerCase().replace(/[^a-z0-9]/g, '');
-    if (clean && !origClean.includes(clean)) {
-      return `<span class="manuscript-add">${escapeHtml(w)}</span>`;
-    }
-    return escapeHtml(w);
-  }).join(' ');
-
-  return html + addedWordsHtml;
-}
-
 // Viral Share Payload Generator with Japanese Kotowaza Wisdom
 function generateKaizenSharePayload() {
   let quoteLine = "七転び八起き (Nana korobi ya oki) — \"Fall down seven times, stand up eight.\" 🌸";
@@ -1864,48 +1835,6 @@ async function renderLinkedInMemeCanvas(canvas, original, improved) {
   renderMemeBox(linkedin, 565, 365, 245, 290);
 }
 
-function drawRoundRect(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
-}
-
-
-function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight) {
-  const paragraphs = (text || "").split("\n");
-  let currentY = y;
-
-  for (let p = 0; p < paragraphs.length; p++) {
-    const words = paragraphs[p].split(" ");
-    let line = "";
-    for (let n = 0; n < words.length; n++) {
-      const testLine = line + words[n] + " ";
-      if (ctx.measureText(testLine).width > maxWidth && n > 0) {
-        ctx.fillText(line.trim(), x, currentY);
-        line = words[n] + " ";
-        currentY += lineHeight;
-        if (currentY > y + 260) {
-          ctx.fillText("...", x, currentY);
-          return;
-        }
-      } else {
-        line = testLine;
-      }
-    }
-    ctx.fillText(line.trim(), x, currentY);
-    currentY += lineHeight;
-    if (currentY > y + 260) return;
-  }
-}
-
 function downloadCanvasAsPng(canvas, filename) {
   const a = document.createElement("a");
   a.download = filename;
@@ -1931,10 +1860,6 @@ function escapeHtml(str) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
-}
-
-function escapeJsString(str) {
-  return String(str || "").replace(/'/g, "\\'").replace(/"/g, '\\"');
 }
 
 // Kaizen Toast Notification System (Replaces Browser Alerts)

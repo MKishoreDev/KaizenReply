@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kaizenreply-v3.0';
+const CACHE_NAME = 'kaizenreply-v3.1';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -12,6 +12,7 @@ const ASSETS_TO_CACHE = [
   '/static/icon-512.png',
   '/static/icon-maskable-512.png',
   '/static/banner.png',
+  '/static/linkedin-meme-template.jpg',
   '/static/data/kotowaza.json'
 ];
 
