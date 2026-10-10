@@ -556,8 +556,9 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/manifest.json")
 async def manifest():
+    manifest_path = "manifest.json" if os.path.exists("manifest.json") else "static/manifest.json"
     return FileResponse(
-        "static/manifest.json",
+        manifest_path,
         media_type="application/manifest+json",
         headers={"Cache-Control": "no-cache, no-store, must-revalidate"}
     )
@@ -565,8 +566,9 @@ async def manifest():
 
 @app.get("/sw.js")
 async def service_worker():
+    sw_path = "sw.js" if os.path.exists("sw.js") else "static/sw.js"
     return FileResponse(
-        "static/sw.js",
+        sw_path,
         media_type="application/javascript",
         headers={
             "Service-Worker-Allowed": "/",
