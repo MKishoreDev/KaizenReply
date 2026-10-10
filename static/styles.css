@@ -247,6 +247,7 @@ button, input, select, textarea { font-family: var(--font-sans); }
   cursor: pointer;
   display: inline-flex; align-items: center; gap: 8px;
   text-decoration: none;
+  white-space: nowrap;
   transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   box-shadow: 0 4px 14px color-mix(in srgb, var(--primary) 32%, transparent);
 }
@@ -408,8 +409,8 @@ textarea.desk-textarea:focus { border-color: var(--primary); }
 .context-drawer label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; font-weight: 700; color: var(--muted-foreground); }
 .context-drawer input, .context-drawer textarea { padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); color: var(--foreground); font-size: 13px; }
 
-.draft-actions { display: flex; gap: 10px; margin-top: 10px; }
-.draft-actions button { flex: 1; justify-content: center; }
+.draft-actions { display: flex; gap: 8px; margin-top: 10px; }
+.draft-actions button { flex: 1; justify-content: center; white-space: nowrap; padding: 10px 12px; font-size: 13px; }
 .shortcut { font-size: 11px; color: var(--muted-foreground); text-align: center; margin: 0; }
 
 /* ── Desk Columns ─────────────────────────────────────────────────────── */

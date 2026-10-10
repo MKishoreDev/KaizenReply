@@ -500,51 +500,6 @@ function setupEventListeners() {
     };
   }
 
-  // AI Suggest Tone Button
-  const suggestBtn = $("suggestBtn");
-  if (suggestBtn) {
-    suggestBtn.onclick = async () => {
-      if (!msgInput || !msgInput.value.trim()) {
-        showKaizenToast("Paste a draft message first for AI to analyze.", "info");
-        return;
-      }
-      suggestBtn.disabled = true;
-      suggestBtn.textContent = "Analyzing…";
-      try {
-        const res = await fetch("/api/analyze", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: msgInput.value.trim() })
-        });
-        const data = await res.json();
-        if (res.ok && data.tone) {
-          const recBanner = $("recBanner");
-          const recText = $("recText");
-          const applyRecBtn = $("applyRecBtn");
-          if (recBanner && recText) {
-            recText.innerHTML = `We recommend <strong>${data.tone}</strong> tone (${data.reason || "best fit"}).`;
-            recBanner.classList.remove("hidden");
-            if (applyRecBtn) {
-              applyRecBtn.onclick = () => {
-                state.tone = data.tone;
-                if ($("toneSelect")) $("toneSelect").value = data.tone;
-                renderToneChips();
-                recBanner.classList.add("hidden");
-              };
-            }
-          }
-        }
-      } catch (e) {
-        console.error(e);
-      } finally {
-      suggestBtn.disabled = false;
-        suggestBtn.innerHTML = `
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          AI Suggest
-        `;
-      }
-    };
-  }
 
   // Tone Category Filter Buttons
   const catBtns = document.querySelectorAll(".tone-cat-btn");
@@ -688,7 +643,7 @@ function switchMode(mode) {
     deskTitle.textContent = mode === "evolve" ? "Your Draft" : "Message you received";
   }
   if (evolveBtnText) {
-    evolveBtnText.textContent = mode === "evolve" ? "Evolve Message →" : "Create Replies →";
+    evolveBtnText.textContent = mode === "evolve" ? "Refine Draft →" : "Get Replies →";
   }
   if (msgInput) {
     msgInput.placeholder = mode === "evolve" ? "Paste your message here…  e.g. bro send that report asap" : "Paste the message you received…  e.g. Can you send the report by tomorrow?";

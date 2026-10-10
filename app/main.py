@@ -389,6 +389,54 @@ _cached_kotowaza: list[dict] = []
 _cached_kotowaza_time: float = 0.0
 KOTOWAZA_CACHE_TTL = 86400  # 24 hours
 
+FALLBACK_KOTOWAZA: list[dict] = [
+    {
+        "id": "1",
+        "japanese": "七転び八起き",
+        "romaji": "Nana korobi ya oki",
+        "translation": "Fall down seven times, stand up eight.",
+        "meaning": {"en": "Fall down seven times, stand up eight. Encourages resilience in the face of adversity."},
+        "tags": ["perseverance", "resilience", "wisdom"],
+        "jlpt": "N3",
+    },
+    {
+        "id": "2",
+        "japanese": "継続は力なり",
+        "romaji": "Keizoku wa chikara nari",
+        "translation": "Continuity is power.",
+        "meaning": {"en": "Persistence pays off. Small, continuous daily efforts accumulate into greatness."},
+        "tags": ["effort", "habit", "kaizen"],
+        "jlpt": "N2",
+    },
+    {
+        "id": "3",
+        "japanese": "千里の道も一歩から",
+        "romaji": "Senri no michi mo ippo kara",
+        "translation": "A journey of a thousand miles begins with a single step.",
+        "meaning": {"en": "Even the greatest endeavor begins with one small, decisive action."},
+        "tags": ["journey", "action", "wisdom"],
+        "jlpt": "N3",
+    },
+    {
+        "id": "4",
+        "japanese": "石の上にも三年",
+        "romaji": "Ishi no ue ni mo sannen",
+        "translation": "Three years on a cold stone.",
+        "meaning": {"en": "Sitting on a cold rock for three years will eventually warm it. Patience and perseverance bring success."},
+        "tags": ["patience", "perseverance"],
+        "jlpt": "N2",
+    },
+    {
+        "id": "5",
+        "japanese": "蛙の子は蛙",
+        "romaji": "Kaeru no ko wa kaeru",
+        "translation": "A frog's child is a frog.",
+        "meaning": {"en": "Like father, like son. Nature and heritage shine through."},
+        "tags": ["nature", "family"],
+        "jlpt": "N4",
+    },
+]
+
 
 async def get_kotowaza_proverbs() -> list[dict]:
     global _cached_kotowaza, _cached_kotowaza_time
@@ -396,16 +444,21 @@ async def get_kotowaza_proverbs() -> list[dict]:
     if _cached_kotowaza and (now - _cached_kotowaza_time < KOTOWAZA_CACHE_TTL):
         return _cached_kotowaza
 
-    async with httpx.AsyncClient(timeout=10) as client:
-        res = await client.get("https://raw.githubusercontent.com/sepTN/kotowaza/main/data/kotowaza.json")
-        if res.status_code == 200:
-            data = res.json()
-            if isinstance(data, list):
-                _cached_kotowaza = data
-                _cached_kotowaza_time = now
-                return data
+    try:
+        async with httpx.AsyncClient(timeout=4) as client:
+            res = await client.get("https://raw.githubusercontent.com/sepTN/kotowaza/main/data/kotowaza.json")
+            if res.status_code == 200:
+                data = res.json()
+                if isinstance(data, list) and data:
+                    _cached_kotowaza = data
+                    _cached_kotowaza_time = now
+                    return data
+    except Exception as e:
+        print(f"[Kotowaza Warning] Failed to fetch external dataset ({e}), using built-in fallback.")
 
-    raise HTTPException(status_code=502, detail="Failed to fetch Kotowaza dataset from sepTN/kotowaza API.")
+    _cached_kotowaza = FALLBACK_KOTOWAZA
+    _cached_kotowaza_time = now
+    return FALLBACK_KOTOWAZA
 
 
 
