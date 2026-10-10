@@ -575,29 +575,73 @@
       </div>
     </div>
 
-    <!-- iOS / Safari Installation Guidance Modal -->
-    <div id="iosInstallModal" class="modal-overlay hidden">
-      <div class="modal-card" style="max-width:440px;">
+    <!-- Universal App Installation Modal (Android, iOS, Desktop) -->
+    <div id="appInstallModal" class="modal-overlay hidden">
+      <div class="modal-card" style="max-width:480px;">
         <div class="modal-head">
           <h3 style="display:flex;align-items:center;gap:8px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
-            Install KaizenReply on iOS
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Install KaizenReply App
           </h3>
-          <button id="closeIosInstallModal" class="btn-icon" aria-label="Close modal">
+          <button id="closeAppInstallModal" class="btn-icon" aria-label="Close modal">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
         <div class="modal-body" style="font-size:14px;line-height:1.6;color:var(--foreground);">
-          <p>Install KaizenReply as a full standalone app with offline support on your iPhone or iPad:</p>
-          <ol style="margin:16px 0;padding-left:20px;display:flex;flex-direction:column;gap:10px;">
-            <li>Tap the <strong>Share</strong> icon (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>) in Safari's bottom toolbar.</li>
-            <li>Scroll down and tap <strong>Add to Home Screen</strong> (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;"><rect width="18" height="18" x="3" y="3" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>).</li>
-            <li>Tap <strong>Add</strong> in the top-right corner.</li>
-          </ol>
-          <p style="font-size:12px;color:var(--muted-foreground);">KaizenReply will appear on your Home Screen and run in clean, fullscreen app mode.</p>
+          <!-- OS Tabs -->
+          <div class="install-os-tabs" style="display:flex;gap:6px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:10px;">
+            <button type="button" class="install-tab-btn active" data-os="android" style="flex:1;padding:8px 6px;font-size:12px;font-weight:700;border-radius:var(--radius);border:1px solid var(--border);background:var(--secondary);color:var(--foreground);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;">
+              <span>🤖 Android</span>
+            </button>
+            <button type="button" class="install-tab-btn" data-os="ios" style="flex:1;padding:8px 6px;font-size:12px;font-weight:700;border-radius:var(--radius);border:1px solid var(--border);background:var(--card);color:var(--muted-foreground);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;">
+              <span>🍎 iPhone / iPad</span>
+            </button>
+            <button type="button" class="install-tab-btn" data-os="desktop" style="flex:1;padding:8px 6px;font-size:12px;font-weight:700;border-radius:var(--radius);border:1px solid var(--border);background:var(--card);color:var(--muted-foreground);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;">
+              <span>💻 Laptop / PC</span>
+            </button>
+          </div>
+
+          <!-- Android Panel -->
+          <div id="installPanelAndroid" class="install-os-panel">
+            <p><strong>Android 1-Tap App Install:</strong></p>
+            <button id="androidDirectInstallBtn" class="btn-hero" type="button" style="width:100%;margin:12px 0 14px;justify-content:center;gap:8px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Install KaizenReply on Android
+            </button>
+            <p style="font-size:12px;color:var(--muted-foreground);margin-top:4px;">Or manually via Chrome, Edge, or Samsung Internet:</p>
+            <ol style="margin:10px 0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-size:13px;">
+              <li>Tap the <strong>⋮ (three dots)</strong> browser menu in the top-right.</li>
+              <li>Tap <strong>Install app</strong> or <strong>Add to Home screen</strong>.</li>
+              <li>KaizenReply installs as a native WebAPK in your Android app drawer!</li>
+            </ol>
+          </div>
+
+          <!-- iOS Panel -->
+          <div id="installPanelIos" class="install-os-panel hidden">
+            <p><strong>Install on iPhone / iPad (Safari):</strong></p>
+            <ol style="margin:12px 0;padding-left:20px;display:flex;flex-direction:column;gap:10px;font-size:13px;">
+              <li>Tap the <strong>Share</strong> icon ( <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> ) in Safari's bottom toolbar.</li>
+              <li>Scroll down and tap <strong>Add to Home Screen</strong> ( <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;"><rect width="18" height="18" x="3" y="3" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg> ).</li>
+              <li>Tap <strong>Add</strong> in the top-right corner.</li>
+            </ol>
+          </div>
+
+          <!-- Desktop Panel -->
+          <div id="installPanelDesktop" class="install-os-panel hidden">
+            <p><strong>Install on Laptop / Desktop:</strong></p>
+            <ol style="margin:12px 0;padding-left:20px;display:flex;flex-direction:column;gap:10px;font-size:13px;">
+              <li>Click the <strong>Install</strong> icon (⊞) in Chrome or Edge's address bar.</li>
+              <li>Or click the <strong>Install App</strong> button in the KaizenReply header.</li>
+              <li>Opens in a standalone, fast window with offline access.</li>
+            </ol>
+          </div>
+
+          <p style="font-size:12px;color:var(--muted-foreground);margin-top:14px;border-top:1px solid var(--border);padding-top:10px;">
+            ✨ Android WebAPK supported: runs offline, launches from home screen, and receives shared text.
+          </p>
         </div>
         <div class="modal-actions">
-          <button id="dismissIosModalBtn" class="btn-hero" style="width:100%;justify-content:center;">Got it</button>
+          <button id="dismissAppInstallModalBtn" class="btn-paper" type="button" style="width:100%;justify-content:center;">Got it</button>
         </div>
       </div>
     </div>

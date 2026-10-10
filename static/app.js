@@ -437,10 +437,12 @@ function saveDraftToStorageDebounced(text) {
   }, 250);
 }
 
-// PWA Install Experience
+// PWA Install Experience (Android, iOS & Desktop)
 function initPwaInstallPrompts() {
   const pwaBtn = $("pwaInstallBtn");
   const pwaMobileBtn = $("pwaInstallMobileBtn");
+  const appInstallModal = $("appInstallModal");
+  const androidDirectBtn = $("androidDirectInstallBtn");
 
   const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
   if (isStandalone) {
@@ -450,6 +452,7 @@ function initPwaInstallPrompts() {
     return;
   }
 
+  const isAndroid = /Android/i.test(navigator.userAgent);
   const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
   function showInstallPromotion() {
@@ -471,13 +474,44 @@ function initPwaInstallPrompts() {
   window.addEventListener("appinstalled", () => {
     deferredInstallPrompt = null;
     hideInstallPromotion();
+    if (appInstallModal) appInstallModal.classList.add("hidden");
     document.body.classList.add("pwa-standalone");
     showKaizenToast("KaizenReply installed to your device! 🌸", "success");
   });
 
-  if (isIos && !isStandalone) {
+  // Always show install action button on mobile (Android and iOS)
+  if (!isStandalone) {
     showInstallPromotion();
   }
+
+  function setInstallModalTab(osName) {
+    const tabBtns = document.querySelectorAll(".install-tab-btn");
+    tabBtns.forEach(b => {
+      const active = b.getAttribute("data-os") === osName;
+      b.classList.toggle("active", active);
+      b.style.background = active ? "var(--secondary)" : "var(--card)";
+      b.style.color = active ? "var(--foreground)" : "var(--muted-foreground)";
+    });
+
+    const panelAndroid = $("installPanelAndroid");
+    const panelIos = $("installPanelIos");
+    const panelDesktop = $("installPanelDesktop");
+
+    if (panelAndroid) panelAndroid.classList.toggle("hidden", osName !== "android");
+    if (panelIos) panelIos.classList.toggle("hidden", osName !== "ios");
+    if (panelDesktop) panelDesktop.classList.toggle("hidden", osName !== "desktop");
+  }
+
+  // Set default tab based on user device
+  const defaultOs = isAndroid ? "android" : (isIos ? "ios" : "desktop");
+  setInstallModalTab(defaultOs);
+
+  // Wire OS tab buttons
+  document.querySelectorAll(".install-tab-btn").forEach(btn => {
+    btn.onclick = () => {
+      setInstallModalTab(btn.getAttribute("data-os"));
+    };
+  });
 
   async function handleInstallClick() {
     if (deferredInstallPrompt) {
@@ -487,23 +521,32 @@ function initPwaInstallPrompts() {
         hideInstallPromotion();
       }
       deferredInstallPrompt = null;
-    } else if (isIos) {
-      const iosModal = $("iosInstallModal");
-      if (iosModal) iosModal.classList.remove("hidden");
     } else {
-      showKaizenToast("To install KaizenReply: Use your browser's 'Install' or 'Add to Home Screen' option 📲", "info", 4500);
+      if (appInstallModal) {
+        setInstallModalTab(defaultOs);
+        appInstallModal.classList.remove("hidden");
+      }
     }
   }
 
   if (pwaBtn) pwaBtn.onclick = handleInstallClick;
   if (pwaMobileBtn) pwaMobileBtn.onclick = handleInstallClick;
 
-  const closeIosModal = $("closeIosInstallModal");
-  const dismissIosModal = $("dismissIosModalBtn");
-  const iosModal = $("iosInstallModal");
-  const hideIosModal = () => { if (iosModal) iosModal.classList.add("hidden"); };
-  if (closeIosModal) closeIosModal.onclick = hideIosModal;
-  if (dismissIosModal) dismissIosModal.onclick = hideIosModal;
+  if (androidDirectBtn) {
+    androidDirectBtn.onclick = () => {
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+      } else {
+        showKaizenToast("Tap Chrome's ⋮ menu > 'Install app' or 'Add to Home screen' 📲", "info", 4500);
+      }
+    };
+  }
+
+  const closeInstallModal = $("closeAppInstallModal");
+  const dismissInstallModal = $("dismissAppInstallModalBtn");
+  const hideInstallModal = () => { if (appInstallModal) appInstallModal.classList.add("hidden"); };
+  if (closeInstallModal) closeInstallModal.onclick = hideInstallModal;
+  if (dismissInstallModal) dismissInstallModal.onclick = hideInstallModal;
 }
 
 // Connectivity & Offline Status
@@ -541,7 +584,7 @@ function initGlobalKeyboardShortcuts() {
   window.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       $("shareModal")?.classList.add("hidden");
-      $("iosInstallModal")?.classList.add("hidden");
+      $("appInstallModal")?.classList.add("hidden");
       $("mobileMenuPanel")?.classList.add("hidden");
     }
 
