@@ -1811,7 +1811,14 @@ footer { padding: 40px 0; border-top: 1px solid var(--border); text-align: cente
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  width: 20px;
+  height: 20px;
   color: var(--primary);
+}
+.kaizen-toast__icon svg {
+  width: 18px;
+  height: 18px;
+  display: block;
 }
 .kaizen-toast--error .kaizen-toast__icon { color: var(--hanko); }
 .kaizen-toast--info .kaizen-toast__icon { color: #3b82f6; }
