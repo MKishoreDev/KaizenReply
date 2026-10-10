@@ -54,10 +54,11 @@
 
 /* ── Reset & Base ─────────────────────────────────────────────────────── */
 * { box-sizing: border-box; margin: 0; padding: 0; border-color: var(--border); }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; max-width: 100%; overflow-x: hidden; }
 section[id], [id] { scroll-margin-top: 80px; }
 body {
   margin: 0;
+  max-width: 100%;
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
@@ -1454,13 +1455,26 @@ footer { padding: 40px 0; border-top: 1px solid var(--border); text-align: cente
   .philosophy-grid { grid-template-columns: 1fr; }
   .process-grid, .feature-grid { grid-template-columns: 1fr 1fr; }
   .five-s-grid { grid-template-columns: repeat(5, 1fr); }
+  
+  /* Header clean stack on tablet and mobile */
+  .nav-shell { display: flex !important; justify-content: space-between !important; align-items: center !important; height: 60px; width: 100%; padding-inline: 16px; }
   .nav-links { display: none !important; }
   .nav-start-btn { display: none !important; }
   .nav-gh-btn { display: none !important; }
+  .pwa-install-nav-btn { display: none !important; }
+  .offline-pill { font-size: 10px; padding: 2px 8px; }
   .mobile-menu-toggle { display: inline-flex !important; }
   .brand-tagline { display: none !important; }
   .share-showcase-grid { grid-template-columns: 1fr; gap: 24px; }
   .quote-header { flex-direction: column; align-items: flex-start; }
+
+  /* Stack desk columns to single-column to eliminate horizontal crunch */
+  .desk-frame-inner { grid-template-columns: minmax(0, 1fr) !important; }
+  .draft-column { border-right: none; border-bottom: 1px solid var(--border); padding: 20px 16px; }
+  .output-column { border-right: none; border-bottom: 1px solid var(--border); padding: 20px 16px; }
+  .desk-marginalia-aside { grid-column: auto; border-left: none; border-top: none; }
+  .divide-notes { display: flex; flex-direction: column; gap: 0; padding: 0; }
+  .marginalia-note-item { border-right: none; border-bottom: 1px solid var(--border); padding: 16px 20px; }
 
   .showcase-header, .showcase-heading, .showcase-body-content { max-width: 70%; }
 }
@@ -1492,12 +1506,21 @@ footer { padding: 40px 0; border-top: 1px solid var(--border); text-align: cente
   .hero-actions .btn-hero, .hero-actions .btn-paper { width: 100%; justify-content: center; min-height: 48px; }
 
   .desk-section { padding: 40px 0; }
-  .desk-frame-inner { grid-template-columns: minmax(0, 1fr); }
+  .desk-frame-inner { grid-template-columns: minmax(0, 1fr) !important; }
   .draft-column { border-right: none; border-bottom: 1px solid var(--border); padding: 18px 14px; }
   .output-column { border-right: none; border-bottom: 1px solid var(--border); padding: 18px 14px; }
   .desk-marginalia-aside { grid-column: auto; border-left: none; border-top: none; }
   .divide-notes { display: flex; flex-direction: column; gap: 0; padding: 0; }
   .marginalia-note-item { border-right: none; border-bottom: 1px solid var(--border); padding: 16px 20px; }
+
+  /* Clean wrapping in draft title and stats bar */
+  .desk-title { flex-wrap: wrap; gap: 8px; }
+  .draft-stats-bar { width: 100%; justify-content: space-between; margin-top: 4px; }
+
+  /* Clean proof tab bar on mobile */
+  .proof-tab-bar { gap: 8px; padding: 10px 12px; }
+  .manuscript-tabs { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .manuscript-tab { text-align: center; padding: 8px 4px; font-size: 11px; justify-content: center; }
 
   .manuscript-paper { padding: 18px 14px 40px; min-height: 220px; font-size: 18px; }
   .result-state { min-height: 220px; padding: 24px 16px; }
@@ -2236,5 +2259,145 @@ del.manuscript-del { color: var(--seal); opacity: 0.7; text-decoration: line-thr
 
 .pwa-standalone .nav-gh-btn {
   display: none;
+}
+
+/* ── Modern PWA Install Popup (Bottom floating card, no blackout) ─────── */
+.pwa-install-popup {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(140%);
+  width: min(440px, calc(100% - 32px));
+  z-index: 990;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 20px 48px color-mix(in oklab, var(--foreground) 16%, transparent), 0 2px 8px color-mix(in oklab, var(--foreground) 6%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pwa-install-popup.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (min-width: 1024px) {
+  .pwa-install-popup {
+    left: auto;
+    right: 28px;
+    transform: translateY(140%);
+  }
+  .pwa-install-popup.show {
+    transform: translateY(0);
+  }
+}
+
+.pwa-popup-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pwa-popup-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  object-fit: contain;
+  background: var(--secondary);
+  border: 1px solid var(--border);
+  padding: 4px;
+  flex-shrink: 0;
+}
+
+.pwa-popup-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.pwa-popup-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pwa-popup-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: var(--font-sans);
+  color: var(--foreground);
+}
+
+.pwa-popup-badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: color-mix(in oklab, var(--seal) 14%, transparent);
+  color: var(--seal);
+  font-weight: 700;
+}
+
+.pwa-popup-sub {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--muted-foreground);
+  line-height: 1.4;
+}
+
+.pwa-popup-close-btn {
+  background: none;
+  border: none;
+  color: var(--muted-foreground);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: color 0.2s;
+  align-self: flex-start;
+}
+
+.pwa-popup-close-btn:hover {
+  color: var(--foreground);
+}
+
+.pwa-popup-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.pwa-popup-install-btn {
+  flex: 1;
+  min-height: 40px !important;
+  font-size: 13px !important;
+  justify-content: center;
+  padding: 8px 16px !important;
+}
+
+.pwa-popup-dismiss-btn {
+  min-height: 40px !important;
+  font-size: 13px !important;
+  justify-content: center;
+  padding: 8px 14px !important;
+}
+
+.pwa-popup-ios-tip {
+  font-size: 12px;
+  color: var(--foreground);
+  background: var(--secondary);
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  border: 1px dashed var(--border);
+  line-height: 1.5;
 }
 

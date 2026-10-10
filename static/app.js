@@ -439,114 +439,123 @@ function saveDraftToStorageDebounced(text) {
 
 // PWA Install Experience (Android, iOS & Desktop)
 function initPwaInstallPrompts() {
-  const pwaBtn = $("pwaInstallBtn");
+  const pwaNavBtn = $("pwaInstallBtn");
   const pwaMobileBtn = $("pwaInstallMobileBtn");
-  const appInstallModal = $("appInstallModal");
-  const androidDirectBtn = $("androidDirectInstallBtn");
+  const pwaPopup = $("pwaInstallPopup");
+  const pwaPopupInstallBtn = $("pwaPopupInstallBtn");
+  const pwaPopupCloseBtn = $("pwaPopupCloseBtn");
+  const pwaPopupDismissBtn = $("pwaPopupDismissBtn");
+  const pwaPopupIosTip = $("pwaPopupIosTip");
 
   const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
   if (isStandalone) {
     document.body.classList.add("pwa-standalone");
-    if (pwaBtn) pwaBtn.classList.add("hidden");
+    if (pwaNavBtn) pwaNavBtn.classList.add("hidden");
     if (pwaMobileBtn) pwaMobileBtn.classList.add("hidden");
+    if (pwaPopup) pwaPopup.remove();
     return;
   }
 
-  const isAndroid = /Android/i.test(navigator.userAgent);
   const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-  function showInstallPromotion() {
-    if (pwaBtn) pwaBtn.classList.remove("hidden");
-    if (pwaMobileBtn) pwaMobileBtn.classList.remove("hidden");
+  function showPopupPrompt() {
+    if (isStandalone) return;
+    if (sessionStorage.getItem("kaizen_pwa_dismissed") === "true") return;
+    if (pwaPopup) {
+      pwaPopup.classList.add("show");
+    }
   }
 
-  function hideInstallPromotion() {
-    if (pwaBtn) pwaBtn.classList.add("hidden");
-    if (pwaMobileBtn) pwaMobileBtn.classList.add("hidden");
+  function hidePopupPrompt() {
+    if (pwaPopup) pwaPopup.classList.remove("show");
+  }
+
+  function dismissPopupForeverForSession() {
+    hidePopupPrompt();
+    sessionStorage.setItem("kaizen_pwa_dismissed", "true");
   }
 
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
     deferredInstallPrompt = e;
-    showInstallPromotion();
+    if (pwaNavBtn) pwaNavBtn.classList.remove("hidden");
+    if (pwaMobileBtn) pwaMobileBtn.classList.remove("hidden");
+    // Show non-intrusive popup after user engagement delay (3.5s)
+    setTimeout(() => {
+      showPopupPrompt();
+    }, 3500);
   });
 
   window.addEventListener("appinstalled", () => {
     deferredInstallPrompt = null;
-    hideInstallPromotion();
-    if (appInstallModal) appInstallModal.classList.add("hidden");
+    hidePopupPrompt();
+    if (pwaNavBtn) pwaNavBtn.classList.add("hidden");
+    if (pwaMobileBtn) pwaMobileBtn.classList.add("hidden");
     document.body.classList.add("pwa-standalone");
     showKaizenToast("KaizenReply installed to your device! 🌸", "success");
   });
 
-  // Always show install action button on mobile (Android and iOS)
-  if (!isStandalone) {
-    showInstallPromotion();
+  // Keep button accessible in nav/drawer
+  if (pwaNavBtn) pwaNavBtn.classList.remove("hidden");
+  if (pwaMobileBtn) pwaMobileBtn.classList.remove("hidden");
+
+  // On iOS or mobile without beforeinstallprompt, auto-prompt softly after delay if not dismissed
+  if (!isStandalone && sessionStorage.getItem("kaizen_pwa_dismissed") !== "true") {
+    setTimeout(() => {
+      showPopupPrompt();
+    }, 4500);
   }
 
-  function setInstallModalTab(osName) {
-    const tabBtns = document.querySelectorAll(".install-tab-btn");
-    tabBtns.forEach(b => {
-      const active = b.getAttribute("data-os") === osName;
-      b.classList.toggle("active", active);
-      b.style.background = active ? "var(--secondary)" : "var(--card)";
-      b.style.color = active ? "var(--foreground)" : "var(--muted-foreground)";
-    });
-
-    const panelAndroid = $("installPanelAndroid");
-    const panelIos = $("installPanelIos");
-    const panelDesktop = $("installPanelDesktop");
-
-    if (panelAndroid) panelAndroid.classList.toggle("hidden", osName !== "android");
-    if (panelIos) panelIos.classList.toggle("hidden", osName !== "ios");
-    if (panelDesktop) panelDesktop.classList.toggle("hidden", osName !== "desktop");
-  }
-
-  // Set default tab based on user device
-  const defaultOs = isAndroid ? "android" : (isIos ? "ios" : "desktop");
-  setInstallModalTab(defaultOs);
-
-  // Wire OS tab buttons
-  document.querySelectorAll(".install-tab-btn").forEach(btn => {
-    btn.onclick = () => {
-      setInstallModalTab(btn.getAttribute("data-os"));
-    };
-  });
-
-  async function handleInstallClick() {
+  // Handle Install Action Trigger
+  async function triggerInstallFlow() {
     if (deferredInstallPrompt) {
       deferredInstallPrompt.prompt();
       const choice = await deferredInstallPrompt.userChoice;
       if (choice.outcome === "accepted") {
-        hideInstallPromotion();
+        hidePopupPrompt();
       }
       deferredInstallPrompt = null;
-    } else {
-      if (appInstallModal) {
-        setInstallModalTab(defaultOs);
-        appInstallModal.classList.remove("hidden");
+    } else if (isIos) {
+      if (pwaPopup) {
+        pwaPopup.classList.add("show");
+        if (pwaPopupIosTip) pwaPopupIosTip.classList.remove("hidden");
       }
+    } else {
+      showKaizenToast("Tap your browser's menu (⋮) > 'Install app' or 'Add to Home screen' 📲", "info", 4500);
     }
   }
 
-  if (pwaBtn) pwaBtn.onclick = handleInstallClick;
-  if (pwaMobileBtn) pwaMobileBtn.onclick = handleInstallClick;
-
-  if (androidDirectBtn) {
-    androidDirectBtn.onclick = () => {
-      if (deferredInstallPrompt) {
-        deferredInstallPrompt.prompt();
-      } else {
-        showKaizenToast("Tap Chrome's ⋮ menu > 'Install app' or 'Add to Home screen' 📲", "info", 4500);
+  if (pwaNavBtn) pwaNavBtn.onclick = () => {
+    if (deferredInstallPrompt) {
+      triggerInstallFlow();
+    } else {
+      if (pwaPopup) {
+        pwaPopup.classList.add("show");
+        if (isIos && pwaPopupIosTip) pwaPopupIosTip.classList.remove("hidden");
       }
+    }
+  };
+
+  if (pwaMobileBtn) pwaMobileBtn.onclick = () => {
+    $("mobileMenuPanel")?.classList.add("hidden");
+    if (deferredInstallPrompt) {
+      triggerInstallFlow();
+    } else {
+      if (pwaPopup) {
+        pwaPopup.classList.add("show");
+        if (isIos && pwaPopupIosTip) pwaPopupIosTip.classList.remove("hidden");
+      }
+    }
+  };
+
+  if (pwaPopupInstallBtn) {
+    pwaPopupInstallBtn.onclick = () => {
+      triggerInstallFlow();
     };
   }
 
-  const closeInstallModal = $("closeAppInstallModal");
-  const dismissInstallModal = $("dismissAppInstallModalBtn");
-  const hideInstallModal = () => { if (appInstallModal) appInstallModal.classList.add("hidden"); };
-  if (closeInstallModal) closeInstallModal.onclick = hideInstallModal;
-  if (dismissInstallModal) dismissInstallModal.onclick = hideInstallModal;
+  if (pwaPopupCloseBtn) pwaPopupCloseBtn.onclick = dismissPopupForeverForSession;
+  if (pwaPopupDismissBtn) pwaPopupDismissBtn.onclick = dismissPopupForeverForSession;
 }
 
 // Connectivity & Offline Status
