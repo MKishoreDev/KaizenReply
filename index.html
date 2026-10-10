@@ -72,7 +72,6 @@
     <section class="hero" id="top">
       <img src="/static/assets/kaizen-hero.jpg" class="hero-art" alt="Misty Japanese mountain landscape on Washi paper" />
       <div class="hero-wash"></div>
-      <div class="hero-gradient-overlay"></div>
       <div class="page-shell hero-grid">
         <div class="hero-copy">
           <p class="eyebrow" style="font-family: var(--font-mono);">Continuous Improvement for Your Words / 改善卓</p>
@@ -173,7 +172,21 @@
               <button id="applyRecBtn" class="btn-hero" style="padding:4px 10px;font-size:11px;">Apply</button>
             </div>
 
-            <textarea id="messageInput" class="desk-textarea" rows="5" maxlength="3000" placeholder="Paste your message here…  e.g. bro send that report asap"></textarea>
+            <textarea id="messageInput" class="desk-textarea" rows="4" maxlength="3000" placeholder="Paste your message here…  e.g. bro send that report asap"></textarea>
+
+            <!-- Primary Action Bar (Directly below textarea for instant one-click refinement) -->
+            <div class="draft-actions">
+              <button id="fixGrammarBtn" class="btn-paper">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                Fix Grammar
+              </button>
+              <button id="evolveBtn" class="btn-hero">
+                <span id="evolveBtnText">Refine Draft →</span>
+              </button>
+            </div>
+
+            <!-- Rate Limit & Error Banner -->
+            <div id="errorBanner" class="error-banner hidden" style="padding:10px 14px;background:rgba(201,74,54,0.1);border:1px solid var(--hanko);border-radius:var(--radius);color:var(--hanko);font-size:12px;font-weight:600;"></div>
 
             <div class="demo-row">
               <span>Try sample:</span>
@@ -183,21 +196,8 @@
               <button type="button" class="demo-btn" data-text="I ate the sandwich" data-tone="LinkedIn Bro" data-platform="LinkedIn">Executive Bio</button>
             </div>
 
-            <!-- Dynamic Model Selector Row -->
-            <div id="modelSelectRow" style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;">
-              <span style="font-weight:700;color:var(--muted-foreground);">AI Model Engine <small style="opacity:0.7">· selectable</small></span>
-              <select id="modelSelect" style="padding:4px 8px;font-size:12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--card);color:var(--foreground);cursor:pointer;">
-                <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile (Default)</option>
-                <option value="llama-3.1-70b-versatile">llama-3.1-70b-versatile (Executive)</option>
-                <option value="qwen-2.5-coder-32b">qwen-2.5-coder-32b (Precision Cut)</option>
-                <option value="mixtral-8x7b-32768">mixtral-8x7b-32768 (Prose Craft)</option>
-                <option value="gemma2-9b-it">gemma2-9b-it (Balanced)</option>
-                <option value="llama-3.1-8b-instant">llama-3.1-8b-instant (Fast Draft)</option>
-              </select>
-            </div>
-
             <!-- Tone Category Filters & Chip Selector -->
-            <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">
+            <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px;">
               <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
                 <span style="font-size:12px;font-weight:700;color:var(--muted-foreground);">Tone <small style="opacity:0.7">· required</small></span>
                 <div id="toneCategoryFilters" class="tone-cat-filters" style="display:flex;gap:4px;">
@@ -212,18 +212,31 @@
             </div>
 
             <!-- Platform Selector -->
-            <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">
+            <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px;">
               <span style="font-size:12px;font-weight:700;color:var(--muted-foreground);">Platform <small style="opacity:0.7">· optional</small></span>
               <div id="platformChips" class="chips-wrap"></div>
               <input id="customPlatformInput" class="desk-textarea hidden" style="min-height:40px;height:40px;padding:8px 12px;margin-top:4px;" placeholder="Type custom platform…" />
             </div>
 
+            <!-- Advanced Drawer (Model Engine & Conversation Context) -->
             <button id="contextToggle" class="context-toggle">
-              <span>+ Add context <small style="opacity:0.7">optional</small></span>
+              <span>+ Advanced options <small style="opacity:0.7">Model & Context</small></span>
               <span id="ctxSymbol">+</span>
             </button>
 
             <div id="contextDrawer" class="context-drawer hidden">
+              <!-- Dynamic Model Selector Row inside Advanced -->
+              <div id="modelSelectRow" style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;margin-bottom:10px;">
+                <span style="font-weight:700;color:var(--muted-foreground);">AI Model Engine</span>
+                <select id="modelSelect" style="padding:4px 8px;font-size:12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--card);color:var(--foreground);cursor:pointer;">
+                  <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile (Default)</option>
+                  <option value="llama-3.1-70b-versatile">llama-3.1-70b-versatile (Executive)</option>
+                  <option value="qwen-2.5-coder-32b">qwen-2.5-coder-32b (Precision Cut)</option>
+                  <option value="mixtral-8x7b-32768">mixtral-8x7b-32768 (Prose Craft)</option>
+                  <option value="gemma2-9b-it">gemma2-9b-it (Balanced)</option>
+                  <option value="llama-3.1-8b-instant">llama-3.1-8b-instant (Fast Draft)</option>
+                </select>
+              </div>
               <label>
                 Who are you talking to?
                 <div id="recipientChips" class="chips-wrap" style="margin-top:4px;"></div>
@@ -234,16 +247,6 @@
                 <textarea id="contextInput" rows="2" maxlength="1500" placeholder="What happened before this message?"></textarea>
               </label>
             </div>
-
-            <div class="draft-actions">
-              <button id="fixGrammarBtn" class="btn-paper">Fix Grammar</button>
-              <button id="evolveBtn" class="btn-hero">
-                <span id="evolveBtnText">Refine Draft →</span>
-              </button>
-            </div>
-
-            <!-- Rate Limit & Error Banner -->
-            <div id="errorBanner" class="error-banner hidden" style="padding:10px 14px;background:rgba(201,74,54,0.1);border:1px solid var(--hanko);border-radius:var(--radius);color:var(--hanko);font-size:12px;font-weight:600;"></div>
           </div>
 
           <!-- Output Evolved Column -->

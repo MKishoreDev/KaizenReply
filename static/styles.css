@@ -270,11 +270,11 @@ button, input, select, textarea { font-family: var(--font-sans); }
 
 /* ── Hero Section ─────────────────────────────────────────────────────── */
 .hero { min-height: calc(100vh - 66px); position: relative; isolation: isolate; overflow: hidden; border-bottom: 1px solid var(--border); display: flex; align-items: center; }
-.hero-art, .hero-wash { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; object-position: 60% center; }
-.hero-wash { z-index: -1; background: linear-gradient(90deg, color-mix(in srgb, var(--background) 98%, transparent) 0%, color-mix(in srgb, var(--background) 89%, transparent) 45%, color-mix(in srgb, var(--background) 20%, transparent) 76%); }
-.dark .hero-art, .dark .quote-art { filter: brightness(.25) saturate(.5); }
+.hero-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; object-position: 75% center; filter: contrast(1.05) saturate(1.02); }
+.hero-wash { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; background: linear-gradient(90deg, color-mix(in srgb, var(--background) 96%, transparent) 0%, color-mix(in srgb, var(--background) 82%, transparent) 42%, color-mix(in srgb, var(--background) 20%, transparent) 78%, transparent 100%); pointer-events: none; }
+.dark .hero-art, .dark .quote-art { filter: brightness(.28) saturate(.65); }
 
-.hero-grid { min-height: calc(100vh - 66px); width: 100%; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(340px, .85fr); align-items: center; gap: 60px; padding-block: 32px; }
+.hero-grid { position: relative; z-index: 2; min-height: calc(100vh - 66px); width: 100%; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(340px, .85fr); align-items: center; gap: 60px; padding-block: 32px; }
 .hero-copy { position: relative; padding-left: 72px; max-width: 760px; }
 .vertical-kaizen { position: absolute; left: 0; top: 5px; display: flex; flex-direction: column; align-items: center; font-family: var(--font-jp); color: var(--primary-emphasis); font-size: 27px; line-height: 1.13; }
 .vertical-kaizen i { margin-top: 10px; width: 22px; height: 22px; border: 1px solid var(--hanko); color: var(--hanko); font-size: 9px; font-style: normal; display: grid; place-items: center; }
@@ -290,7 +290,7 @@ button, input, select, textarea { font-family: var(--font-sans); }
 .trust-list li span { color: var(--primary-emphasis); font-weight: 800; }
 
 /* Mini Preview Card & Typewriter Animation */
-.mini-preview { background: color-mix(in srgb, var(--card) 93%, transparent); border: 1px solid var(--border); padding: 20px; border-radius: var(--radius); box-shadow: 0 20px 45px rgba(0,0,0,0.06); backdrop-filter: blur(8px); }
+.mini-preview { position: relative; z-index: 2; background: var(--card); border: 1px solid var(--border); padding: 22px; border-radius: var(--radius); box-shadow: 0 16px 40px color-mix(in oklab, var(--foreground) 6%, transparent); }
 .mini-tabs { height: 36px; display: grid; grid-template-columns: 1fr 1fr; background: var(--secondary); padding: 3px; border-radius: var(--radius); color: var(--muted-foreground); font-size: 11px; font-weight: 700; }
 .mini-tabs span { display: flex; align-items: center; justify-content: center; gap: 4px; cursor: default; }
 .mini-tabs span.active { background: var(--card); color: var(--primary-emphasis); border-radius: calc(var(--radius) - 2px); box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
@@ -1864,7 +1864,6 @@ del.manuscript-del { color: var(--seal); opacity: 0.7; text-decoration: line-thr
 .mobile-nav { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--border); background: var(--card); }
 .mobile-nav a { padding: 16px 20px; font-size: 14px; font-weight: 500; text-decoration: none; color: var(--foreground); }
 .mobile-nav a:hover { background: var(--secondary); }
-.hero-gradient-overlay { position: absolute; inset: 0; z-index: 1; background: linear-gradient(90deg, var(--background) 8%, color-mix(in oklab, var(--background) 88%, transparent) 48%, color-mix(in oklab, var(--background) 36%, transparent) 100%); }
 .brand-text-wrap { display: flex; flex-direction: column; min-width: 0; }
 .mobile-menu-toggle { display: none; }
 .hero-copy { position: relative; z-index: 2; }

@@ -737,6 +737,14 @@ async function runKaizenAction(overrideTone = null) {
     </div>
   `;
 
+  // Auto-scroll to output column on mobile/tablet viewports so user never has to scroll to see results
+  if (window.innerWidth <= 1150) {
+    const outputCol = document.querySelector(".output-column");
+    if (outputCol) {
+      outputCol.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
   try {
     const endpoint = currentMode === "reply" ? "/api/reply" : "/api/improve";
     const res = await fetch(endpoint, {
@@ -825,7 +833,14 @@ function renderEvolveOutput(data, original, tone, platform) {
           Post X
         </button>
       </div>
-      <button class="btn-hero" id="evolveFurtherBtn" style="justify-content:center;margin-top:8px;">Refine Further →</button>
+
+      <div class="evolve-next-actions" style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+        <button class="btn-paper" id="backToDraftBtn" style="flex:1 1 140px;justify-content:center;min-height:44px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+          Edit Original Draft
+        </button>
+        <button class="btn-hero" id="evolveFurtherBtn" style="flex:1 1 140px;justify-content:center;min-height:44px;">Refine Further →</button>
+      </div>
     </div>
   `;
 
@@ -899,9 +914,20 @@ function renderEvolveOutput(data, original, tone, platform) {
     if (msgInput) {
       msgInput.value = data.improved;
       $("charCount").textContent = data.improved.length;
+      msgInput.scrollIntoView({ behavior: "smooth", block: "center" });
       msgInput.focus();
     }
   };
+  const backToDraftBtn = $("backToDraftBtn");
+  if (backToDraftBtn) {
+    backToDraftBtn.onclick = () => {
+      const msgInput = $("messageInput");
+      if (msgInput) {
+        msgInput.scrollIntoView({ behavior: "smooth", block: "center" });
+        msgInput.focus();
+      }
+    };
+  }
 
   // Update Marginalia Aside Panel & Score Box
   const margPanel = $("marginaliaPanel");
@@ -1035,8 +1061,23 @@ function renderReplyOutput(data, incomingMsg) {
           </div>
         </article>
       `).join("")}
+      <button class="btn-paper" id="replyBackToDraftBtn" style="margin-top:10px;justify-content:center;width:100%;min-height:44px;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+        Edit Original Message
+      </button>
     </div>
   `;
+
+  const replyBackBtn = $("replyBackToDraftBtn");
+  if (replyBackBtn) {
+    replyBackBtn.onclick = () => {
+      const msgInput = $("messageInput");
+      if (msgInput) {
+        msgInput.scrollIntoView({ behavior: "smooth", block: "center" });
+        msgInput.focus();
+      }
+    };
+  }
 
   outputContainer.querySelectorAll(".reply-copy-btn").forEach((btn) => {
     btn.onclick = () => {
