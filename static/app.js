@@ -260,7 +260,7 @@ async function fetchAvailableModels() {
     const data = await res.json();
     const modelsList = Array.isArray(data) ? data : (data.models || []);
     if (modelsList.length > 0) {
-      const currentSelected = select.value || data.current || "llama-3.3-70b-versatile";
+      const currentSelected = select.value || data.current || "qwen/qwen3.8-27b";
       select.innerHTML = modelsList
         .map((m) => `<option value="${m}" ${m === currentSelected ? 'selected' : ''}>${m}</option>`)
         .join("");
@@ -1252,8 +1252,8 @@ async function fetchKotowazaProverbs() {
         currentQuoteIndex = Math.floor(Math.random() * kotowazaList.length);
       }
     } else {
-      // Direct fetch from sepTN/kotowaza repo if API route is unavailable
-      const directRes = await fetch("https://raw.githubusercontent.com/sepTN/kotowaza/main/data/kotowaza.json");
+      // Direct fetch from local dataset if API route is unavailable
+      const directRes = await fetch("/static/data/kotowaza.json");
       if (directRes.ok) {
         const rawData = await directRes.json();
         if (Array.isArray(rawData)) {

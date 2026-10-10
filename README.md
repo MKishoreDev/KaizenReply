@@ -163,7 +163,7 @@ For indie developers, student builders, and open-source creators who want to bui
 
 ## ✨ Features Checklist
 
-- 🎯 **17 Curated Tones**: *Fix Grammar Only*, *Concise*, *Diplomatic*, *Assertive*, *Persuasive*, *Professional*, *Formal*, *Cold Email Hook*, *LinkedIn Bro / Corporate Satire*, *Casual*, *Friendly*, *Gen Z*, *Dating App Opener*, *Tech Twitter Thread*, *ELI5*, *Passive-Aggressive*.
+- 🎯 **17 Curated Tones**: *Fix Grammar Only*, *Concise*, *Diplomatic*, *Assertive*, *Persuasive*, *Professional*, *Formal*, *Cold Email Hook*, *LinkedIn Bro / Corporate Satire*, *🔥 Roast My Draft*, *Casual*, *Friendly*, *Gen Z*, *Dating App Opener*, *Tech Twitter Thread*, *ELI5*, *Passive-Aggressive*.
 - 📱 **9 Platform Enforcements**: *WhatsApp*, *LinkedIn*, *Email*, *Telegram*, *Instagram*, *Facebook*, *SMS* (strict 160-char ceiling), *Discord*, *X / Twitter* (strict 280-char ceiling).
 - 💬 **Conversation Context & Recipient Awareness**: Provide optional backstory and recipient roles for context-aware nuance.
 - 🔄 **Reply Mode**: Paste an incoming message from a client or colleague to generate 3 ready-to-send reply options (Concise, Conversational, Detailed).

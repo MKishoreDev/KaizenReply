@@ -13,7 +13,7 @@
     <meta property="og:image" content="https://kaizenreply.us.ci/static/og-image.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="https://kaizenreply.us.ci/static/og-image.png" />
-    <link rel="stylesheet" href="/static/styles.css?v=2.2.0" />
+    <link rel="stylesheet" href="/static/styles.css?v=2.3.0" />
     <script>
       (function() {
         var saved = localStorage.getItem('kaizen-theme');
@@ -181,8 +181,8 @@
             <div class="demo-row">
               <span>Try sample:</span>
               <button type="button" class="demo-btn" data-text="bro send that report asap need it for client meeting" data-tone="Professional" data-platform="Email">Work Update</button>
-              <button type="button" class="demo-btn" data-text="I like your profile, want to get coffee sometime?" data-tone="Friendly & Warm" data-platform="WhatsApp">Warm Greeting</button>
-              <button type="button" class="demo-btn" data-text="hey are you free to grab coffee this weekend?" data-tone="Direct & Punchy" data-platform="WhatsApp">Direct Pitch</button>
+              <button type="button" class="demo-btn" data-text="I like your profile, want to get coffee sometime?" data-tone="Friendly" data-platform="WhatsApp">Warm Greeting</button>
+              <button type="button" class="demo-btn" data-text="hey are you free to grab coffee this weekend?" data-tone="Concise" data-platform="WhatsApp">Direct Pitch</button>
               <button type="button" class="demo-btn" data-text="I ate the sandwich" data-tone="LinkedIn Bro" data-platform="LinkedIn">Executive Bio</button>
             </div>
 
@@ -219,12 +219,11 @@
               <div id="modelSelectRow" style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;margin-bottom:10px;">
                 <span style="font-weight:700;color:var(--muted-foreground);">AI Model Engine</span>
                 <select id="modelSelect" style="padding:4px 8px;font-size:12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--card);color:var(--foreground);cursor:pointer;">
-                  <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile (Default)</option>
-                  <option value="llama-3.1-70b-versatile">llama-3.1-70b-versatile (Executive)</option>
-                  <option value="qwen-2.5-coder-32b">qwen-2.5-coder-32b (Precision Cut)</option>
-                  <option value="mixtral-8x7b-32768">mixtral-8x7b-32768 (Prose Craft)</option>
-                  <option value="gemma2-9b-it">gemma2-9b-it (Balanced)</option>
-                  <option value="llama-3.1-8b-instant">llama-3.1-8b-instant (Fast Draft)</option>
+                  <option value="qwen/qwen3.8-27b">qwen/qwen3.8-27b (Default)</option>
+                  <option value="openai/gpt-oss-120b">openai/gpt-oss-120b (Executive)</option>
+                  <option value="openai/gpt-oss-20b">openai/gpt-oss-20b (Precision Cut)</option>
+                  <option value="allam-2-7b">allam-2-7b (Fast Draft)</option>
+                  <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile (Balanced)</option>
                 </select>
               </div>
               <label>
@@ -409,9 +408,9 @@
             <p>See changes in clarity, tone, professionalism, and readability.</p>
           </article>
           <article>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--primary);"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            <h3>AI Tone Suggestion</h3>
-            <p>The service can recommend a fitting tone for your draft.</p>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--primary);"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z"/><path d="M12 7v5l3 3"/></svg>
+            <h3>Kotowaza Proverbs</h3>
+            <p>Traditional Japanese wisdom bundled offline to ground every refinement.</p>
           </article>
           <article>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--primary);"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
@@ -562,6 +561,6 @@
       </div>
     </footer>
 
-    <script src="/static/app.js?v=2.2.0"></script>
+    <script src="/static/app.js?v=2.3.0"></script>
   </body>
 </html>
