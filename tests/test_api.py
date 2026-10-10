@@ -144,3 +144,34 @@ def test_rate_limiting():
     with pytest.raises(HTTPException) as exc_info:
         check_antispam(test_ip)
     assert exc_info.value.status_code == 429
+
+
+@patch("app.main.call_groq", new_callable=AsyncMock)
+def test_linkedin_bro_satire_engine(mock_groq, client):
+    mock_groq.return_value = (
+        '{"improved": "Reality: I ate a sandwich.\\n\\nLinkedIn: Successfully executed a multi-layered nutrition sprint.", '
+        '"before": 50, "after": 92, "clarity": 25, "tone": 28, "professionalism": 26, "readability": 24, '
+        '"notes": [{"original": "ate a sandwich", "replacement": "executed a multi-layered nutrition sprint", "reason": "Satirical executive framing."}]}'
+    )
+
+    payload = {
+        "message": "I ate a sandwich",
+        "tone": "LinkedIn Bro",
+        "platform": "LinkedIn",
+        "linkedinFormat": "Reality vs LinkedIn",
+        "linkedinLength": "One-liner"
+    }
+
+    response = client.post("/api/improve", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert "Reality:" in data["improved"]
+    assert "LinkedIn:" in data["improved"]
+    assert data["score"]["after"] == 92
+
+    # Check that call_groq was called with the v3.0 prompt engine and constraints
+    call_args = mock_groq.call_args[0]
+    system_prompt = call_args[0]
+    assert "LinkedIn Bro — Reality vs LinkedIn Satire Engine v3.0" in system_prompt
+    assert "Reality vs LinkedIn" in system_prompt
+    assert "One-liner" in system_prompt

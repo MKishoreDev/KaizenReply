@@ -8,6 +8,8 @@ class ImproveRequest(BaseModel):
     conversationContext: str = Field(default="", max_length=1500)
     recipient: str = Field(default="", max_length=200)
     model: str = Field(default="", max_length=100)
+    linkedinFormat: str = Field(default="Auto", max_length=60)
+    linkedinLength: str = Field(default="Auto", max_length=60)
 
 
 class Breakdown(BaseModel):

@@ -224,6 +224,38 @@
                 </div>
               </div>
               <div id="toneChips" class="chips-wrap"></div>
+              <!-- LinkedIn Bro Meme Format & Length Controls (Auto-revealed when LinkedIn Bro tone is active) -->
+              <div id="linkedinBroControls" class="linkedin-controls hidden" style="margin-top:8px;padding:12px;background:var(--secondary);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;gap:10px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <div style="font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:0.14em;font-weight:700;color:var(--seal);">
+                    💼 LinkedIn Bro · Satire Engine v3.0
+                  </div>
+                  <span style="font-size:10px;font-family:var(--font-mono);color:var(--muted-foreground);text-transform:uppercase;">Meme Tuner</span>
+                </div>
+
+                <div style="display:flex;flex-direction:column;gap:5px;">
+                  <span style="font-size:11px;font-weight:600;color:var(--foreground);">Format:</span>
+                  <div id="linkedinFormatChips" class="chips-wrap" style="gap:5px;">
+                    <button type="button" class="chip active" data-fmt="Auto">Auto</button>
+                    <button type="button" class="chip" data-fmt="Reality vs LinkedIn">Reality vs LinkedIn</button>
+                    <button type="button" class="chip" data-fmt="One-line corporate translation">Corporate translation</button>
+                    <button type="button" class="chip" data-fmt="The LinkedIn announcement">Announcement</button>
+                    <button type="button" class="chip" data-fmt="Fake professional profile">Fake profile</button>
+                    <button type="button" class="chip" data-fmt="Developer edition">Developer meme</button>
+                  </div>
+                </div>
+
+                <div style="display:flex;flex-direction:column;gap:5px;">
+                  <span style="font-size:11px;font-weight:600;color:var(--foreground);">Length:</span>
+                  <div id="linkedinLengthChips" class="chips-wrap" style="gap:5px;">
+                    <button type="button" class="chip active" data-len="Auto">Auto</button>
+                    <button type="button" class="chip" data-len="One-liner">One-liner</button>
+                    <button type="button" class="chip" data-len="Short">Short</button>
+                    <button type="button" class="chip" data-len="Standard">Standard</button>
+                    <button type="button" class="chip" data-len="Full post">Full post</button>
+                  </div>
+                </div>
+              </div>
               <input id="customToneInput" class="desk-textarea hidden" style="min-height:40px;height:40px;padding:8px 12px;margin-top:4px;" placeholder="Type custom tone…" />
             </div>
 

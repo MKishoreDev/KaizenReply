@@ -77,7 +77,9 @@ let state = {
   tone: localStorage.getItem("kaizen_pref_tone") || "Professional",
   platform: localStorage.getItem("kaizen_pref_platform") || "",
   recipient: "",
-  toneCategory: localStorage.getItem("kaizen_pref_tone_cat") || "All"
+  toneCategory: localStorage.getItem("kaizen_pref_tone_cat") || "All",
+  linkedinFormat: "Auto",
+  linkedinLength: "Auto"
 };
 
 let currentMode = "evolve"; // "evolve" or "reply"
@@ -305,6 +307,33 @@ function populateDropdownsAndChips() {
   renderToneChips();
   renderPlatformChips();
   renderRecipientChips();
+  initLinkedInBroControls();
+}
+
+// Initialize LinkedIn Bro Meme Format & Length Selectors
+function initLinkedInBroControls() {
+  const fmtContainer = $("linkedinFormatChips");
+  const lenContainer = $("linkedinLengthChips");
+
+  if (fmtContainer) {
+    fmtContainer.querySelectorAll("button").forEach((btn) => {
+      btn.onclick = () => {
+        state.linkedinFormat = btn.getAttribute("data-fmt") || "Auto";
+        fmtContainer.querySelectorAll("button").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+      };
+    });
+  }
+
+  if (lenContainer) {
+    lenContainer.querySelectorAll("button").forEach((btn) => {
+      btn.onclick = () => {
+        state.linkedinLength = btn.getAttribute("data-len") || "Auto";
+        lenContainer.querySelectorAll("button").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+      };
+    });
+  }
 }
 
 // Render Tone Chips
@@ -319,6 +348,16 @@ function renderToneChips() {
   container.innerHTML = filtered.map((t) => `
     <button type="button" class="chip ${state.tone === t ? 'active' : ''}" data-tone="${t}">${t}</button>
   `).join("");
+
+  // Toggle LinkedIn Bro sub-controls visibility
+  const lbControls = $("linkedinBroControls");
+  if (lbControls) {
+    if (state.tone === "LinkedIn Bro") {
+      lbControls.classList.remove("hidden");
+    } else {
+      lbControls.classList.add("hidden");
+    }
+  }
 
   container.querySelectorAll("button").forEach((btn) => {
     btn.onclick = () => {
@@ -1008,13 +1047,16 @@ async function runKaizenAction(overrideTone = null) {
     return;
   }
 
+  const effectiveTone = overrideTone || state.tone || "Professional";
   const payload = {
     message: msgInput.value.trim(),
-    tone: overrideTone || state.tone || "Professional",
+    tone: effectiveTone,
     platform: state.platform || "",
     recipient: recipientInput ? recipientInput.value.trim() : state.recipient || "",
     conversationContext: contextInput ? contextInput.value.trim() : "",
-    model: modelSelect ? modelSelect.value : ""
+    model: modelSelect ? modelSelect.value : "",
+    linkedinFormat: effectiveTone === "LinkedIn Bro" ? (state.linkedinFormat || "Auto") : "Auto",
+    linkedinLength: effectiveTone === "LinkedIn Bro" ? (state.linkedinLength || "Auto") : "Auto"
   };
 
   // Render Kaizen Loading State

@@ -162,13 +162,50 @@ def build_improve_prompt(req: ImproveRequest) -> str:
             "If the text is already correct, return it unchanged."
         )
     elif req.tone == "LinkedIn Bro":
+        fmt = getattr(req, "linkedinFormat", "Auto") or "Auto"
+        length_pref = getattr(req, "linkedinLength", "Auto") or "Auto"
+
+        format_directive = ""
+        if fmt != "Auto":
+            format_directive = f"\nMANDATORY FORMAT CONSTRAINT: The user explicitly selected the '{fmt}' format. You MUST follow the structure and style of this format."
+
+        length_directive = ""
+        if length_pref != "Auto":
+            length_directive = f"\nMANDATORY LENGTH CONSTRAINT: The user explicitly requested '{length_pref}' length. Keep the output strictly conforming to this length."
+
         tone_instruction = (
-            "TONE: LinkedIn Bro / Reality vs LinkedIn Satire.\n"
-            "Transform the input into witty, recognizable LinkedIn corporate satire. "
-            "Preserve the underlying event, but reframe it as an exaggerated professional achievement, sprint, strategic pivot, "
-            "or executive breakthrough with humblebrags, corporate jargon, and a motivational lesson. "
-            "The humor comes from the contrast between the mundane reality and the grand professional framing. "
-            "Do NOT invent real credentials, statistics, company endorsements, or actual achievements."
+            "TASK & ROLE: LinkedIn Bro — Reality vs LinkedIn Satire Engine v3.0.\n"
+            "You are LinkedIn Bro, a sharp, observant comedy writer specializing in the absurd difference between ordinary life and how people present themselves on LinkedIn.\n"
+            "You understand corporate humor, humblebrags, startup culture, professional self-branding, hustle culture, inspirational storytelling, fake thought leadership, "
+            "and turning mundane everyday experiences into impressive-sounding career milestones.\n"
+            "TARGET FEELING: 'Bro did the most ordinary thing imaginable and somehow turned it into a professional achievement.'\n"
+            "This is satire, not genuine career coaching. The output must be funny first and professional-sounding second.\n\n"
+            "THE JOKE MECHANISM:\n"
+            "1. What actually happened? Keep the core event 100% recognizable.\n"
+            "2. How would an exaggerated LinkedIn personality reframe it? (e.g. oversleeping becomes 'strategic investment in recovery'; restarting a router becomes 'incident response execution').\n"
+            "3. Deliver the joke with punchiness. Do NOT explain the joke.\n\n"
+            "SUPPORTED COMEDIC FORMATS:\n"
+            "- FORMAT A: Reality vs LinkedIn (1–3 lines per side):\n"
+            "  Reality: [What actually happened.]\n"
+            "  LinkedIn: [The same event presented as an impressive professional achievement.]\n"
+            "- FORMAT B: One-line corporate translation (1 punchy sentence translating a simple action into corporate jargon).\n"
+            "- FORMAT C: The LinkedIn announcement (2–5 sentences framing a tiny event as a milestone: 'I am excited to announce...').\n"
+            "- FORMAT D: LinkedIn Broetry (4–7 short lines with dramatic breaks, pauses, self-importance, and 'Protect your bandwidth.').\n"
+            "- FORMAT E: Failure rebranded as a strategic pivot (2–5 sentences: 'Not every launch creates traction. Some create clarity.').\n"
+            "- FORMAT F: Corporate jargon translator (2–4 pairs: 'They said: ... / They meant: ...').\n"
+            "- FORMAT G: Fake professional profile (3–6 lines: Absurd headline + about summary for ordinary habits).\n"
+            "- FORMAT H: Developer edition (2–5 lines: Bug fixes, restarts, deployments turned into architectural/incident response triumphs).\n"
+            "- FORMAT I: Student edition (2–5 lines: Procrastination or cramming as compressed knowledge-acquisition sprints).\n"
+            "- FORMAT J: Humblebrag (2–5 sentences: Disproportionate modesty about an ordinary chore or waking up).\n"
+            "- FORMAT K: Fake leadership lesson (2–4 sentences: A mundane inconvenience teaches profound management insight).\n"
+            "- FORMAT L: Overengineered achievement (1–3 sentences: Elaborate systems engineering language for a simple task).\n"
+            "- FORMAT M: Full LinkedIn parody (5–9 short lines: Hook, actual event, professional framing, max 3 lessons, punchline).\n\n"
+            f"SELECTION & WRITING RULES:{format_directive}{length_directive}\n"
+            "- If format and length are Auto: silently choose the format and length that delivers the strongest, funniest punchline for the specific input. A sharp 1-sentence punchline is often funnier than a long post.\n"
+            "- Never pad merely to look substantial. Do NOT automatically include 3 takeaways, rocket emojis (🚀), or 'Agree?' unless they actively heighten the comedy.\n"
+            "- Avoid repetitive formulas. Vary between deadpan delivery, exaggerated hustle enthusiasm, and dry corporate jargon.\n"
+            "- Never fabricate real employers, credentials, degrees, or factual real-world outcomes. Exaggerate the interpretation for comedic effect, not the factual record.\n"
+            "- Place the transformed satirical text in the 'improved' field. In 'notes', provide 1-3 witty Kaizen notes explaining the comedic reframing (e.g. 'Reframed mundane habit as strategic executive initiative')."
         )
     elif req.tone == "Cold Email Hook":
         tone_instruction = (
