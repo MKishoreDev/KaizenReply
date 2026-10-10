@@ -168,7 +168,7 @@ For indie developers, student builders, and open-source creators who want to bui
 - 💬 **Conversation Context & Recipient Awareness**: Provide optional backstory and recipient roles for context-aware nuance.
 - 🔄 **Reply Mode**: Paste an incoming message from a client or colleague to generate 3 ready-to-send reply options (Concise, Conversational, Detailed).
 - 📊 **Kaizen Quality Scores**: Multi-metric before/after scores evaluating Clarity, Tone, Professionalism, and Readability.
-- 📜 **Kotowaza (諺) Japanese Proverbs**: Dynamic integration with Japanese cultural proverbs, JLPT difficulty ratings, and category filters.
+- 📜 **Kotowaza (ことわざ) Wisdom Engine**: 100% offline bundled Japanese cultural proverbs with JLPT ratings, romaji, kanji, and philosophy matching Kaizen principles.
 - 🎨 **Editorial Social Share Cards**: Export high-resolution 1200x630 Japanese Woodblock art cards with vermilion Hanko seal stamps.
 - 🌗 **Washi Paper Light & Ink Dark Themes**: Built with modern CSS `oklch()` color tokens, smooth transitions, and zero layout shift.
 - 🛡️ **Built-in Security & Rate Limiter**: 30 requests/minute per-IP rate limiting and in-memory caching to protect API quotas.
@@ -321,6 +321,41 @@ curl -X POST "http://localhost:8000/api/reply" \
     "platform": "Slack"
   }'
 ```
+
+---
+
+## 📜 The Kotowaza (ことわざ) Wisdom Engine & Philosophy
+
+### Why Kotowaza Instead of Anime Quotes?
+
+You might wonder: *"Anime quotes are cool, iconic, and distinctly Japanese — why not feature famous anime quotes?"*
+
+While anime is beloved, thrilling, and highly entertaining, it belongs to character melodrama, combat epics, and pop fiction. **KaizenReply was created around a quiet, enduring tradition of personal discipline: Kotowaza (ことわざ — traditional Japanese proverbs).**
+
+#### What is Kotowaza?
+*Kotowaza* are centuries-old proverbs distilled across generations of Japanese culture, Zen philosophy, literature, and everyday communal wisdom. They are masterclasses in **extreme linguistic economy** — often encapsulated in four-character idioms (*Yojijukugo* / 四字熟語) or concise poetic phrases that convey deep truths about humility, craftsmanship, human nature, and perseverance in just a few characters.
+
+#### How Kotowaza Naturally Matches Kaizen (改善)
+*Kaizen* (continuous, incremental improvement) is not about dramatic explosions or heroic overnight transformations; it is about the quiet discipline of compounding small, deliberate refinements every single day. Kotowaza provides the exact spiritual and mental blueprint for this philosophy:
+
+- **七転び八起き (*Nana korobi ya oki*)** — *"Fall down seven times, stand up eight."*  
+  Embraces the vulnerability of imperfect first drafts. Writing is rewriting; every revision is getting back up.
+- **継続は力なり (*Keizoku wa chikara nari*)** — *"Continuity is power."*  
+  Persistent, small daily efforts accumulate into profound communication mastery.
+- **千里の道も一歩から (*Senri no michi mo ippo kara*)** — *"A journey of a thousand miles begins with a single step."*  
+  The cure for writer's block: refine one sentence, one word, one phrase at a time.
+- **石の上にも三年 (*Ishi no ue ni mo sannen*)** — *"Three years on a cold stone."*  
+  Patience and dedication eventually warm the coldest challenge. True clarity takes deliberate patience.
+- **初心忘るべからず (*Shoshin wasuru bekarazu*)** — *"Never forget your beginner's mind."*  
+  Approaching every message, email, or draft with humility, freshness, and genuine care for the reader.
+
+Instead of relying on loud pop-culture tropes, pairing your writing desk with Kotowaza grounds your daily correspondence in the mindful, patient spirit of Japanese craftsmanship.
+
+### 📚 Dataset Credits & Acknowledgments
+The proverbs featured in KaizenReply's carousel, desk inspiration injector, and shareable social cards are bundled locally in [`data/kotowaza.json`](data/kotowaza.json) (100% offline, zero network latency):
+- Sourced from the wonderful open-source project **[sepTN/kotowaza](https://github.com/sepTN/kotowaza)** by [@sepTN](https://github.com/sepTN) (licensed under MIT).
+- Includes Japanese Kanji, Hiragana reading, Romaji, literal translation, English/Indonesian explanations, and JLPT difficulty levels.
+- Deep gratitude to [@sepTN](https://github.com/sepTN) and the open-source community for preserving and cataloging this cultural wisdom.
 
 ---
 

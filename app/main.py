@@ -7,6 +7,7 @@ import os
 import time
 
 import httpx
+from pathlib import Path
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, RedirectResponse
@@ -486,17 +487,22 @@ async def get_kotowaza_proverbs() -> list[dict]:
     if _cached_kotowaza and (now - _cached_kotowaza_time < KOTOWAZA_CACHE_TTL):
         return _cached_kotowaza
 
-    try:
-        async with httpx.AsyncClient(timeout=4) as client:
-            res = await client.get("https://raw.githubusercontent.com/sepTN/kotowaza/main/data/kotowaza.json")
-            if res.status_code == 200:
-                data = res.json()
-                if isinstance(data, list) and data:
-                    _cached_kotowaza = data
-                    _cached_kotowaza_time = now
-                    return data
-    except Exception as e:
-        print(f"[Kotowaza Warning] Failed to fetch external dataset ({e}), using built-in fallback.")
+    for candidate in [
+        Path(__file__).resolve().parent.parent / "data" / "kotowaza.json",
+        Path(__file__).resolve().parent.parent / "static" / "data" / "kotowaza.json",
+        Path("data/kotowaza.json"),
+        Path("static/data/kotowaza.json"),
+    ]:
+        if candidate.exists():
+            try:
+                with open(candidate, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    if isinstance(data, list) and data:
+                        _cached_kotowaza = data
+                        _cached_kotowaza_time = now
+                        return data
+            except Exception as e:
+                print(f"[Kotowaza Warning] Failed to parse local {candidate} ({e})")
 
     _cached_kotowaza = FALLBACK_KOTOWAZA
     _cached_kotowaza_time = now
