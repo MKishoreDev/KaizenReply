@@ -1405,12 +1405,12 @@ footer { padding: 40px 0; border-top: 1px solid var(--border); text-align: cente
 }
 
 /* ── Responsive Media Queries ─────────────────────────────────────────── */
-@media (max-width: 1150px) {
+@media (max-width: 1280px) {
   .page-shell { width: min(100%, calc(100% - 48px)); }
   .header-nav { gap: 18px; }
   .header-start { display: none; }
   .desk-frame-inner {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(340px, 1fr) minmax(0, 1.25fr);
   }
   .draft-column {
     border-right: 1px solid var(--border);
@@ -1509,6 +1509,7 @@ footer { padding: 40px 0; border-top: 1px solid var(--border); text-align: cente
 
   .draft-actions { flex-direction: column; gap: 10px; }
   .draft-actions button { width: 100%; min-height: 48px; }
+  .draft-actions #evolveBtn { order: -1; }
 
   #modelSelectRow { flex-direction: column; align-items: flex-start; gap: 4px; }
   #modelSelect { width: 100%; min-height: 44px; }

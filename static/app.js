@@ -91,6 +91,8 @@ const $ = (id) => document.getElementById(id);
 document.addEventListener("DOMContentLoaded", async () => {
   initTheme();
   populateDropdownsAndChips();
+  initServiceWorker();
+  handleIncomingShareTarget();
   
   const modelsPromise = fetchAvailableModels().catch(() => {});
   const quotesPromise = fetchKotowazaProverbs().catch(() => {});
@@ -346,6 +348,35 @@ function renderRecipientChips() {
       renderRecipientChips();
     };
   });
+}
+
+// PWA Service Worker Registration & Offline Support
+function initServiceWorker() {
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/sw.js").then((reg) => {
+        console.log("KaizenReply ServiceWorker active:", reg.scope);
+      }).catch((err) => {
+        console.warn("ServiceWorker registration failed:", err);
+      });
+    });
+  }
+}
+
+// Handle PWA Web Share Target incoming parameters
+function handleIncomingShareTarget() {
+  const params = new URLSearchParams(window.location.search);
+  const sharedText = params.get("text") || params.get("title") || params.get("url");
+  if (sharedText) {
+    const msgInput = $("messageInput");
+    const charCount = $("charCount");
+    if (msgInput) {
+      msgInput.value = sharedText;
+      if (charCount) charCount.textContent = sharedText.length;
+      document.getElementById("desk")?.scrollIntoView({ behavior: "smooth" });
+      showKaizenToast("Shared message imported into Kaizen desk!", "success");
+    }
+  }
 }
 
 // Event Listeners Setup
@@ -722,8 +753,8 @@ async function runKaizenAction(overrideTone = null) {
     </div>
   `;
 
-  // Auto-scroll to output column on mobile/tablet viewports so user never has to scroll to see results
-  if (window.innerWidth <= 1150) {
+  // Auto-scroll to output column on mobile/laptop viewports so user never has to scroll to see results
+  if (window.innerWidth <= 1280) {
     const outputCol = document.querySelector(".output-column");
     if (outputCol) {
       outputCol.scrollIntoView({ behavior: "smooth", block: "start" });

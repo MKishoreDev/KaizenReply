@@ -1,17 +1,25 @@
 {
-  "name": "KaizenReply — Message Evolution Engine",
+  "name": "KaizenReply — Continuous Improvement for Your Words",
   "short_name": "KaizenReply",
-  "description": "Evolve your messages step-by-step with instant AI refinements, score breakdowns, and platform tone presets.",
-  "start_url": "/",
+  "description": "Continuous improvement for your words. Japanese precision editorial desk that refines clarity, tone, and impact without taking your voice away.",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "id": "/",
   "display": "standalone",
-  "background_color": "#0a0a10",
-  "theme_color": "#22c55e",
+  "orientation": "any",
+  "background_color": "#f8f9f7",
+  "theme_color": "#2c3e35",
+  "categories": [
+    "productivity",
+    "utilities",
+    "business"
+  ],
   "icons": [
     {
-      "src": "/static/logo.png",
+      "src": "/static/logo-icon.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/static/logo.png",
@@ -21,7 +29,7 @@
     }
   ],
   "share_target": {
-    "action": "/",
+    "action": "/share-target",
     "method": "GET",
     "params": {
       "title": "title",

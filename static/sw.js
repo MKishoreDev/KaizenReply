@@ -1,11 +1,15 @@
-const CACHE_NAME = 'kaizenreply-v2';
+const CACHE_NAME = 'kaizenreply-v2.4';
 const ASSETS_TO_CACHE = [
   '/',
+  '/index.html',
+  '/manifest.json',
   '/static/styles.css',
   '/static/app.js',
   '/static/logo.png',
+  '/static/logo-icon.png',
+  '/static/logo-inkwash.png',
   '/static/banner.png',
-  '/manifest.json'
+  '/static/data/kotowaza.json'
 ];
 
 self.addEventListener('install', (event) => {
@@ -35,21 +39,44 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
-  if (url.pathname.startsWith('/api/')) return; // do not cache API calls
 
+  // Never cache backend API routes
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/health')) {
+    return;
+  }
+
+  // Network-first strategy for navigation requests (HTML)
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const clone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return networkResponse;
+        })
+        .catch(() => {
+          return caches.match(event.request).then((cached) => cached || caches.match('/'));
+        })
+    );
+    return;
+  }
+
+  // Stale-while-revalidate for static assets
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        fetch(event.request).then((networkResponse) => {
+      const fetchPromise = fetch(event.request)
+        .then((networkResponse) => {
           if (networkResponse && networkResponse.status === 200) {
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, networkResponse);
-            });
+            const clone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
           }
-        }).catch(() => {});
-        return cachedResponse;
-      }
-      return fetch(event.request);
+          return networkResponse;
+        })
+        .catch(() => null);
+
+      return cachedResponse || fetchPromise;
     })
   );
 });
