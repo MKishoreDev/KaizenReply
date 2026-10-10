@@ -423,6 +423,45 @@ function setupEventListeners() {
   if (showcaseCardBtn) showcaseCardBtn.onclick = handleShowcase;
   if (showcaseImgCard) showcaseImgCard.onclick = handleShowcase;
 
+  // Studio Desk vs My History Tabs (Lovable Pattern)
+  const studioTabDesk = $("studioTabDesk");
+  const studioTabHistory = $("studioTabHistory");
+  const deskWorkstation = $("deskWorkstation");
+  const historyStudioView = $("historyStudioView");
+  const historyWriteBtn = $("historyWriteBtn");
+  const clearAllHistoryBtn = $("clearAllHistoryBtn");
+
+  if (studioTabDesk && studioTabHistory) {
+    studioTabDesk.onclick = () => {
+      studioTabDesk.classList.add("selected");
+      studioTabHistory.classList.remove("selected");
+      if (deskWorkstation) deskWorkstation.classList.remove("hidden");
+      if (historyStudioView) historyStudioView.classList.add("hidden");
+    };
+    studioTabHistory.onclick = () => {
+      studioTabHistory.classList.add("selected");
+      studioTabDesk.classList.remove("selected");
+      if (deskWorkstation) deskWorkstation.classList.add("hidden");
+      if (historyStudioView) historyStudioView.classList.remove("hidden");
+      renderKaizenHistory();
+    };
+  }
+  if (historyWriteBtn) {
+    historyWriteBtn.onclick = () => {
+      if (studioTabDesk) studioTabDesk.click();
+      const msgInput = $("messageInput");
+      if (msgInput) msgInput.focus();
+    };
+  }
+  if (clearAllHistoryBtn) {
+    clearAllHistoryBtn.onclick = () => {
+      if (confirm("Clear your saved message history?")) {
+        localStorage.removeItem("kaizen_history");
+        renderKaizenHistory();
+        showKaizenToast("Saved history cleared.", "info");
+      }
+    };
+  }
 
   // Mode Switches
   const modeEvolve = $("modeEvolve");
@@ -769,6 +808,10 @@ function renderEvolveOutput(data, original, tone, platform) {
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
           Copy Manuscript
         </button>
+        <button class="btn-paper" id="editResultBtn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          Edit
+        </button>
         <button class="btn-paper" id="shareResultBtn">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
           Share
@@ -790,20 +833,55 @@ function renderEvolveOutput(data, original, tone, platform) {
   const tabs = outputContainer.querySelectorAll(".manuscript-tab");
   const manuscriptText = $("manuscriptText");
 
+  function renderActiveProofTab(mode) {
+    if (!manuscriptText) return;
+    if (mode === "refined") {
+      manuscriptText.innerHTML = '<del class="manuscript-del">' + escapeHtml(original) + '</del><p class="manuscript-ins">' + escapeHtml(data.improved) + '</p><div class="kaizen-hanko-seal"><span>改善</span><small>verified</small></div>';
+    } else if (mode === "sidebyside") {
+      manuscriptText.innerHTML = '<div class="proof-sidebyside"><div><div class="proof-label">Original</div><p>' + escapeHtml(original) + '</p></div><div><div class="proof-label">Revised</div><p>' + escapeHtml(data.improved) + '</p></div></div>';
+    } else if (mode === "original") {
+      manuscriptText.innerHTML = '<p class="manuscript-clean">' + escapeHtml(data.improved) + '</p>';
+    }
+  }
+
   tabs.forEach(tab => {
     tab.onclick = () => {
       tabs.forEach(t => t.classList.remove("active"));
       tab.classList.add("active");
       const mode = tab.getAttribute("data-tab");
-      if (mode === "refined") {
-        manuscriptText.innerHTML = '<del class="manuscript-del">' + escapeHtml(original) + '</del><p class="manuscript-ins">' + escapeHtml(data.improved) + '</p><div class="kaizen-hanko-seal"><span>改善</span><small>verified</small></div>';
-      } else if (mode === "sidebyside") {
-        manuscriptText.innerHTML = '<div class="proof-sidebyside"><div><div class="proof-label">Original</div><p>' + escapeHtml(original) + '</p></div><div><div class="proof-label">Revised</div><p>' + escapeHtml(data.improved) + '</p></div></div>';
-      } else if (mode === "original") {
-        manuscriptText.innerHTML = '<p class="manuscript-clean">' + escapeHtml(data.improved) + '</p>';
-      }
+      renderActiveProofTab(mode);
     };
   });
+
+  // In-Place Edit Button Listener (Lovable Pattern)
+  let isEditing = false;
+  const editBtn = $("editResultBtn");
+  if (editBtn) {
+    editBtn.onclick = () => {
+      isEditing = !isEditing;
+      if (isEditing) {
+        editBtn.classList.add("active");
+        editBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Done';
+        manuscriptText.innerHTML = `
+          <textarea class="manuscript-edit-area" id="manuscriptEditArea">${escapeHtml(data.improved)}</textarea>
+        `;
+        const editArea = $("manuscriptEditArea");
+        if (editArea) editArea.focus();
+      } else {
+        const editArea = $("manuscriptEditArea");
+        if (editArea && editArea.value.trim()) {
+          data.improved = editArea.value.trim();
+          if (lastEvolvedData) lastEvolvedData.improved = data.improved;
+          saveToKaizenHistory(original, data.improved, data.score, tone);
+        }
+        editBtn.classList.remove("active");
+        editBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Edit';
+        const activeTab = outputContainer.querySelector(".manuscript-tab.active");
+        renderActiveProofTab(activeTab ? activeTab.getAttribute("data-tab") : "refined");
+        showKaizenToast("Refined text updated!", "success");
+      }
+    };
+  }
 
   // Action Buttons Listeners
   $("copyResultBtn").onclick = () => {
@@ -825,16 +903,39 @@ function renderEvolveOutput(data, original, tone, platform) {
     }
   };
 
-  // Update Marginalia Aside Panel
+  // Update Marginalia Aside Panel & Score Box (Lovable Pattern)
   const margPanel = $("marginaliaPanel");
   if (margPanel && data.notes && data.notes.length) {
-    margPanel.innerHTML = data.notes.slice(0, 3).map((n, i) => `
+    let notesHtml = data.notes.slice(0, 3).map((n, i) => `
       <div class="marginalia-note-item">
         <div class="marginalia-note-num">0${i + 1}</div>
         <h4 class="marginalia-note-title">${escapeHtml(n.reason.split(".")[0])}</h4>
         <p class="marginalia-item">${escapeHtml(n.reason)}</p>
       </div>
     `).join("");
+
+    if (data.score) {
+      const scoreDiff = data.score.after - data.score.before;
+      const diffSign = scoreDiff > 0 ? `+${scoreDiff}` : `${scoreDiff}`;
+      const breakdown = data.score.breakdown || {};
+      notesHtml += `
+        <div class="score-box">
+          <div class="score-main">
+            <span class="score-number">${data.score.after}</span>
+            <span class="score-label">/ 100 · Kaizen score</span>
+          </div>
+          <div class="score-gain">${diffSign} from original draft</div>
+          <div class="score-details">
+            <div><span class="score-metric-name">Clarity</span><span class="score-metric-val">${breakdown.clarity || 28} / 30</span></div>
+            <div><span class="score-metric-name">Tone & Presence</span><span class="score-metric-val">${breakdown.tone || 27} / 30</span></div>
+            <div><span class="score-metric-name">Conciseness</span><span class="score-metric-val">${breakdown.conciseness || 26} / 30</span></div>
+            <div><span class="score-metric-name">Impact</span><span class="score-metric-val">${breakdown.impact || 25} / 30</span></div>
+          </div>
+        </div>
+      `;
+    }
+
+    margPanel.innerHTML = notesHtml;
   }
   const takeEl = $("takeawayPanel");
   if (takeEl) {
@@ -983,32 +1084,106 @@ function saveToKaizenHistory(original, improved, score, tone) {
 }
 
 function renderKaizenHistory() {
-  const section = $("historySection");
-  const listContainer = $("historyList");
-  if (!section || !listContainer) return;
+  const sidebarSection = $("historySection");
+  const sidebarList = $("historyList");
+  const studioGrid = $("historyStudioGrid");
+  const studioEmpty = $("historyStudioEmpty");
+  const studioActions = $("historyStudioActions");
+  const badge = $("studioHistoryBadge");
 
   try {
     const list = JSON.parse(localStorage.getItem("kaizen_history") || "[]");
-    if (!list.length) {
-      section.classList.add("hidden");
-      return;
+
+    // Update badge count
+    if (badge) {
+      if (list.length > 0) {
+        badge.textContent = list.length;
+        badge.classList.remove("hidden");
+      } else {
+        badge.classList.add("hidden");
+      }
     }
 
-    section.classList.remove("hidden");
-    listContainer.innerHTML = list.map((item, idx) => `
-      <div class="history-item" data-index="${idx}">
-        <span>${escapeHtml(item.tone || 'Kaizen')} · Score: <strong style="color:var(--primary);">${item.scoreAfter}</strong></span>
-        <small style="color:var(--muted-foreground);">${item.timestamp}</small>
-      </div>
-    `).join("");
+    // Update Sidebar List
+    if (sidebarSection && sidebarList) {
+      if (!list.length) {
+        sidebarSection.classList.add("hidden");
+      } else {
+        sidebarSection.classList.remove("hidden");
+        sidebarList.innerHTML = list.map((item, idx) => `
+          <div class="history-item" data-index="${idx}">
+            <span>${escapeHtml(item.tone || 'Kaizen')} · Score: <strong style="color:var(--primary);">${item.scoreAfter}</strong></span>
+            <small style="color:var(--muted-foreground);">${item.timestamp}</small>
+          </div>
+        `).join("");
 
-    listContainer.querySelectorAll(".history-item").forEach((el) => {
-      el.onclick = () => {
-        const idx = parseInt(el.getAttribute("data-index"), 10);
-        const item = list[idx];
-        if (item && item.improved) loadHistoryItem(item.improved);
-      };
-    });
+        sidebarList.querySelectorAll(".history-item").forEach((el) => {
+          el.onclick = () => {
+            const idx = parseInt(el.getAttribute("data-index"), 10);
+            const item = list[idx];
+            if (item && item.improved) loadHistoryItem(item.improved);
+          };
+        });
+      }
+    }
+
+    // Update Dedicated Studio View (Lovable Pattern)
+    if (studioGrid && studioEmpty && studioActions) {
+      if (!list.length) {
+        studioGrid.innerHTML = "";
+        studioGrid.classList.add("hidden");
+        studioEmpty.classList.remove("hidden");
+        studioActions.classList.add("hidden");
+      } else {
+        studioEmpty.classList.add("hidden");
+        studioGrid.classList.remove("hidden");
+        studioActions.classList.remove("hidden");
+        studioGrid.innerHTML = list.map((item, idx) => `
+          <article class="history-card" data-index="${idx}">
+            <div class="history-card-header">
+              <span>${escapeHtml(item.tone || 'Kaizen')}</span>
+              <span>${item.timestamp} · Score ${item.scoreAfter}</span>
+            </div>
+            <div class="history-card-body">${escapeHtml(item.improved)}</div>
+            <div class="history-card-actions">
+              <button class="btn-paper history-refine-btn" data-index="${idx}" style="font-size:11px;padding:4px 10px;">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                Refine again
+              </button>
+              <button class="btn-paper history-copy-btn" data-index="${idx}" style="font-size:11px;padding:4px 10px;">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+          </article>
+        `).join("");
+
+        studioGrid.querySelectorAll(".history-refine-btn").forEach((btn) => {
+          btn.onclick = () => {
+            const idx = parseInt(btn.getAttribute("data-index"), 10);
+            const item = list[idx];
+            if (item && item.improved) {
+              const tabDesk = $("studioTabDesk");
+              if (tabDesk) tabDesk.click();
+              loadHistoryItem(item.improved);
+              const deskEl = $("desk");
+              if (deskEl) deskEl.scrollIntoView({ behavior: "smooth" });
+            }
+          };
+        });
+
+        studioGrid.querySelectorAll(".history-copy-btn").forEach((btn) => {
+          btn.onclick = () => {
+            const idx = parseInt(btn.getAttribute("data-index"), 10);
+            const item = list[idx];
+            if (item && item.improved) {
+              navigator.clipboard.writeText(item.improved);
+              showKaizenToast("Copied saved message to clipboard!", "success");
+            }
+          };
+        });
+      }
+    }
   } catch (err) {
     console.error("History render error:", err);
   }

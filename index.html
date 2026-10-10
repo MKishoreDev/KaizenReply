@@ -118,11 +118,21 @@
           <div>
             <p class="eyebrow">The Kaizen Desk</p>
             <h2>A better message, without losing your voice.</h2>
+            <p class="section-lede">Understand what changed. Learn why it works. Decide what to send.</p>
           </div>
-          <p>Understand what changed. Learn why it works. Decide what to send.</p>
+          <div class="studio-tabs" id="studioTabs">
+            <button id="studioTabDesk" class="studio-tab selected" type="button">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              Writing desk
+            </button>
+            <button id="studioTabHistory" class="studio-tab" type="button">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+              My history <span id="studioHistoryBadge" class="history-badge hidden">0</span>
+            </button>
+          </div>
         </div>
 
-        <div class="desk-frame">
+        <div class="desk-frame" id="deskWorkstation">
           <img src="/static/assets/kaizen-desk.jpg" alt="Ink path artwork" class="desk-art" />
           
           <!-- Input Draft Column -->
@@ -284,6 +294,38 @@
             </div>
           </aside>
         </div>
+        </div>
+
+        <!-- Dedicated History Studio View (Lovable Pattern) -->
+        <div id="historyStudioView" class="history-studio-view hidden">
+          <div class="history-grid" id="historyStudioGrid"></div>
+          <div id="historyStudioEmpty" class="history-empty">
+            <svg class="history-empty-icon" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+            <h3>A little room for your progress.</h3>
+            <p>Your refined messages will appear here.</p>
+            <button id="historyWriteBtn" class="btn-hero" type="button" style="margin-top:16px;">Write a message →</button>
+          </div>
+          <div id="historyStudioActions" class="history-studio-actions hidden">
+            <button id="clearAllHistoryBtn" class="btn-paper" type="button" style="font-size:12px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              Clear history
+            </button>
+          </div>
+        </div>
+
+        <!-- Studio Bottom Bar (Lovable Pattern) -->
+        <div class="studio-bottom">
+          <div class="samples">
+            <span>A place to start:</span>
+            <button type="button" class="demo-btn" data-text="bro send that report asap need it for client meeting" data-tone="Professional" data-platform="Email">Work update →</button>
+            <button type="button" class="demo-btn" data-text="I like your profile, want to get coffee sometime?" data-tone="Friendly & Warm" data-platform="WhatsApp">Warm greeting →</button>
+            <button type="button" class="demo-btn" data-text="hey are you free to grab coffee this weekend?" data-tone="Direct & Punchy" data-platform="WhatsApp">Direct pitch →</button>
+            <button type="button" class="demo-btn" data-text="I ate the sandwich" data-tone="LinkedIn Bro" data-platform="LinkedIn">Executive bio →</button>
+          </div>
+          <span class="studio-footnote">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 19 7-7 3 3-7 7-3-3z"/><path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg>
+            Thoughtfully refined. Never rewritten beyond recognition. — 改善
+          </span>
         </div>
       </div>
     </section>
