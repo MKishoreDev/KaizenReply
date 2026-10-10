@@ -1,3 +1,0 @@
-# Redirect direct visits to /static/ back to the clean root domain
-/static/  /  301
-/static   /  301

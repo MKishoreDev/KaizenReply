@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from collections import defaultdict
 import json
 import os
 import time
@@ -335,9 +336,6 @@ async def call_groq(
     raise HTTPException(status_code=503, detail=f"AI model not available: {last_error_detail}")
 
 
-last_seen: dict = {}
-ANTISPAM_DELAY = 1.0
-
 response_cache: dict = {}
 CACHE_TTL = 300
 
@@ -369,7 +367,6 @@ def get_ip(request: Request) -> str:
     return request.client.host if request.client else "unknown"
 
 
-from collections import defaultdict
 ip_history = defaultdict(list)
 RATE_LIMIT_WINDOW = 60.0  # 1 minute window
 RATE_LIMIT_MAX = 30       # max 30 requests per minute per IP
@@ -469,7 +466,7 @@ async def service_worker():
 @app.get("/")
 @app.get("/share-target")
 async def index():
-    return FileResponse("static/index.html")
+    return FileResponse("index.html")
 
 
 @app.post("/api/improve", response_model=ImproveResponse)
