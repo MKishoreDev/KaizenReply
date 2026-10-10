@@ -2129,3 +2129,112 @@ del.manuscript-del { color: var(--seal); opacity: 0.7; text-decoration: line-thr
   gap: 8px;
   margin-top: 10px;
 }
+
+/* ── Everyday App & PWA Ergonomics ───────────────────────────────────── */
+.offline-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color: var(--seal);
+  background: color-mix(in oklab, var(--seal) 10%, transparent);
+  border: 1px solid color-mix(in oklab, var(--seal) 30%, transparent);
+}
+
+.offline-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--seal);
+  animation: kaizen-pulse 1.8s infinite;
+}
+
+.pwa-install-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-color: var(--primary);
+  color: var(--primary);
+  background: color-mix(in oklab, var(--primary) 6%, transparent);
+  transition: all 0.2s ease;
+}
+
+.pwa-install-nav-btn:hover {
+  background: color-mix(in oklab, var(--primary) 14%, transparent);
+  transform: translateY(-1px);
+}
+
+.mobile-install-row {
+  grid-column: span 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+  background: color-mix(in oklab, var(--primary) 8%, transparent);
+  border: none;
+  border-top: 1px solid var(--border);
+  cursor: pointer;
+  font-family: var(--font-sans);
+}
+
+.kbd-hint {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  border-radius: 4px;
+  background: color-mix(in oklab, var(--primary-foreground) 20%, transparent);
+  color: var(--primary-foreground);
+  line-height: 1.2;
+  margin-left: 6px;
+  border: 1px solid color-mix(in oklab, var(--primary-foreground) 30%, transparent);
+}
+
+.draft-stats-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.draft-tool-btn {
+  transition: all 0.15s ease;
+}
+
+.draft-tool-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.draft-counts {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+/* Safe areas & native-feel adjustments in standalone app mode */
+@supports (padding: env(safe-area-inset-bottom)) {
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .site-header {
+    padding-top: max(0px, env(safe-area-inset-top));
+  }
+}
+
+.pwa-standalone .nav-gh-btn {
+  display: none;
+}
+

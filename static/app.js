@@ -74,16 +74,18 @@ const QUOTES = [
 ];
 
 let state = {
-  tone: "Professional",
-  platform: "",
+  tone: localStorage.getItem("kaizen_pref_tone") || "Professional",
+  platform: localStorage.getItem("kaizen_pref_platform") || "",
   recipient: "",
-  toneCategory: "All"
+  toneCategory: localStorage.getItem("kaizen_pref_tone_cat") || "All"
 };
 
 let currentMode = "evolve"; // "evolve" or "reply"
 let currentQuoteIndex = 0;
 let lastEvolvedData = null;
 let countdownInterval = null;
+let deferredInstallPrompt = null;
+let draftAutoSaveTimer = null;
 
 const $ = (id) => document.getElementById(id);
 
@@ -92,6 +94,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   initTheme();
   populateDropdownsAndChips();
   initServiceWorker();
+  initPwaInstallPrompts();
+  initNetworkStatusListener();
+  initDraftAutoRecovery();
+  initGlobalKeyboardShortcuts();
   handleIncomingShareTarget();
   
   const modelsPromise = fetchAvailableModels().catch(() => {});
@@ -256,13 +262,14 @@ function setTheme(dark) {
 async function fetchAvailableModels() {
   const select = $("modelSelect");
   if (!select) return;
+  const savedModel = localStorage.getItem("kaizen_pref_model");
   try {
     const res = await fetch("/api/models");
     if (!res.ok) return;
     const data = await res.json();
     const modelsList = Array.isArray(data) ? data : (data.models || []);
     if (modelsList.length > 0) {
-      const currentSelected = select.value || data.current || "qwen/qwen3.8-27b";
+      const currentSelected = savedModel || select.value || data.current || "qwen/qwen3.8-27b";
       select.innerHTML = modelsList
         .map((m) => `<option value="${m}" ${m === currentSelected ? 'selected' : ''}>${m}</option>`)
         .join("");
@@ -279,12 +286,20 @@ function populateDropdownsAndChips() {
   if (toneSel) {
     toneSel.innerHTML = TONES.map((t) => `<option value="${t}">${t}</option>`).join("");
     toneSel.value = state.tone;
-    toneSel.onchange = () => { state.tone = toneSel.value; renderToneChips(); };
+    toneSel.onchange = () => {
+      state.tone = toneSel.value;
+      localStorage.setItem("kaizen_pref_tone", state.tone);
+      renderToneChips();
+    };
   }
   if (platformSel) {
     platformSel.innerHTML = `<option value="">Platform-neutral</option>` + PLATFORMS.map((p) => `<option value="${p}">${p}</option>`).join("");
     platformSel.value = state.platform;
-    platformSel.onchange = () => { state.platform = platformSel.value; renderPlatformChips(); };
+    platformSel.onchange = () => {
+      state.platform = platformSel.value;
+      localStorage.setItem("kaizen_pref_platform", state.platform);
+      renderPlatformChips();
+    };
   }
 
   renderToneChips();
@@ -308,6 +323,7 @@ function renderToneChips() {
   container.querySelectorAll("button").forEach((btn) => {
     btn.onclick = () => {
       state.tone = btn.getAttribute("data-tone");
+      localStorage.setItem("kaizen_pref_tone", state.tone);
       if ($("toneSelect")) $("toneSelect").value = state.tone;
       renderToneChips();
     };
@@ -326,6 +342,7 @@ function renderPlatformChips() {
   container.querySelectorAll("button").forEach((btn) => {
     btn.onclick = () => {
       state.platform = state.platform === btn.getAttribute("data-platform") ? "" : btn.getAttribute("data-platform");
+      localStorage.setItem("kaizen_pref_platform", state.platform);
       if ($("platformSelect")) $("platformSelect").value = state.platform;
       renderPlatformChips();
     };
@@ -369,14 +386,185 @@ function handleIncomingShareTarget() {
   const sharedText = params.get("text") || params.get("title") || params.get("url");
   if (sharedText) {
     const msgInput = $("messageInput");
-    const charCount = $("charCount");
     if (msgInput) {
       msgInput.value = sharedText;
-      if (charCount) charCount.textContent = sharedText.length;
+      updateDraftMetrics(sharedText);
+      saveDraftToStorageDebounced(sharedText);
       document.getElementById("desk")?.scrollIntoView({ behavior: "smooth" });
       showKaizenToast("Shared message imported into Kaizen desk!", "success");
     }
   }
+}
+
+// Everyday Draft Persistence & Auto-Recovery
+function initDraftAutoRecovery() {
+  const msgInput = $("messageInput");
+  if (!msgInput) return;
+
+  const saved = localStorage.getItem("kaizen_active_draft");
+  if (saved && !msgInput.value.trim()) {
+    msgInput.value = saved;
+    updateDraftMetrics(saved);
+  } else if (msgInput.value) {
+    updateDraftMetrics(msgInput.value);
+  }
+}
+
+function updateDraftMetrics(text) {
+  const charCount = $("charCount");
+  const wordCount = $("draftWordCount");
+  const readTime = $("draftReadTime");
+
+  const val = text || "";
+  if (charCount) charCount.textContent = val.length;
+
+  const words = val.trim() ? val.trim().split(/\s+/).filter(Boolean).length : 0;
+  if (wordCount) wordCount.textContent = words;
+
+  // Approx 3.3 words per second (200 wpm)
+  const seconds = words === 0 ? 0 : Math.max(1, Math.round(words / 3.3));
+  if (readTime) readTime.textContent = seconds < 60 ? `${seconds}s` : `${Math.ceil(seconds / 60)}m`;
+}
+
+function saveDraftToStorageDebounced(text) {
+  clearTimeout(draftAutoSaveTimer);
+  draftAutoSaveTimer = setTimeout(() => {
+    if (text && text.trim()) {
+      localStorage.setItem("kaizen_active_draft", text);
+    } else {
+      localStorage.removeItem("kaizen_active_draft");
+    }
+  }, 250);
+}
+
+// PWA Install Experience
+function initPwaInstallPrompts() {
+  const pwaBtn = $("pwaInstallBtn");
+  const pwaMobileBtn = $("pwaInstallMobileBtn");
+
+  const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+  if (isStandalone) {
+    document.body.classList.add("pwa-standalone");
+    if (pwaBtn) pwaBtn.classList.add("hidden");
+    if (pwaMobileBtn) pwaMobileBtn.classList.add("hidden");
+    return;
+  }
+
+  const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+  function showInstallPromotion() {
+    if (pwaBtn) pwaBtn.classList.remove("hidden");
+    if (pwaMobileBtn) pwaMobileBtn.classList.remove("hidden");
+  }
+
+  function hideInstallPromotion() {
+    if (pwaBtn) pwaBtn.classList.add("hidden");
+    if (pwaMobileBtn) pwaMobileBtn.classList.add("hidden");
+  }
+
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    showInstallPromotion();
+  });
+
+  window.addEventListener("appinstalled", () => {
+    deferredInstallPrompt = null;
+    hideInstallPromotion();
+    document.body.classList.add("pwa-standalone");
+    showKaizenToast("KaizenReply installed to your device! 🌸", "success");
+  });
+
+  if (isIos && !isStandalone) {
+    showInstallPromotion();
+  }
+
+  async function handleInstallClick() {
+    if (deferredInstallPrompt) {
+      deferredInstallPrompt.prompt();
+      const choice = await deferredInstallPrompt.userChoice;
+      if (choice.outcome === "accepted") {
+        hideInstallPromotion();
+      }
+      deferredInstallPrompt = null;
+    } else if (isIos) {
+      const iosModal = $("iosInstallModal");
+      if (iosModal) iosModal.classList.remove("hidden");
+    } else {
+      showKaizenToast("To install KaizenReply: Use your browser's 'Install' or 'Add to Home Screen' option 📲", "info", 4500);
+    }
+  }
+
+  if (pwaBtn) pwaBtn.onclick = handleInstallClick;
+  if (pwaMobileBtn) pwaMobileBtn.onclick = handleInstallClick;
+
+  const closeIosModal = $("closeIosInstallModal");
+  const dismissIosModal = $("dismissIosModalBtn");
+  const iosModal = $("iosInstallModal");
+  const hideIosModal = () => { if (iosModal) iosModal.classList.add("hidden"); };
+  if (closeIosModal) closeIosModal.onclick = hideIosModal;
+  if (dismissIosModal) dismissIosModal.onclick = hideIosModal;
+}
+
+// Connectivity & Offline Status
+function initNetworkStatusListener() {
+  const pill = $("offlinePill");
+
+  function updateStatus() {
+    const isOnline = navigator.onLine;
+    if (pill) {
+      pill.classList.toggle("hidden", isOnline);
+    }
+  }
+
+  window.addEventListener("online", () => {
+    updateStatus();
+    showKaizenToast("Network connection restored 🌿", "success", 2500);
+  });
+
+  window.addEventListener("offline", () => {
+    updateStatus();
+    showKaizenToast("Offline mode active. Cached proverbs & draft tools ready.", "info", 3500);
+  });
+
+  updateStatus();
+}
+
+// Global Keyboard Shortcuts for Everyday Usage
+function initGlobalKeyboardShortcuts() {
+  const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+  const kbdHint = $("evolveKbdHint");
+  if (kbdHint) {
+    kbdHint.textContent = isMac ? "⌘ ↵" : "Ctrl ↵";
+  }
+
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      $("shareModal")?.classList.add("hidden");
+      $("iosInstallModal")?.classList.add("hidden");
+      $("mobileMenuPanel")?.classList.add("hidden");
+    }
+
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+      const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : "";
+      if (activeTag !== "input" && activeTag !== "textarea") {
+        e.preventDefault();
+        const msgInput = $("messageInput");
+        if (msgInput) {
+          msgInput.scrollIntoView({ behavior: "smooth", block: "center" });
+          msgInput.focus();
+        }
+      }
+    }
+
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "c") {
+      if (lastEvolvedData && lastEvolvedData.improved) {
+        e.preventDefault();
+        navigator.clipboard.writeText(lastEvolvedData.improved);
+        showKaizenToast("Copied latest revised draft! 📋", "success");
+      }
+    }
+  });
 }
 
 // Event Listeners Setup
@@ -502,16 +690,28 @@ function setupEventListeners() {
 
   // Character Counter & Input
   const msgInput = $("messageInput");
-  const charCount = $("charCount");
-  if (msgInput && charCount) {
+  if (msgInput) {
     msgInput.oninput = () => {
-      charCount.textContent = msgInput.value.length;
+      updateDraftMetrics(msgInput.value);
+      saveDraftToStorageDebounced(msgInput.value);
     };
     msgInput.onkeydown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
         e.preventDefault();
         runKaizenAction();
       }
+    };
+  }
+
+  // Clear Draft Button
+  const clearDraftBtn = $("clearDraftBtn");
+  if (clearDraftBtn && msgInput) {
+    clearDraftBtn.onclick = () => {
+      msgInput.value = "";
+      updateDraftMetrics("");
+      saveDraftToStorageDebounced("");
+      msgInput.focus();
+      showKaizenToast("Draft cleared", "info", 1500);
     };
   }
 
@@ -523,14 +723,15 @@ function setupEventListeners() {
         const text = await navigator.clipboard.readText();
         if (text) {
           msgInput.value = text;
-          if (charCount) charCount.textContent = text.length;
+          updateDraftMetrics(text);
+          saveDraftToStorageDebounced(text);
+          showKaizenToast("Pasted clipboard text!", "success", 1500);
         }
       } catch (err) {
         showKaizenToast("Clipboard access permission required.", "error");
       }
     };
   }
-
 
   // Tone Category Filter Buttons
   const catBtns = document.querySelectorAll(".tone-cat-btn");
@@ -539,6 +740,7 @@ function setupEventListeners() {
       catBtns.forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
       state.toneCategory = btn.getAttribute("data-cat") || "All";
+      localStorage.setItem("kaizen_pref_tone_cat", state.toneCategory);
       renderToneChips();
     };
   });
@@ -551,20 +753,31 @@ function setupEventListeners() {
       const platform = btn.getAttribute("data-platform");
       if (text && msgInput) {
         msgInput.value = text;
-        if (charCount) charCount.textContent = text.length;
+        updateDraftMetrics(text);
+        saveDraftToStorageDebounced(text);
       }
       if (tone) {
         state.tone = tone;
+        localStorage.setItem("kaizen_pref_tone", tone);
         if ($("toneSelect")) $("toneSelect").value = tone;
         renderToneChips();
       }
       if (platform) {
         state.platform = platform;
+        localStorage.setItem("kaizen_pref_platform", platform);
         if ($("platformSelect")) $("platformSelect").value = platform;
         renderPlatformChips();
       }
     };
   });
+
+  // Model Engine Preference Listener
+  const modelSelectEl = $("modelSelect");
+  if (modelSelectEl) {
+    modelSelectEl.onchange = () => {
+      localStorage.setItem("kaizen_pref_model", modelSelectEl.value);
+    };
+  }
 
   // Expandable Context Drawer
   const ctxToggle = $("contextToggle");
@@ -617,8 +830,10 @@ function setupEventListeners() {
       const list = getFilteredQuotes();
       const q = list[currentQuoteIndex] || list[0];
       if (q && msgInput) {
-        msgInput.value = `${q.japanese} (${q.romaji}) — ${q.meaning ? q.meaning.en : (q.translation || '')}`;
-        if (charCount) charCount.textContent = msgInput.value.length;
+        const text = `${q.japanese} (${q.romaji}) — ${q.meaning ? q.meaning.en : (q.translation || '')}`;
+        msgInput.value = text;
+        updateDraftMetrics(text);
+        saveDraftToStorageDebounced(text);
         msgInput.focus();
         document.getElementById("desk")?.scrollIntoView({ behavior: "smooth" });
       }
@@ -722,6 +937,11 @@ async function runKaizenAction(overrideTone = null) {
 
   if (errorBanner) errorBanner.classList.add("hidden");
 
+  if (!navigator.onLine) {
+    showKaizenToast("You are currently offline. Drafts, proverbs, and past history are safely cached.", "info", 4500);
+    return;
+  }
+
   if (!msgInput || !msgInput.value.trim()) {
     showKaizenToast("Please enter a message draft first.", "info");
     return;
@@ -822,7 +1042,13 @@ function renderEvolveOutput(data, original, tone, platform) {
           <button class="manuscript-tab" data-tab="sidebyside">Side by side</button>
           <button class="manuscript-tab" data-tab="original">Clean final</button>
         </div>
-        <div class="proof-word-stats" id="proofWordStats">${statsText}</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="proof-word-stats" id="proofWordStats">${statsText}</div>
+          <button class="btn-paper" id="quickCopyTabBtn" style="padding:4px 10px;font-size:11px;gap:4px;" title="Quick copy revised message">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy
+          </button>
+        </div>
       </div>
 
       <div class="manuscript-paper" id="manuscriptBody">
@@ -866,6 +1092,15 @@ function renderEvolveOutput(data, original, tone, platform) {
     </div>
   `;
 
+  // Quick Copy Tab Button Listener
+  const quickCopyBtn = $("quickCopyTabBtn");
+  if (quickCopyBtn) {
+    quickCopyBtn.onclick = () => {
+      navigator.clipboard.writeText(data.improved);
+      showKaizenToast("Refined manuscript copied to clipboard! 📋", "success");
+    };
+  }
+
   // Manuscript Tab Switching Logic
   const tabs = outputContainer.querySelectorAll(".manuscript-tab");
   const manuscriptText = $("manuscriptText");
@@ -877,7 +1112,14 @@ function renderEvolveOutput(data, original, tone, platform) {
     } else if (mode === "sidebyside") {
       manuscriptText.innerHTML = '<div class="proof-sidebyside"><div><div class="proof-label">Original</div><p>' + escapeHtml(original) + '</p></div><div><div class="proof-label">Revised</div><p>' + escapeHtml(data.improved) + '</p></div></div>';
     } else if (mode === "original") {
-      manuscriptText.innerHTML = '<p class="manuscript-clean">' + escapeHtml(data.improved) + '</p>';
+      manuscriptText.innerHTML = '<p class="manuscript-clean">' + escapeHtml(data.improved) + '</p><div style="margin-top:20px;display:flex;justify-content:flex-end;"><button class="btn-paper" id="cleanFinalCopyBtn" style="font-size:12px;padding:6px 14px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy Clean Text</button></div>';
+      const cleanCopy = $("cleanFinalCopyBtn");
+      if (cleanCopy) {
+        cleanCopy.onclick = () => {
+          navigator.clipboard.writeText(data.improved);
+          showKaizenToast("Clean message copied to clipboard! 📋", "success");
+        };
+      }
     }
   }
 
@@ -1256,8 +1498,10 @@ window.loadHistoryItem = (text) => {
   const msgInput = $("messageInput");
   if (msgInput) {
     msgInput.value = text;
-    if ($("charCount")) $("charCount").textContent = text.length;
+    updateDraftMetrics(text);
+    saveDraftToStorageDebounced(text);
     msgInput.focus();
+    showKaizenToast("Loaded past revision into draft desk", "info", 1500);
   }
 };
 
