@@ -614,29 +614,5 @@
     </footer>
 
     <script src="/static/app.js?v=2.6.0"></script>
-    <script>
-      (function() {
-        const toneWrap = document.getElementById('toneChips');
-        if (toneWrap) {
-          const sanitizeToneChips = function() {
-            toneWrap.querySelectorAll('[data-tone]').forEach(function(btn) {
-              const tone = btn.getAttribute('data-tone');
-              if (tone && tone.includes('🔥')) {
-                btn.textContent = tone.replace(/🔥\s*/g, '');
-              }
-            });
-          };
-          const observer = new MutationObserver(sanitizeToneChips);
-          observer.observe(toneWrap, { childList: true, subtree: true });
-          sanitizeToneChips();
-        }
-        window.addEventListener('scroll', function() {
-          const header = document.querySelector('.site-header');
-          if (header) {
-            header.classList.toggle('scrolled', window.scrollY > 10);
-          }
-        }, { passive: true });
-      })();
-    </script>
   </body>
 </html>

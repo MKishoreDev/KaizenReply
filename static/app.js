@@ -286,7 +286,7 @@ function populateDropdownsAndChips() {
   const toneSel = $("toneSelect");
   const platformSel = $("platformSelect");
   if (toneSel) {
-    toneSel.innerHTML = TONES.map((t) => `<option value="${t}">${t}</option>`).join("");
+    toneSel.innerHTML = TONES.map((t) => `<option value="${t}">${t === "🔥 Roast My Draft" ? "Roast My Draft" : t}</option>`).join("");
     toneSel.value = state.tone;
     toneSel.onchange = () => {
       state.tone = toneSel.value;
@@ -346,7 +346,7 @@ function renderToneChips() {
     : TONES.filter((t) => (TONE_CATEGORIES[state.toneCategory] || []).includes(t));
 
   container.innerHTML = filtered.map((t) => `
-    <button type="button" class="chip ${state.tone === t ? 'active' : ''}" data-tone="${t}">${t}</button>
+    <button type="button" class="chip ${state.tone === t ? 'active' : ''}" data-tone="${t}">${t === "🔥 Roast My Draft" ? "Roast My Draft" : t}</button>
   `).join("");
 
   // Toggle LinkedIn Bro sub-controls visibility
@@ -540,7 +540,7 @@ function initPwaInstallPrompts() {
     if (pwaNavBtn) pwaNavBtn.classList.add("hidden");
     if (pwaMobileBtn) pwaMobileBtn.classList.add("hidden");
     document.body.classList.add("pwa-standalone");
-    showKaizenToast("KaizenReply installed to your device! 🌸", "success");
+    showKaizenToast("KaizenReply installed to your device.", "success");
   });
 
   // Keep button accessible in nav/drawer
@@ -569,7 +569,7 @@ function initPwaInstallPrompts() {
         if (pwaPopupIosTip) pwaPopupIosTip.classList.remove("hidden");
       }
     } else {
-      showKaizenToast("Tap your browser's menu (⋮) > 'Install app' or 'Add to Home screen' 📲", "info", 4500);
+      showKaizenToast("Tap your browser's menu (⋮) > 'Install app' or 'Add to Home screen'", "info", 4500);
     }
   }
 
@@ -619,7 +619,7 @@ function initNetworkStatusListener() {
 
   window.addEventListener("online", () => {
     updateStatus();
-    showKaizenToast("Network connection restored 🌿", "success", 2500);
+    showKaizenToast("Network connection restored.", "success", 2500);
   });
 
   window.addEventListener("offline", () => {
@@ -629,6 +629,12 @@ function initNetworkStatusListener() {
 
   updateStatus();
 }
+
+// Header scroll shadow
+window.addEventListener('scroll', () => {
+  const header = document.querySelector('.site-header');
+  if (header) header.classList.toggle('scrolled', window.scrollY > 10);
+}, { passive: true });
 
 // Global Keyboard Shortcuts for Everyday Usage
 function initGlobalKeyboardShortcuts() {
@@ -661,7 +667,7 @@ function initGlobalKeyboardShortcuts() {
       if (lastEvolvedData && lastEvolvedData.improved) {
         e.preventDefault();
         navigator.clipboard.writeText(lastEvolvedData.improved);
-        showKaizenToast("Copied latest revised draft! 📋", "success");
+        showKaizenToast("Copied to clipboard.", "success");
       }
     }
   });
@@ -924,7 +930,7 @@ function setupEventListeners() {
         navigator.share({ title: "Kaizen Kotowaza", text: shareText }).catch(() => undefined);
       } else {
         navigator.clipboard.writeText(shareText);
-        showKaizenToast("Proverb copied to clipboard! 🌸", "success");
+        showKaizenToast("Proverb copied to clipboard.", "success");
       }
     };
   }
@@ -1188,7 +1194,7 @@ function renderEvolveOutput(data, original, tone, platform) {
   if (quickCopyBtn) {
     quickCopyBtn.onclick = () => {
       navigator.clipboard.writeText(data.improved);
-      showKaizenToast("Refined manuscript copied to clipboard! 📋", "success");
+      showKaizenToast("Copied to clipboard.", "success");
     };
   }
 
@@ -1208,7 +1214,7 @@ function renderEvolveOutput(data, original, tone, platform) {
       if (cleanCopy) {
         cleanCopy.onclick = () => {
           navigator.clipboard.writeText(data.improved);
-          showKaizenToast("Clean message copied to clipboard! 📋", "success");
+          showKaizenToast("Copied to clipboard.", "success");
         };
       }
     }
@@ -1331,19 +1337,19 @@ function renderEvolveOutput(data, original, tone, platform) {
 
 // Viral Share Payload Generator with Japanese Kotowaza Wisdom
 function generateKaizenSharePayload() {
-  let quoteLine = "七転び八起き (Nana korobi ya oki) — \"Fall down seven times, stand up eight.\" 🌸";
+  let quoteLine = "七転び八起き (Nana korobi ya oki) — \"Fall down seven times, stand up eight.\"";
   if (kotowazaList && kotowazaList.length > 0) {
     const randomQ = kotowazaList[Math.floor(Math.random() * kotowazaList.length)];
     if (randomQ) {
       const meaning = (randomQ.meaning && randomQ.meaning.en) ? randomQ.meaning.en : (randomQ.translation || "");
-      quoteLine = `${randomQ.japanese || ""} (${randomQ.romaji || ""}) — "${meaning}" 🌸`;
+      quoteLine = `${randomQ.japanese || ""} (${randomQ.romaji || ""}) — "${meaning}"`;
     }
   }
 
   const hooks = [
-    "Hey! Check out KaizenReply — continuous improvement for your words & draft messages 🍵",
-    "Stop sending raw, unrefined drafts! Elevate your communication with KaizenReply ⚡",
-    "Found this amazing AI message-refinement tool called KaizenReply — Japanese precision for your words 🌸"
+    "Hey! Check out KaizenReply — continuous improvement for your words & draft messages",
+    "Stop sending raw, unrefined drafts! Elevate your communication with KaizenReply",
+    "Found this amazing AI message-refinement tool called KaizenReply — Japanese precision for your words"
   ];
   const selectedHook = hooks[Math.floor(Math.random() * hooks.length)];
 
@@ -1363,9 +1369,9 @@ function shareToX(beforeText, afterText, beforeScore, afterScore, toneName) {
   const isLinkedInMeme = toneName === "LinkedIn Bro";
   let tweetText = "";
   if (isLinkedInMeme) {
-    tweetText = `Reality vs. LinkedIn with @KaizenReply:\n\nREALITY:\n"${beforeText.substring(0, 70)}"\n\nLINKEDIN:\n"${afterText.substring(0, 130)}"\n\nKaizen Score: ${beforeScore} ➔ ${afterScore} 🔥\nhttps://kaizenreply.us.ci`;
+    tweetText = `Reality vs. LinkedIn with @KaizenReply:\n\nREALITY:\n"${beforeText.substring(0, 70)}"\n\nLINKEDIN:\n"${afterText.substring(0, 130)}"\n\nKaizen Score: ${beforeScore} → ${afterScore}\nhttps://kaizenreply.us.ci`;
   } else {
-    tweetText = `Evolved my message with @KaizenReply:\n\n"${afterText.substring(0, 180)}"\n\nKaizen Score: ${beforeScore} ➔ ${afterScore} 🔥\nhttps://kaizenreply.us.ci`;
+    tweetText = `Evolved my message with @KaizenReply:\n\n"${afterText.substring(0, 180)}"\n\nKaizen Score: ${beforeScore} → ${afterScore}\nhttps://kaizenreply.us.ci`;
   }
   window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, "_blank", "noopener,noreferrer");
 }
@@ -1378,7 +1384,7 @@ function renderReplyOutput(data, incomingMsg) {
   outputContainer.innerHTML = `
     <div class="reply-results">
       <div class="result-version">
-        <span>💬 3 Ready-to-Send Replies</span>
+        <span>3 Ready-to-Send Replies</span>
       </div>
       ${suggestions.map((s, idx) => `
         <article>
