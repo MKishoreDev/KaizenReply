@@ -717,17 +717,6 @@ function setupEventListeners() {
   if (shareWebBtn) shareWebBtn.onclick = handleShareWeb;
   if (heroShareBtn) heroShareBtn.onclick = handleShareWeb;
 
-  // Showcase Card Preview
-  const showcaseCardBtn = $("showcaseCardBtn");
-  const showcaseImgCard = $("showcaseImgCard");
-  const handleShowcase = () => {
-    openLinkedInMemeModal(
-      "I ate a sandwich at 2 PM because I forgot to have lunch.",
-      "Executed a precision mid-day nutritional sprint. Optimized metabolic throughput and sustained high-velocity cognitive output across cross-functional workstreams."
-    );
-  };
-  if (showcaseCardBtn) showcaseCardBtn.onclick = handleShowcase;
-  if (showcaseImgCard) showcaseImgCard.onclick = handleShowcase;
 
   // Studio Tabs: KaizenReply vs My History
   const studioTabDesk = $("studioTabDesk");
@@ -1749,7 +1738,7 @@ function openLinkedInMemeModal(reality, linkedin) {
   modal.classList.remove("hidden");
 
   setTimeout(async () => {
-    if (wrapper) wrapper.innerHTML = `<canvas id="shareCardCanvas" width="1024" height="682" style="width:100%;max-width:1024px;height:auto;display:block;margin:0 auto;border-radius:var(--radius);"></canvas>`;
+    if (wrapper) wrapper.innerHTML = `<canvas id="shareCardCanvas" width="2048" height="1364" style="width:100%;max-width:1024px;height:auto;display:block;margin:0 auto;border-radius:var(--radius);"></canvas>`;
     const newCanvas = $("shareCardCanvas");
     if (!newCanvas) return;
     await renderLinkedInMemeCanvas(newCanvas, reality, linkedin);
@@ -1763,6 +1752,7 @@ async function renderLinkedInMemeCanvas(canvas, original, improved) {
   const ctx = canvas.getContext("2d");
   const width = canvas.width;
   const height = canvas.height;
+  const scale = width / 1024;
 
   const memeImg = await loadCanvasImage("/static/linkedin-meme-template.jpg");
   if (memeImg && memeImg.naturalWidth !== 0) {
@@ -1787,13 +1777,14 @@ async function renderLinkedInMemeCanvas(canvas, original, improved) {
 
   function renderMemeBox(text, boxX, maxW, boxY, boxH) {
     const fontSizes = [24, 22, 20, 18, 16];
-    let bestFont = "20px 'Georgia', serif";
+    let bestFont = `${Math.round(20 * scale)}px 'Noto Serif JP', 'Georgia', serif`;
     let bestLines = [];
-    let bestLh = 30;
+    let bestLh = Math.round(30 * scale);
 
     for (const size of fontSizes) {
-      ctx.font = `${size}px 'Georgia', 'Noto Serif JP', serif`;
-      const lh = Math.round(size * 1.48);
+      const scaledSize = Math.round(size * scale);
+      ctx.font = `${scaledSize}px 'Noto Serif JP', 'Georgia', serif`;
+      const lh = Math.round(scaledSize * 1.48);
       const words = text.split(/\s+/).filter(Boolean);
       const lines = [];
       let cur = "";
@@ -1810,7 +1801,7 @@ async function renderLinkedInMemeCanvas(canvas, original, improved) {
 
       const totalH = lines.length * lh;
       if (totalH <= boxH || size === 16) {
-        bestFont = `${size}px 'Georgia', 'Noto Serif JP', serif`;
+        bestFont = `${scaledSize}px 'Noto Serif JP', 'Georgia', serif`;
         bestLines = lines;
         bestLh = lh;
         break;
@@ -1820,7 +1811,7 @@ async function renderLinkedInMemeCanvas(canvas, original, improved) {
     ctx.font = bestFont;
     ctx.fillStyle = "#1b2621";
     const totalH = bestLines.length * bestLh;
-    let startY = boxY + Math.max(10, Math.floor((boxH - totalH) / 3));
+    let startY = boxY + Math.max(Math.round(10 * scale), Math.floor((boxH - totalH) / 3));
 
     for (const line of bestLines) {
       ctx.fillText(line, boxX, startY);
@@ -1828,11 +1819,11 @@ async function renderLinkedInMemeCanvas(canvas, original, improved) {
     }
   }
 
-  // Left Box: Reality (x=92, w=365, y=245, h=290)
-  renderMemeBox(reality, 92, 365, 245, 290);
+  // Left Box: Reality
+  renderMemeBox(reality, Math.round(92 * scale), Math.round(365 * scale), Math.round(245 * scale), Math.round(290 * scale));
 
-  // Right Box: LinkedIn Profile (x=565, w=365, y=245, h=290)
-  renderMemeBox(linkedin, 565, 365, 245, 290);
+  // Right Box: LinkedIn Profile
+  renderMemeBox(linkedin, Math.round(565 * scale), Math.round(365 * scale), Math.round(245 * scale), Math.round(290 * scale));
 }
 
 function downloadCanvasAsPng(canvas, filename) {

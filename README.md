@@ -182,12 +182,20 @@ KaizenReply follows a zero-dependency frontend architecture paired with an async
 ```
 KaizenReply/
 ├── app/
-│   ├── main.py              # FastAPI application, Groq LPU engine, caching & rate limits
-│   └── models.py            # Pydantic validation schemas
+│   ├── __init__.py          # Package initialization
+│   ├── main.py              # FastAPI application, route handlers & ASGI setup
+│   ├── models.py            # Pydantic schemas for requests & responses
+│   ├── meme.py              # 2048x1364 Retina meme generator with dynamic font engine
+│   ├── prompts.py           # v3.0 Reality vs LinkedIn satire engine & tone guidelines
+│   ├── groq_client.py       # Asynchronous Groq LPU engine & model failover
+│   └── security.py          # Sliding-window IP rate limiting & in-memory caching
+├── docs/
+│   └── PROMPTS_REFERENCE.md # Complete Groq LLM prompt architecture manual
 ├── static/
-│   ├── styles.css           # OKLCH design system, Washi textures, Hanko keyframe animations
-│   ├── app.js               # Reactive desk controller, HTML diff engine, Meme card generator
-│   └── linkedin-meme-template.jpg # 1024x682 Japanese parchment meme artwork
+│   ├── fonts/               # Bundled open-source typefaces (Noto Serif)
+│   ├── styles.css           # OKLCH design system, Washi textures, Hanko animations
+│   ├── app.js               # Reactive desk controller & proofing workspace
+│   └── linkedin-meme-template.jpg # 2048x1364 high-resolution meme master artwork
 ├── index.html               # Accessible, semantic 3-panel editorial desk
 ├── tests/
 │   ├── __init__.py
@@ -196,7 +204,7 @@ KaizenReply/
 │   ├── workflows/ci.yml     # Multi-version Python CI
 │   └── ISSUE_TEMPLATE/      # Community issue & PR templates
 ├── Dockerfile               # Production container image
-├── requirements.txt         # Core dependencies
+├── requirements.txt         # Core dependencies (FastAPI, Pillow, etc.)
 ├── requirements-dev.txt     # Test & linting tooling
 ├── SECURITY.md              # Security & responsible disclosure policy
 └── CONTRIBUTING.md          # Developer onboarding guide
