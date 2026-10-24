@@ -1842,18 +1842,26 @@ async function renderLinkedInMemeCanvas(canvas, original, improved) {
     ctx.fillRect(0, 0, width, height);
   }
 
-  let reality = original || "";
-  let linkedin = improved || "";
+  // Ensure reality is ALWAYS what the user typed (original), preserving their exact prompt
+  let reality = (original || "").replace(/^Reality:\s*/i, "").replace(/\*\*/g, "").trim();
+  let linkedin = (improved || "").trim();
 
-  if (linkedin.includes("Reality:") && linkedin.includes("LinkedIn:")) {
+  // Extract LinkedIn portion from improved text
+  if (linkedin.includes("LinkedIn:")) {
     const parts = linkedin.split(/LinkedIn:/i);
-    const rPart = parts[0].replace(/Reality:/i, "").trim();
-    if (rPart) reality = rPart;
     linkedin = (parts[1] || "").trim();
+    // Only if user typed input was completely empty, fallback to the AI's reality part
+    if (!reality && parts[0]) {
+      reality = parts[0].replace(/^Reality:\s*/i, "").replace(/\*\*/g, "").trim();
+    }
   } else {
-    reality = reality.replace(/^Reality:\s*/i, "").trim();
+    reality = reality || linkedin.replace(/^Reality:\s*/i, "").replace(/\*\*/g, "").trim();
     linkedin = linkedin.replace(/^LinkedIn:\s*/i, "").trim();
   }
+
+  // Strip markdown bold markers so raw asterisks are never rendered on the canvas
+  reality = reality.replace(/\*\*/g, "").trim();
+  linkedin = linkedin.replace(/\*\*/g, "").trim();
 
   function renderMemeBox(text, boxX, maxW, boxY, boxH) {
     const fontSizes = [24, 22, 20, 18, 16];

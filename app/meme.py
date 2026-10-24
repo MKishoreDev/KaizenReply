@@ -34,10 +34,12 @@ def create_reality_vs_linkedin_meme(reality: str, linkedin: str) -> bytes:
     r_text = reality.strip()
     if r_text.lower().startswith("reality:"):
         r_text = r_text[8:].strip()
+    r_text = r_text.replace("**", "").strip()
 
     l_text = linkedin.strip()
     if l_text.lower().startswith("linkedin:"):
         l_text = l_text[9:].strip()
+    l_text = l_text.replace("**", "").strip()
 
     # Locate bundled or system serif font for crisp editorial rendering
     font_candidates = [
