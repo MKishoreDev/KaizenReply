@@ -93,6 +93,12 @@ const $ = (id) => document.getElementById(id);
 
 // Initialize Page
 document.addEventListener("DOMContentLoaded", async () => {
+  // Dismiss page load overlay
+  const overlay = document.getElementById('pageLoadOverlay');
+  if (overlay) {
+    setTimeout(() => overlay.classList.add('done'), 600);
+  }
+
   initTheme();
   populateDropdownsAndChips();
   initServiceWorker();
@@ -113,6 +119,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   renderKaizenHistory();
   initHeroPreviewAnimation();
   initScrollSpy();
+
+  // Scroll reveal
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.reveal-on-scroll').forEach(el => revealObserver.observe(el));
 });
 
 // Active Navigation Scroll Indicator
@@ -1016,6 +1033,29 @@ function startRateLimitCooldown(seconds = 5) {
   }, 1000);
 }
 
+function setLoading(isLoading) {
+  const btn = $('evolveBtn');
+  const btnText = $('evolveBtnText');
+  const kbdHint = $('evolveKbdHint');
+  if (!btn) return;
+  btn.disabled = isLoading;
+  if (isLoading) {
+    btn.innerHTML = `
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:kaizen-spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+      <span>Refining</span>
+      <span style="animation:ellipsis-dots 1.5s steps(4,end) infinite;display:inline-block;width:1.5ch;overflow:hidden;"></span>
+    `;
+    btn.style.opacity = '0.82';
+    btn.style.cursor = 'wait';
+  } else {
+    const label = (typeof currentMode !== 'undefined' && currentMode === 'reply') ? 'Get Replies' : 'Refine Draft';
+    btn.innerHTML = `<span id="evolveBtnText">${label}</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg><kbd class="kbd-hint hidden md-inline" id="evolveKbdHint">Ctrl ↵</kbd>`;
+    btn.style.opacity = '';
+    btn.style.cursor = '';
+    btn.disabled = false;
+  }
+}
+
 // Execute AI Action (Evolve or Reply)
 async function runKaizenAction(overrideTone = null) {
   const msgInput = $("messageInput");
@@ -1051,22 +1091,22 @@ async function runKaizenAction(overrideTone = null) {
     linkedinLength: effectiveTone === "LinkedIn Bro" ? (state.linkedinLength || "Auto") : "Auto"
   };
 
-  // Render Kaizen Loading State
-  const loadingText = currentMode === "reply" ? "Crafting replies…" : "Evolving your words…";
-  const loadingSub = currentMode === "reply" ? "Generating thoughtful responses" : "Refining style & clarity";
-  outputContainer.innerHTML = `
-    <div class="kaizen-loader">
-      <div class="kaizen-loader__dots">
-        <div class="kaizen-loader__dot"></div>
-        <div class="kaizen-loader__dot"></div>
-        <div class="kaizen-loader__dot"></div>
-        <div class="kaizen-loader__dot"></div>
-        <div class="kaizen-loader__dot"></div>
-      </div>
-      <div class="kaizen-loader__text">${loadingText}</div>
-      <div class="kaizen-loader__sub">${loadingSub}</div>
-    </div>
-  `;
+  // Render Kaizen Loading State (Task 2)
+  const LOADING_HTML = `
+<div class="kaizen-refine-loader">
+  <div class="krl-mark">
+    <div class="krl-ring"></div>
+    <span class="krl-kanji">改</span>
+  </div>
+  <div class="krl-lines">
+    <div class="krl-line" style="width:72%"></div>
+    <div class="krl-line" style="width:55%"></div>
+    <div class="krl-line" style="width:83%"></div>
+  </div>
+  <p class="krl-label">Refining your draft<span class="krl-ellipsis"></span></p>
+  <p class="krl-sublabel">改善 · Continuous improvement</p>
+</div>`;
+  outputContainer.innerHTML = LOADING_HTML;
 
   // Auto-scroll to output column on mobile/laptop viewports so user never has to scroll to see results
   if (window.innerWidth <= 1280) {
@@ -1076,7 +1116,7 @@ async function runKaizenAction(overrideTone = null) {
     }
   }
 
-  if (evolveBtn) evolveBtn.disabled = true;
+  setLoading(true);
   if (fixGrammarBtn) fixGrammarBtn.disabled = true;
 
   try {
@@ -1114,7 +1154,7 @@ async function runKaizenAction(overrideTone = null) {
       </div>
     `;
   } finally {
-    if (evolveBtn) evolveBtn.disabled = false;
+    setLoading(false);
     if (fixGrammarBtn) fixGrammarBtn.disabled = false;
   }
 }
@@ -1130,7 +1170,7 @@ function renderEvolveOutput(data, original, tone, platform) {
   const statsText = `${origWords.length} → ${impWords.length} words · ${platform || "All"}`;
 
   outputContainer.innerHTML = `
-    <div class="evolved-result evolved-result-animate">
+    <div class="evolved-result evolved-result-animate result-reveal">
       <div class="proof-tab-bar">
         <div class="manuscript-tabs" id="manuscriptTabs">
           <button class="manuscript-tab active" data-tab="refined">Inline diff</button>
@@ -1150,7 +1190,6 @@ function renderEvolveOutput(data, original, tone, platform) {
         <div id="manuscriptText">
           <del class="manuscript-del">${escapeHtml(original)}</del>
           <p class="manuscript-ins">${escapeHtml(data.improved)}</p>
-          <div class="kaizen-hanko-seal"><span>改善</span><small>verified</small></div>
         </div>
       </div>
 
@@ -1189,6 +1228,23 @@ function renderEvolveOutput(data, original, tone, platform) {
     </div>
   `;
 
+  // Stagger-animate each child (Task 3)
+  const children = outputContainer.querySelectorAll('.result-reveal > *');
+  children.forEach((el, i) => {
+    el.style.animationDelay = `${i * 80}ms`;
+    el.classList.add('result-child-in');
+  });
+
+  // Kaizen Hanko Seal Stamp on Result (Task 5)
+  const paper = outputContainer.querySelector('.manuscript-paper');
+  if (paper) {
+    const seal = document.createElement('div');
+    seal.className = 'kaizen-hanko-seal';
+    seal.innerHTML = '<span class="seal-kanji">改善</span><span class="seal-text">verified</span>';
+    paper.appendChild(seal);
+    setTimeout(() => seal.classList.add('stamp-in'), 50);
+  }
+
   // Quick Copy Tab Button Listener
   const quickCopyBtn = $("quickCopyTabBtn");
   if (quickCopyBtn) {
@@ -1205,7 +1261,7 @@ function renderEvolveOutput(data, original, tone, platform) {
   function renderActiveProofTab(mode) {
     if (!manuscriptText) return;
     if (mode === "refined") {
-      manuscriptText.innerHTML = '<del class="manuscript-del">' + escapeHtml(original) + '</del><p class="manuscript-ins">' + escapeHtml(data.improved) + '</p><div class="kaizen-hanko-seal"><span>改善</span><small>verified</small></div>';
+      manuscriptText.innerHTML = '<del class="manuscript-del">' + escapeHtml(original) + '</del><p class="manuscript-ins">' + escapeHtml(data.improved) + '</p>';
     } else if (mode === "sidebyside") {
       manuscriptText.innerHTML = '<div class="proof-sidebyside"><div><div class="proof-label">Original</div><p>' + escapeHtml(original) + '</p></div><div><div class="proof-label">Revised</div><p>' + escapeHtml(data.improved) + '</p></div></div>';
     } else if (mode === "original") {
@@ -1321,11 +1377,29 @@ function renderEvolveOutput(data, original, tone, platform) {
             <div><span class="score-metric-name">Conciseness</span><span class="score-metric-val">${breakdown.conciseness || 26} / 30</span></div>
             <div><span class="score-metric-name">Impact</span><span class="score-metric-val">${breakdown.impact || 25} / 30</span></div>
           </div>
+          <div class="score-bars" style="margin-top:12px;">
+            <div><span>Clarity</span><div><i style="width:${Math.round(((breakdown.clarity || 28) / 30) * 100)}%;"></i></div></div>
+            <div><span>Tone</span><div><i style="width:${Math.round(((breakdown.tone || 27) / 30) * 100)}%;"></i></div></div>
+            <div><span>Conciseness</span><div><i style="width:${Math.round(((breakdown.conciseness || 26) / 30) * 100)}%;"></i></div></div>
+            <div><span>Impact</span><div><i style="width:${Math.round(((breakdown.impact || 25) / 30) * 100)}%;"></i></div></div>
+          </div>
         </div>
       `;
     }
 
     margPanel.innerHTML = notesHtml;
+
+    // Force transition on score bars (Task 6)
+    const scoreBars = document.querySelectorAll('.score-bars i, .score-fill');
+    scoreBars.forEach(bar => {
+      const targetWidth = bar.style.width;
+      bar.style.width = '0%';
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          bar.style.width = targetWidth;
+        });
+      });
+    });
   }
   const takeEl = $("takeawayPanel");
   if (takeEl) {
@@ -1860,47 +1934,21 @@ function escapeHtml(str) {
 }
 
 // Kaizen Toast Notification System (Replaces Browser Alerts)
-function showKaizenToast(message, type = "success", duration = 3500) {
-  let container = $("kaizenToastContainer");
-  if (!container) {
-    container = document.createElement("div");
-    container.id = "kaizenToastContainer";
-    container.className = "kaizen-toast-container";
-    document.body.appendChild(container);
+function showKaizenToast(message, type = 'success', duration = 2800) {
+  let toast = document.getElementById('kaizenToastEl');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'kaizenToastEl';
+    toast.className = 'kaizen-toast';
+    document.body.appendChild(toast);
   }
-
-  const toast = document.createElement("div");
-  toast.className = `kaizen-toast kaizen-toast--${type} kaizen-toast-enter`;
-
-  let iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="16 9 10.5 14.5 8 12"/></svg>`;
-  if (type === "error") {
-    iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="1.2" fill="currentColor" stroke="none"/></svg>`;
-  } else if (type === "info") {
-    iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><circle cx="12" cy="8" r="1.2" fill="currentColor" stroke="none"/></svg>`;
-  }
-
-  toast.innerHTML = `
-    <div class="kaizen-toast__icon">${iconSvg}</div>
-    <div class="kaizen-toast__content">
-      <p class="kaizen-toast__message">${escapeHtml(message)}</p>
-    </div>
-    <button type="button" class="kaizen-toast__close" aria-label="Close notification">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </button>
-  `;
-
-  const closeBtn = toast.querySelector(".kaizen-toast__close");
-  const dismiss = () => {
-    toast.classList.remove("kaizen-toast-enter");
-    toast.classList.add("kaizen-toast-exit");
-    setTimeout(() => toast.remove(), 300);
-  };
-
-  if (closeBtn) closeBtn.onclick = dismiss;
-
-  container.appendChild(toast);
-
-  if (duration > 0) {
-    setTimeout(dismiss, duration);
-  }
+  toast.textContent = message;
+  toast.className = `kaizen-toast toast-${type}`;
+  // Force reflow
+  void toast.offsetWidth;
+  toast.classList.add('show');
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => {
+    toast.classList.remove('show');
+  }, duration);
 }
