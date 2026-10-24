@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kaizenreply-v4.0';
+const CACHE_NAME = 'kaizenreply-v4.1';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',

@@ -8,11 +8,11 @@
     <link rel="icon" type="image/png" href="/static/logo-inkwash.png" />
     <link rel="apple-touch-icon" href="/static/icon-192.png" />
     <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#f8f9f7" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#10151d" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#FBFBFA" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="KaizenReply" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://kaizenreply.us.ci" />
@@ -21,7 +21,7 @@
     <meta property="og:image" content="https://kaizenreply.us.ci/static/og-image.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="https://kaizenreply.us.ci/static/og-image.png" />
-    <link rel="stylesheet" href="/static/styles.css?v=3.0.0" />
+    <link rel="stylesheet" href="/static/styles.css?v=3.1.0" />
     <script>
       (function() {
         var saved = localStorage.getItem('kaizen-theme');
@@ -215,7 +215,7 @@
             </div>
 
             <!-- Tone Category Filters & Chip Selector -->
-            <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px;">
+            <div class="desk-field-group" style="margin-top:14px;">
               <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
                 <span style="font-size:12px;font-weight:700;color:var(--muted-foreground);">Tone <small style="opacity:0.7">· required</small></span>
                 <div id="toneCategoryFilters" class="tone-cat-filters" style="display:flex;gap:4px;">
@@ -262,7 +262,7 @@
             </div>
 
             <!-- Platform Selector -->
-            <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px;">
+            <div class="desk-field-group" style="margin-top:14px;">
               <span style="font-size:12px;font-weight:700;color:var(--muted-foreground);">Platform <small style="opacity:0.7">· optional</small></span>
               <div id="platformChips" class="chips-wrap"></div>
               <input id="customPlatformInput" class="desk-textarea hidden" style="min-height:40px;height:40px;padding:8px 12px;margin-top:4px;" placeholder="Type custom platform…" />
@@ -622,6 +622,6 @@
       </div>
     </div>
 
-    <script src="/static/app.js?v=3.0.0"></script>
+    <script src="/static/app.js?v=3.1.0"></script>
   </body>
 </html>
