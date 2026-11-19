@@ -27,6 +27,19 @@ _cached_models_time: float = 0.0
 _failed_models: set[str] = set()
 MODEL_CACHE_TTL = 3600  # 1 hour cache
 
+# Only these error markers mean "this model is gone"; anything else (bad JSON output,
+# transient 400s) must NOT blacklist a model for every user of the process.
+_MODEL_GONE_MARKERS = ("model_not_found", "decommissioned", "does not exist", "model_terms_required", "terms acceptance")
+
+
+async def resolve_requested_model(requested: str | None) -> str | None:
+    """Accept a client-requested model only if it is one we actually offer."""
+    if not requested:
+        return None
+    requested = requested.strip()
+    allowed = set(await get_groq_models()) | set(FALLBACK_MODELS) | {"llama-3.3-70b-versatile"}
+    return requested if requested in allowed else None
+
 
 async def get_groq_models() -> list[str]:
     global _cached_models, _cached_models_time, GROQ_MODEL
@@ -84,6 +97,7 @@ async def call_groq(
     api_key: str | None = None,
 ) -> str:
     global GROQ_MODEL
+    user_supplied_key = bool(api_key) and api_key != GROQ_API_KEY
     active_key = api_key or GROQ_API_KEY
     if not active_key:
         raise HTTPException(
@@ -91,6 +105,7 @@ async def call_groq(
             detail="AI model not available. GROQ_API_KEY is not configured in environment variables."
         )
 
+    requested_model = await resolve_requested_model(requested_model)
     primary_model = requested_model or GROQ_MODEL or "qwen/qwen3.8-27b"
     available_models = await get_groq_models()
 
@@ -139,16 +154,22 @@ async def call_groq(
                 if res.status_code == 429:
                     raise HTTPException(status_code=429, detail="Rate limit reached. Please wait a moment.")
 
+                if res.status_code in (401, 403):
+                    # Bad or unauthorised key: retrying other models won't help
+                    raise HTTPException(status_code=503, detail="AI service authentication failed.")
+
                 if res.status_code in (400, 404):
                     err_text = res.text[:400]
-                    if any(kw in err_text.lower() for kw in ["model", "decommissioned", "not found", "invalid", "deprecated", "does not exist", "terms acceptance"]):
-                        _failed_models.add(target_model)
+                    if any(kw in err_text.lower() for kw in _MODEL_GONE_MARKERS):
+                        # Never let a user-supplied key mutate shared server state
+                        if not user_supplied_key:
+                            _failed_models.add(target_model)
                         last_error_detail = err_text
                         break
 
                 res.raise_for_status()
 
-                if target_model != GROQ_MODEL and not requested_model:
+                if target_model != GROQ_MODEL and not requested_model and not user_supplied_key:
                     print(f"[Groq Model Switch] Automatically switched active model from '{GROQ_MODEL}' to working model '{target_model}'")
                     GROQ_MODEL = target_model
 
@@ -162,4 +183,5 @@ async def call_groq(
                     break
 
     print(f"[Groq Warning] All candidate models failed: {last_error_detail}")
-    raise HTTPException(status_code=503, detail=f"AI model not available: {last_error_detail}")
+    # Details stay in server logs; clients get a generic message
+    raise HTTPException(status_code=503, detail="AI model temporarily unavailable. Please try again shortly.")
