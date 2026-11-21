@@ -1,19 +1,17 @@
-export async function onRequest(context) {
-  const targetUrl = "https://kaizenreply.vercel.app/health";
-  const reqHeaders = new Headers(context.request.headers);
-  reqHeaders.set("Host", "kaizenreply.vercel.app");
-
-  const response = await fetch(targetUrl, {
-    method: "GET",
-    headers: reqHeaders
-  });
-
-  const resHeaders = new Headers(response.headers);
-  resHeaders.set("Access-Control-Allow-Origin", "*");
-
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers: resHeaders
-  });
+export async function onRequest() {
+  try {
+    const response = await fetch("https://kaizenreply.vercel.app/health", {
+      method: "GET",
+      headers: { Accept: "application/json" },
+    });
+    return new Response(response.body, {
+      status: response.status,
+      headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+    });
+  } catch {
+    return new Response(JSON.stringify({ status: "unreachable" }), {
+      status: 502,
+      headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+    });
+  }
 }

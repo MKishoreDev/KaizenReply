@@ -63,10 +63,43 @@ app.add_middleware(
         "http://localhost:3000",
         "http://localhost:5173",
     ],
-    allow_credentials=True,
+    allow_credentials=False,  # the API uses no cookies
     allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["*"],
+    allow_headers=["Content-Type", "X-Groq-Api-Key"],
 )
+
+CONTENT_SECURITY_POLICY = "; ".join([
+    "default-src 'self'",
+    "script-src 'self'",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com data:",
+    "img-src 'self' data: blob:",
+    "connect-src 'self'",
+    "manifest-src 'self'",
+    "worker-src 'self'",
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "object-src 'none'",
+])
+
+
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    response = await call_next(request)
+    h = response.headers
+    h.setdefault("X-Content-Type-Options", "nosniff")
+    h.setdefault("X-Frame-Options", "DENY")
+    h.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    h.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=(), interest-cohort=()")
+    h.setdefault("Cross-Origin-Opener-Policy", "same-origin")
+    if request.url.scheme == "https":
+        h.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+    if (response.headers.get("content-type") or "").startswith("text/html"):
+        h.setdefault("Content-Security-Policy", CONTENT_SECURITY_POLICY)
+    if request.url.path.startswith("/api/"):
+        h.setdefault("Cache-Control", "no-store")
+    return response
 
 
 @app.middleware("http")
@@ -187,8 +220,9 @@ async def list_models():
 @app.get("/api/kaizen/quotes")
 async def get_quotes(tag: str | None = None, limit: int = 30):
     proverbs = await get_kotowaza_proverbs()
+    limit = max(1, min(int(limit), 200))
     if tag:
-        t = tag.lower()
+        t = tag.lower()[:40]
         proverbs = [
             p for p in proverbs
             if any(t in str(tg).lower() for tg in p.get("tags", []))
@@ -243,7 +277,8 @@ async def index():
 @app.post("/api/kaizen/improve", response_model=ImproveResponse)
 async def improve(req: ImproveRequest, request: Request) -> ImproveResponse:
     ip = get_ip(request)
-    key = ("improve", req.message, req.tone, req.platform, req.conversationContext, req.recipient, req.model)
+    key = ("improve", req.message, req.tone, req.platform, req.conversationContext, req.recipient, req.model,
+           req.linkedinFormat, req.linkedinLength)
 
     clean_expired_cache()
     if cached := get_cached(key):
@@ -264,7 +299,8 @@ async def improve(req: ImproveRequest, request: Request) -> ImproveResponse:
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=502, detail=f"AI error: {e}")
+        print(f"[AI Error] {type(e).__name__}: {e}")
+        raise HTTPException(status_code=502, detail="The AI returned an unexpected response. Please try again.")
 
     before = clamp(parsed.get("before"), 0, 100, 55)
     raw_after = clamp(parsed.get("after"), 0, 100, before)
@@ -349,7 +385,8 @@ async def analyze(req: AnalyzeRequest, request: Request) -> AnalyzeResponse:
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=502, detail=f"AI error: {e}")
+        print(f"[AI Error] {type(e).__name__}: {e}")
+        raise HTTPException(status_code=502, detail="The AI returned an unexpected response. Please try again.")
 
     set_cached(key, result)
     return result
@@ -445,14 +482,17 @@ Respond with strict JSON only: {{"suggestions": [string, string, string]}}"""
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=502, detail=f"AI error: {e}")
+        print(f"[AI Error] {type(e).__name__}: {e}")
+        raise HTTPException(status_code=502, detail="The AI returned an unexpected response. Please try again.")
 
     set_cached(key, result)
     return result
 
 
 @app.post("/api/meme/generate")
-async def generate_meme_endpoint(req: MemeRequest):
+async def generate_meme_endpoint(req: MemeRequest, request: Request):
+    # Pillow rendering at 2048px is CPU-heavy: rate-limit it like the AI routes
+    check_antispam(get_ip(request))
     img_bytes = create_reality_vs_linkedin_meme(req.reality, req.linkedin)
     return Response(
         content=img_bytes,
@@ -461,14 +501,17 @@ async def generate_meme_endpoint(req: MemeRequest):
     )
 
 
+_demo_meme_bytes: bytes | None = None
+_DEMO_HEADERS = {"Content-Disposition": 'inline; filename="reality-vs-linkedin-demo.jpg"'}
+
+
 @app.get("/api/meme/demo")
 async def demo_meme_endpoint():
-    img_bytes = create_reality_vs_linkedin_meme(
-        "I ate a sandwich at 2 PM because I forgot to have lunch.",
-        "Executed a precision mid-day nutritional sprint. Optimized metabolic throughput and sustained high-velocity cognitive output across cross-functional workstreams."
-    )
-    return Response(
-        content=img_bytes,
-        media_type="image/jpeg",
-        headers={"Content-Disposition": 'inline; filename="reality-vs-linkedin-demo.jpg"'}
-    )
+    # Static content: render once, then serve from memory (no CPU cost per request)
+    global _demo_meme_bytes
+    if _demo_meme_bytes is None:
+        _demo_meme_bytes = create_reality_vs_linkedin_meme(
+            "I ate a sandwich at 2 PM because I forgot to have lunch.",
+            "Executed a precision mid-day nutritional sprint. Optimized metabolic throughput and sustained high-velocity cognitive output across cross-functional workstreams."
+        )
+    return Response(content=_demo_meme_bytes, media_type="image/jpeg", headers=_DEMO_HEADERS)
