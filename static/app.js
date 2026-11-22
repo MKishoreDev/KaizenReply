@@ -74,13 +74,17 @@ const QUOTES = [
 ];
 
 let state = {
-  tone: localStorage.getItem("kaizen_pref_tone") || "Professional",
-  platform: localStorage.getItem("kaizen_pref_platform") || "",
+  tone: lsGet("kaizen_pref_tone", "Professional"),
+  platform: lsGet("kaizen_pref_platform", ""),
   recipient: "",
-  toneCategory: localStorage.getItem("kaizen_pref_tone_cat") || "All",
+  toneCategory: lsGet("kaizen_pref_tone_cat", "All"),
   linkedinFormat: "Auto",
   linkedinLength: "Auto"
 };
+
+if (!TONES.includes(state.tone)) state.tone = "Professional";
+if (state.platform && !PLATFORMS.includes(state.platform)) state.platform = "";
+if (!["All", "Viral", "Work", "Social"].includes(state.toneCategory)) state.toneCategory = "All";
 
 let currentMode = "evolve"; // "evolve" or "reply"
 let currentQuoteIndex = 0;
@@ -88,6 +92,54 @@ let lastEvolvedData = null;
 let countdownInterval = null;
 let deferredInstallPrompt = null;
 let draftAutoSaveTimer = null;
+let cooldownUntil = 0;
+const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// Safe localStorage helpers (storage can throw in private mode / when blocked)
+function lsGet(key, fallback = null) {
+  try { const v = localStorage.getItem(key); return v === null ? fallback : v; } catch { return fallback; }
+}
+function lsSet(key, value) {
+  try { localStorage.setItem(key, value); } catch { /* ignore quota / privacy errors */ }
+}
+function lsRemove(key) {
+  try { localStorage.removeItem(key); } catch { /* ignore */ }
+}
+
+// Clipboard with fallback for non-secure contexts / older browsers
+async function copyText(text, successMsg = "Copied to clipboard.") {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand("copy");
+      ta.remove();
+      if (!ok) throw new Error("copy failed");
+    }
+    showKaizenToast(successMsg, "success");
+    return true;
+  } catch {
+    showKaizenToast("Couldn't access the clipboard. Select the text and copy it manually.", "error", 3500);
+    return false;
+  }
+}
+
+// Parse a fetch Response as JSON without crashing on HTML error pages from proxies
+async function readJsonSafe(res) {
+  const text = await res.text();
+  try { return text ? JSON.parse(text) : {}; } catch { return { detail: res.ok ? "Unexpected response from server." : `Server error (${res.status}). Please try again.` }; }
+}
+
+function lockScroll(lock) {
+  document.documentElement.classList.toggle("scroll-locked", !!lock);
+}
 
 const $ = (id) => document.getElementById(id);
 
@@ -101,6 +153,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   initTheme();
   populateDropdownsAndChips();
+  document.querySelectorAll(".tone-cat-btn").forEach((b) => b.classList.toggle("active", b.getAttribute("data-cat") === state.toneCategory));
   initServiceWorker();
   initPwaInstallPrompts();
   initNetworkStatusListener();
@@ -120,7 +173,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   initHeroPreviewAnimation();
   initScrollSpy();
 
-  // Scroll reveal
+  // Scroll reveal (everything is shown immediately if motion is reduced or IO is unsupported)
+  if (prefersReducedMotion || !("IntersectionObserver" in window)) {
+    document.querySelectorAll('.reveal-on-scroll').forEach(el => el.classList.add('is-visible'));
+    return;
+  }
   const revealObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
@@ -185,7 +242,21 @@ function initHeroPreviewAnimation() {
   const startScore = 60;
   const gain = targetScore - startScore;
 
+  if (prefersReducedMotion) {
+    draftEl.textContent = originalText;
+    evolvedEl.textContent = evolvedText;
+    evolvedEl.classList.add("mini-evolved--active");
+    scoreValEl.textContent = targetScore;
+    if (gainValEl) { gainValEl.textContent = `+${gain}`; gainValEl.style.opacity = "1"; gainValEl.style.transform = "scale(1)"; }
+    return;
+  }
+
   async function runAnimationCycle() {
+    // Don't burn CPU while the tab is hidden
+    if (document.hidden) {
+      document.addEventListener("visibilitychange", runAnimationCycle, { once: true });
+      return;
+    }
     // 1. Reset card elements
     draftEl.innerHTML = '<span class="typewriter-text"></span><span class="typewriter-cursor">|</span>';
     evolvedEl.innerHTML = '<span style="opacity:0.35;font-size:11px;">Waiting for draft message…</span>';
@@ -257,16 +328,18 @@ function initHeroPreviewAnimation() {
 
 // Theme Management
 function initTheme() {
-  const saved = localStorage.getItem("kaizen-theme");
-  // Default is light mode unless user explicitly chose dark
-  const isDark = saved === "dark";
-  setTheme(isDark);
+  const saved = lsGet("kaizen-theme");
+  // Follow the user's explicit choice, otherwise the OS preference (same rule as theme-init.js)
+  const isDark = saved ? saved === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+  setTheme(isDark, false);
 }
 
-function setTheme(dark) {
+function setTheme(dark, persist = true) {
   document.documentElement.classList.toggle("dark", dark);
   document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
-  localStorage.setItem("kaizen-theme", dark ? "dark" : "light");
+  if (persist) lsSet("kaizen-theme", dark ? "dark" : "light");
+  const themeBtn = $("themeToggle");
+  if (themeBtn) themeBtn.setAttribute("aria-label", dark ? "Switch to light mode" : "Switch to dark mode");
   const sun = document.querySelector(".sun-icon");
   const moon = document.querySelector(".moon-icon");
   if (sun && moon) {
@@ -281,7 +354,7 @@ function setTheme(dark) {
 async function fetchAvailableModels() {
   const select = $("modelSelect");
   if (!select) return;
-  const savedModel = localStorage.getItem("kaizen_pref_model");
+  const savedModel = lsGet("kaizen_pref_model");
   try {
     const res = await fetch("/api/models");
     if (!res.ok) return;
@@ -290,7 +363,8 @@ async function fetchAvailableModels() {
     if (modelsList.length > 0) {
       const currentSelected = savedModel || select.value || data.current || "qwen/qwen3.8-27b";
       select.innerHTML = modelsList
-        .map((m) => `<option value="${m}" ${m === currentSelected ? 'selected' : ''}>${m}</option>`)
+        .filter((m) => typeof m === "string")
+        .map((m) => `<option value="${escapeHtml(m)}" ${m === currentSelected ? 'selected' : ''}>${escapeHtml(m)}</option>`)
         .join("");
     }
   } catch (e) {
@@ -307,7 +381,7 @@ function populateDropdownsAndChips() {
     toneSel.value = state.tone;
     toneSel.onchange = () => {
       state.tone = toneSel.value;
-      localStorage.setItem("kaizen_pref_tone", state.tone);
+      lsSet("kaizen_pref_tone", state.tone);
       renderToneChips();
     };
   }
@@ -316,7 +390,7 @@ function populateDropdownsAndChips() {
     platformSel.value = state.platform;
     platformSel.onchange = () => {
       state.platform = platformSel.value;
-      localStorage.setItem("kaizen_pref_platform", state.platform);
+      lsSet("kaizen_pref_platform", state.platform);
       renderPlatformChips();
     };
   }
@@ -379,7 +453,7 @@ function renderToneChips() {
   container.querySelectorAll("button").forEach((btn) => {
     btn.onclick = () => {
       state.tone = btn.getAttribute("data-tone");
-      localStorage.setItem("kaizen_pref_tone", state.tone);
+      lsSet("kaizen_pref_tone", state.tone);
       if ($("toneSelect")) $("toneSelect").value = state.tone;
       renderToneChips();
     };
@@ -398,7 +472,7 @@ function renderPlatformChips() {
   container.querySelectorAll("button").forEach((btn) => {
     btn.onclick = () => {
       state.platform = state.platform === btn.getAttribute("data-platform") ? "" : btn.getAttribute("data-platform");
-      localStorage.setItem("kaizen_pref_platform", state.platform);
+      lsSet("kaizen_pref_platform", state.platform);
       if ($("platformSelect")) $("platformSelect").value = state.platform;
       renderPlatformChips();
     };
@@ -458,6 +532,8 @@ function handleIncomingShareTarget() {
       document.getElementById("desk")?.scrollIntoView({ behavior: "smooth" });
       showKaizenToast("Shared message imported into Kaizen desk!", "success");
     }
+    // Remove the params so a refresh doesn't overwrite the draft again
+    try { history.replaceState(null, "", window.location.pathname + window.location.hash); } catch { /* ignore */ }
   }
 }
 
@@ -466,7 +542,7 @@ function initDraftAutoRecovery() {
   const msgInput = $("messageInput");
   if (!msgInput) return;
 
-  const saved = localStorage.getItem("kaizen_active_draft");
+  const saved = lsGet("kaizen_active_draft");
   if (saved && !msgInput.value.trim()) {
     msgInput.value = saved;
     updateDraftMetrics(saved);
@@ -495,9 +571,9 @@ function saveDraftToStorageDebounced(text) {
   clearTimeout(draftAutoSaveTimer);
   draftAutoSaveTimer = setTimeout(() => {
     if (text && text.trim()) {
-      localStorage.setItem("kaizen_active_draft", text);
+      lsSet("kaizen_active_draft", text);
     } else {
-      localStorage.removeItem("kaizen_active_draft");
+      lsRemove("kaizen_active_draft");
     }
   }, 250);
 }
@@ -525,19 +601,23 @@ function initPwaInstallPrompts() {
 
   function showPopupPrompt() {
     if (isStandalone) return;
-    if (sessionStorage.getItem("kaizen_pwa_dismissed") === "true") return;
+    try { if (sessionStorage.getItem("kaizen_pwa_dismissed") === "true") return; } catch { /* ignore */ }
     if (pwaPopup) {
       pwaPopup.classList.add("show");
+      pwaPopup.setAttribute("aria-hidden", "false");
     }
   }
 
   function hidePopupPrompt() {
-    if (pwaPopup) pwaPopup.classList.remove("show");
+    if (pwaPopup) {
+      pwaPopup.classList.remove("show");
+      pwaPopup.setAttribute("aria-hidden", "true");
+    }
   }
 
   function dismissPopupForeverForSession() {
     hidePopupPrompt();
-    sessionStorage.setItem("kaizen_pwa_dismissed", "true");
+    try { sessionStorage.setItem("kaizen_pwa_dismissed", "true"); } catch { /* ignore */ }
   }
 
   window.addEventListener("beforeinstallprompt", (e) => {
@@ -560,15 +640,20 @@ function initPwaInstallPrompts() {
     showKaizenToast("KaizenReply installed to your device.", "success");
   });
 
-  // Keep button accessible in nav/drawer
-  if (pwaNavBtn) pwaNavBtn.classList.remove("hidden");
-  if (pwaMobileBtn) pwaMobileBtn.classList.remove("hidden");
-
-  // On iOS or mobile without beforeinstallprompt, auto-prompt softly after delay if not dismissed
-  if (!isStandalone && sessionStorage.getItem("kaizen_pwa_dismissed") !== "true") {
-    setTimeout(() => {
-      showPopupPrompt();
-    }, 4500);
+  // Only advertise install where it can actually happen: browsers that fire
+  // beforeinstallprompt (handled above) or iOS Safari (manual Add to Home Screen).
+  if (isIos) {
+    if (pwaNavBtn) pwaNavBtn.classList.remove("hidden");
+    if (pwaMobileBtn) pwaMobileBtn.classList.remove("hidden");
+    if (pwaPopupIosTip) pwaPopupIosTip.classList.remove("hidden");
+    const actionText = $("pwaPopupActionText");
+    if (actionText) actionText.textContent = "How to install";
+    let dismissed = false;
+    try { dismissed = sessionStorage.getItem("kaizen_pwa_dismissed") === "true"; } catch { /* ignore */ }
+    if (!dismissed) setTimeout(showPopupPrompt, 6000);
+  } else {
+    if (pwaNavBtn) pwaNavBtn.classList.add("hidden");
+    if (pwaMobileBtn) pwaMobileBtn.classList.add("hidden");
   }
 
   // Handle Install Action Trigger
@@ -663,9 +748,13 @@ function initGlobalKeyboardShortcuts() {
 
   window.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
-      $("shareModal")?.classList.add("hidden");
-      $("appInstallModal")?.classList.add("hidden");
-      $("mobileMenuPanel")?.classList.add("hidden");
+      closeShareModal();
+      closeMobileMenu();
+      const popup = $("pwaInstallPopup");
+      if (popup && popup.classList.contains("show")) {
+        popup.classList.remove("show");
+        popup.setAttribute("aria-hidden", "true");
+      }
     }
 
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
@@ -683,8 +772,7 @@ function initGlobalKeyboardShortcuts() {
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "c") {
       if (lastEvolvedData && lastEvolvedData.improved) {
         e.preventDefault();
-        navigator.clipboard.writeText(lastEvolvedData.improved);
-        showKaizenToast("Copied to clipboard.", "success");
+        copyText(lastEvolvedData.improved);
       }
     }
   });
@@ -695,10 +783,22 @@ function setupEventListeners() {
   const mobileMenuBtn = $("mobileMenuBtn");
   const mobileMenuPanel = $("mobileMenuPanel");
   if (mobileMenuBtn && mobileMenuPanel) {
-    mobileMenuBtn.onclick = () => mobileMenuPanel.classList.toggle("hidden");
+    mobileMenuBtn.onclick = (e) => {
+      e.stopPropagation();
+      if (mobileMenuPanel.classList.contains("hidden")) openMobileMenu();
+      else closeMobileMenu();
+    };
     mobileMenuPanel.querySelectorAll("a").forEach(a => {
-      a.onclick = () => mobileMenuPanel.classList.add("hidden");
+      a.addEventListener("click", closeMobileMenu);
     });
+    document.addEventListener("click", (e) => {
+      if (!mobileMenuPanel.classList.contains("hidden") && !mobileMenuPanel.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+        closeMobileMenu();
+      }
+    });
+    window.addEventListener("resize", () => {
+      if (window.innerWidth > 1024) closeMobileMenu();
+    }, { passive: true });
   }
 
   // Theme Toggle
@@ -724,17 +824,11 @@ function setupEventListeners() {
         });
       } catch (err) {
         if (err.name !== "AbortError") {
-          await navigator.clipboard.writeText(payload.fullCopyText);
-          showKaizenToast("KaizenReply invite & Kotowaza quote copied to clipboard!", "success");
+          await copyText(payload.fullCopyText, "KaizenReply invite & Kotowaza quote copied to clipboard!");
         }
       }
     } else {
-      try {
-        await navigator.clipboard.writeText(payload.fullCopyText);
-        showKaizenToast("KaizenReply invite & Kotowaza quote copied to clipboard!", "success");
-      } catch (e) {
-        showKaizenToast("KaizenReply link copied to clipboard!", "success");
-      }
+      await copyText(payload.fullCopyText, "KaizenReply invite & Kotowaza quote copied to clipboard!");
     }
   };
   if (shareWebBtn) shareWebBtn.onclick = handleShareWeb;
@@ -750,6 +844,16 @@ function setupEventListeners() {
   const clearAllHistoryBtn = $("clearAllHistoryBtn");
 
   if (studioTabDesk && studioTabHistory) {
+    studioTabDesk.setAttribute("aria-pressed", "true");
+    studioTabHistory.setAttribute("aria-pressed", "false");
+    studioTabDesk.addEventListener("click", () => {
+      studioTabDesk.setAttribute("aria-pressed", "true");
+      studioTabHistory.setAttribute("aria-pressed", "false");
+    });
+    studioTabHistory.addEventListener("click", () => {
+      studioTabDesk.setAttribute("aria-pressed", "false");
+      studioTabHistory.setAttribute("aria-pressed", "true");
+    });
     studioTabDesk.onclick = () => {
       studioTabDesk.classList.add("selected");
       studioTabHistory.classList.remove("selected");
@@ -774,7 +878,7 @@ function setupEventListeners() {
   if (clearAllHistoryBtn) {
     clearAllHistoryBtn.onclick = () => {
       if (confirm("Clear your saved message history?")) {
-        localStorage.removeItem("kaizen_history");
+        lsRemove("kaizen_history");
         renderKaizenHistory();
         showKaizenToast("Saved history cleared.", "info");
       }
@@ -819,15 +923,17 @@ function setupEventListeners() {
   if (pasteBtn && msgInput) {
     pasteBtn.onclick = async () => {
       try {
+        if (!navigator.clipboard || !navigator.clipboard.readText) throw new Error("unsupported");
         const text = await navigator.clipboard.readText();
         if (text) {
-          msgInput.value = text;
-          updateDraftMetrics(text);
-          saveDraftToStorageDebounced(text);
-          showKaizenToast("Pasted clipboard text!", "success", 1500);
+          const clipped = text.slice(0, 3000);
+          msgInput.value = clipped;
+          updateDraftMetrics(clipped);
+          saveDraftToStorageDebounced(clipped);
+          showKaizenToast(text.length > 3000 ? "Pasted (trimmed to 3000 characters)." : "Pasted clipboard text!", text.length > 3000 ? "info" : "success", 1800);
         }
       } catch (err) {
-        showKaizenToast("Clipboard access permission required.", "error");
+        showKaizenToast("Clipboard access was blocked. Long-press or Ctrl+V to paste instead.", "error", 3500);
       }
     };
   }
@@ -839,7 +945,7 @@ function setupEventListeners() {
       catBtns.forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
       state.toneCategory = btn.getAttribute("data-cat") || "All";
-      localStorage.setItem("kaizen_pref_tone_cat", state.toneCategory);
+      lsSet("kaizen_pref_tone_cat", state.toneCategory);
       renderToneChips();
     };
   });
@@ -857,13 +963,13 @@ function setupEventListeners() {
       }
       if (tone) {
         state.tone = tone;
-        localStorage.setItem("kaizen_pref_tone", tone);
+        lsSet("kaizen_pref_tone", tone);
         if ($("toneSelect")) $("toneSelect").value = tone;
         renderToneChips();
       }
       if (platform) {
         state.platform = platform;
-        localStorage.setItem("kaizen_pref_platform", platform);
+        lsSet("kaizen_pref_platform", platform);
         if ($("platformSelect")) $("platformSelect").value = platform;
         renderPlatformChips();
       }
@@ -874,7 +980,7 @@ function setupEventListeners() {
   const modelSelectEl = $("modelSelect");
   if (modelSelectEl) {
     modelSelectEl.onchange = () => {
-      localStorage.setItem("kaizen_pref_model", modelSelectEl.value);
+      lsSet("kaizen_pref_model", modelSelectEl.value);
     };
   }
 
@@ -887,6 +993,7 @@ function setupEventListeners() {
       const isHidden = ctxDrawer.classList.contains("hidden");
       ctxDrawer.classList.toggle("hidden", !isHidden);
       if (ctxSymbol) ctxSymbol.textContent = isHidden ? "−" : "+";
+      ctxToggle.setAttribute("aria-expanded", String(isHidden));
     };
   }
 
@@ -940,14 +1047,14 @@ function setupEventListeners() {
   }
   if (shareQuote) {
     shareQuote.onclick = () => {
-      const q = (kotowazaList && kotowazaList[currentQuoteIndex]) || QUOTES[0];
+      const list = getFilteredQuotes().length ? getFilteredQuotes() : kotowazaList;
+      const q = (list && list[currentQuoteIndex]) || QUOTES[0];
       const meaning = (q.meaning && q.meaning.en) ? q.meaning.en : (q.translation || "");
       const shareText = `"${q.japanese}" (${q.romaji}) — ${meaning}\n\nKaizen Kotowaza · https://kaizenreply.us.ci`;
       if (navigator.share) {
         navigator.share({ title: "Kaizen Kotowaza", text: shareText }).catch(() => undefined);
       } else {
-        navigator.clipboard.writeText(shareText);
-        showKaizenToast("Proverb copied to clipboard.", "success");
+        copyText(shareText, "Proverb copied to clipboard.");
       }
     };
   }
@@ -968,7 +1075,7 @@ function setupEventListeners() {
   const clearHistoryBtn = $("clearHistoryBtn");
   if (clearHistoryBtn) {
     clearHistoryBtn.onclick = () => {
-      localStorage.removeItem("kaizen_history");
+      lsRemove("kaizen_history");
       renderKaizenHistory();
     };
   }
@@ -977,8 +1084,37 @@ function setupEventListeners() {
   const closeModalBtn = $("closeModalBtn");
   const shareModal = $("shareModal");
   if (closeModalBtn && shareModal) {
-    closeModalBtn.onclick = () => shareModal.classList.add("hidden");
+    closeModalBtn.onclick = closeShareModal;
+    shareModal.addEventListener("click", (e) => {
+      if (e.target === shareModal) closeShareModal();
+    });
   }
+}
+
+function openMobileMenu() {
+  const panel = $("mobileMenuPanel");
+  const btn = $("mobileMenuBtn");
+  if (!panel) return;
+  panel.classList.remove("hidden");
+  if (btn) { btn.setAttribute("aria-expanded", "true"); btn.setAttribute("aria-label", "Close navigation"); }
+}
+
+function closeMobileMenu() {
+  const panel = $("mobileMenuPanel");
+  const btn = $("mobileMenuBtn");
+  if (!panel || panel.classList.contains("hidden")) return;
+  panel.classList.add("hidden");
+  if (btn) { btn.setAttribute("aria-expanded", "false"); btn.setAttribute("aria-label", "Open navigation"); }
+}
+
+let modalReturnFocus = null;
+function closeShareModal() {
+  const modal = $("shareModal");
+  if (!modal || modal.classList.contains("hidden")) return;
+  modal.classList.add("hidden");
+  lockScroll(false);
+  if (modalReturnFocus && typeof modalReturnFocus.focus === "function") modalReturnFocus.focus();
+  modalReturnFocus = null;
 }
 
 // Mode Switch Handler
@@ -1006,54 +1142,54 @@ function switchMode(mode) {
     }
   }
   if (evolveBtnText) {
-    evolveBtnText.textContent = mode === "evolve" ? "Refine Draft →" : "Get Replies →";
+    evolveBtnText.textContent = mode === "evolve" ? "Refine Draft" : "Get Replies";
+  }
+  if (modeEvolve && modeReply) {
+    modeEvolve.setAttribute("aria-pressed", String(mode === "evolve"));
+    modeReply.setAttribute("aria-pressed", String(mode === "reply"));
   }
   if (msgInput) {
     msgInput.placeholder = mode === "evolve" ? "Paste your message here…  e.g. bro send that report asap" : "Paste the message you received…  e.g. Can you send the report by tomorrow?";
   }
 }
 
-function startRateLimitCooldown(seconds = 5) {
-  const evolveBtn = $("evolveBtn");
-  const evolveBtnText = $("evolveBtnText");
-  if (!evolveBtn) return;
-  evolveBtn.disabled = true;
-  const originalText = evolveBtnText ? evolveBtnText.textContent : (currentMode === "reply" ? "Get Replies →" : "Refine Draft →");
-  let remaining = seconds;
-  if (evolveBtnText) evolveBtnText.textContent = `Wait ${remaining}s…`;
-  const interval = setInterval(() => {
-    remaining--;
+function primaryActionLabel() {
+  return currentMode === "reply" ? "Get Replies" : "Refine Draft";
+}
+
+function startRateLimitCooldown(seconds = 10) {
+  cooldownUntil = Date.now() + seconds * 1000;
+  const tick = () => {
+    const btnText = $("evolveBtnText");
+    const btn = $("evolveBtn");
+    const remaining = Math.ceil((cooldownUntil - Date.now()) / 1000);
     if (remaining <= 0) {
-      clearInterval(interval);
-      evolveBtn.disabled = false;
-      if (evolveBtnText) evolveBtnText.textContent = originalText;
-    } else if (evolveBtnText) {
-      evolveBtnText.textContent = `Wait ${remaining}s…`;
+      cooldownUntil = 0;
+      if (btn) btn.disabled = false;
+      if (btnText) btnText.textContent = primaryActionLabel();
+      return;
     }
-  }, 1000);
+    if (btn) btn.disabled = true;
+    if (btnText) btnText.textContent = `Wait ${remaining}s…`;
+    setTimeout(tick, 250);
+  };
+  tick();
 }
 
 function setLoading(isLoading) {
-  const btn = $('evolveBtn');
-  const btnText = $('evolveBtnText');
-  const kbdHint = $('evolveKbdHint');
+  const btn = $("evolveBtn");
   if (!btn) return;
-  btn.disabled = isLoading;
+  const btnText = $("evolveBtnText");
+  btn.classList.toggle("is-loading", isLoading);
+  btn.setAttribute("aria-busy", String(isLoading));
   if (isLoading) {
-    btn.innerHTML = `
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:kaizen-spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-      <span>Refining</span>
-      <span style="animation:ellipsis-dots 1.5s steps(4,end) infinite;display:inline-block;width:1.5ch;overflow:hidden;"></span>
-    `;
-    btn.style.opacity = '0.82';
-    btn.style.cursor = 'wait';
-  } else {
-    const label = (typeof currentMode !== 'undefined' && currentMode === 'reply') ? 'Get Replies' : 'Refine Draft';
-    btn.innerHTML = `<span id="evolveBtnText">${label}</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg><kbd class="kbd-hint hidden md-inline" id="evolveKbdHint">Ctrl ↵</kbd>`;
-    btn.style.opacity = '';
-    btn.style.cursor = '';
+    btn.disabled = true;
+    if (btnText) btnText.textContent = currentMode === "reply" ? "Writing replies…" : "Refining…";
+  } else if (Date.now() >= cooldownUntil) {
     btn.disabled = false;
+    if (btnText) btnText.textContent = primaryActionLabel();
   }
+  // during a cooldown, startRateLimitCooldown owns the label and disabled state
 }
 
 // Execute AI Action (Evolve or Reply)
@@ -1068,6 +1204,12 @@ async function runKaizenAction(overrideTone = null) {
   const fixGrammarBtn = $("fixGrammarBtn");
 
   if (errorBanner) errorBanner.classList.add("hidden");
+
+  if (Date.now() < cooldownUntil) {
+    showKaizenToast("Please wait a few seconds before trying again.", "info", 2000);
+    return;
+  }
+  if ($("evolveBtn")?.classList.contains("is-loading")) return;
 
   if (!navigator.onLine) {
     showKaizenToast("You are currently offline. Drafts, proverbs, and past history are safely cached.", "info", 4500);
@@ -1108,12 +1250,13 @@ async function runKaizenAction(overrideTone = null) {
 </div>`;
   outputContainer.innerHTML = LOADING_HTML;
 
-  // Auto-scroll to output column on mobile/laptop viewports so user never has to scroll to see results
-  if (window.innerWidth <= 1280) {
-    const outputCol = document.querySelector(".output-column");
-    if (outputCol) {
-      outputCol.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+  // Reset the marginalia so notes from a previous run never sit next to a new result
+  resetMarginalia();
+
+  // On stacked (single-column) layouts, bring the result into view
+  const outputCol = document.querySelector(".output-column");
+  if (outputCol && outputCol.getBoundingClientRect().top > window.innerHeight * 0.6) {
+    outputCol.scrollIntoView({ behavior: prefersReducedMotion ? "auto" : "smooth", block: "start" });
   }
 
   setLoading(true);
@@ -1128,31 +1271,42 @@ async function runKaizenAction(overrideTone = null) {
     });
 
     if (res.status === 429) {
-      startRateLimitCooldown(5);
-      throw new Error("Rate limit reached. Please wait a moment.");
+      const retry = parseInt(res.headers.get("Retry-After") || "", 10);
+      startRateLimitCooldown(Number.isFinite(retry) && retry > 0 ? Math.min(retry, 60) : 10);
+      throw new Error("You're refining quickly! Please wait a moment and try again.");
     }
 
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || "Request failed");
+    const data = await readJsonSafe(res);
+    if (!res.ok) {
+      const detail = typeof data.detail === "string" ? data.detail
+        : Array.isArray(data.detail) ? "Please check your message and try again." : "Request failed. Please try again.";
+      throw new Error(detail);
+    }
+    if (currentMode === "reply" ? !Array.isArray(data.suggestions) : typeof data.improved !== "string") {
+      throw new Error("Unexpected response from the Kaizen service. Please try again.");
+    }
 
     if (currentMode === "reply") {
       renderReplyOutput(data, payload.message);
     } else {
       lastEvolvedData = { original: payload.message, ...data, tone: payload.tone, platform: payload.platform };
-      saveToKaizenHistory(payload.message, data.improved, data.score, payload.tone);
-      renderEvolveOutput(data, payload.message, payload.tone, payload.platform);
+      const historyId = saveToKaizenHistory(payload.message, data.improved, data.score, payload.tone);
+      renderEvolveOutput(data, payload.message, payload.tone, payload.platform, historyId);
     }
   } catch (err) {
-    if (errorBanner) {
-      errorBanner.textContent = err.message || "The Kaizen service is temporarily unavailable. Your draft is safe.";
-      errorBanner.classList.remove("hidden");
-    }
+    const msg = (err && err.name === "TypeError")
+      ? "Couldn't reach the Kaizen service. Check your connection — your draft is safe."
+      : (err.message || "The Kaizen service is temporarily unavailable. Your draft is safe.");
+    if (errorBanner) errorBanner.classList.add("hidden");
     outputContainer.innerHTML = `
-      <div class="result-state" style="color:var(--hanko);">
+      <div class="result-state result-error">
         <h3>The message could not evolve</h3>
-        <p>${escapeHtml(err.message || "Please check your network and try again.")}</p>
+        <p>${escapeHtml(msg)}</p>
+        <button type="button" class="btn-paper" id="retryKaizenBtn">Try again</button>
       </div>
     `;
+    const retryBtn = $("retryKaizenBtn");
+    if (retryBtn) retryBtn.onclick = () => runKaizenAction(overrideTone);
   } finally {
     setLoading(false);
     if (fixGrammarBtn) fixGrammarBtn.disabled = false;
@@ -1160,7 +1314,7 @@ async function runKaizenAction(overrideTone = null) {
 }
 
 // Render Editorial Proofing Desk Output
-function renderEvolveOutput(data, original, tone, platform) {
+function renderEvolveOutput(data, original, tone, platform, historyId = null) {
   const outputContainer = $("outputContainer");
 
   const origWords = original.trim().split(/\s+/).filter(Boolean);
@@ -1173,12 +1327,12 @@ function renderEvolveOutput(data, original, tone, platform) {
     <div class="evolved-result evolved-result-animate result-reveal">
       <div class="proof-tab-bar">
         <div class="manuscript-tabs" id="manuscriptTabs">
-          <button class="manuscript-tab active" data-tab="refined">Inline diff</button>
-          <button class="manuscript-tab" data-tab="sidebyside">Side by side</button>
-          <button class="manuscript-tab" data-tab="original">Clean final</button>
+          <button type="button" class="manuscript-tab active" data-tab="refined">Inline diff</button>
+          <button type="button" class="manuscript-tab" data-tab="sidebyside">Side by side</button>
+          <button type="button" class="manuscript-tab" data-tab="original">Clean final</button>
         </div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div class="proof-word-stats" id="proofWordStats">${statsText}</div>
+        <div class="proof-tab-tools">
+          <div class="proof-word-stats" id="proofWordStats">${escapeHtml(statsText)}</div>
           <button class="btn-paper" id="quickCopyTabBtn" style="padding:4px 10px;font-size:11px;gap:4px;" title="Quick copy revised message">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
             Copy
@@ -1248,10 +1402,7 @@ function renderEvolveOutput(data, original, tone, platform) {
   // Quick Copy Tab Button Listener
   const quickCopyBtn = $("quickCopyTabBtn");
   if (quickCopyBtn) {
-    quickCopyBtn.onclick = () => {
-      navigator.clipboard.writeText(data.improved);
-      showKaizenToast("Copied to clipboard.", "success");
-    };
+    quickCopyBtn.onclick = () => copyText(data.improved);
   }
 
   // Manuscript Tab Switching Logic
@@ -1268,16 +1419,14 @@ function renderEvolveOutput(data, original, tone, platform) {
       manuscriptText.innerHTML = '<p class="manuscript-clean">' + escapeHtml(data.improved) + '</p><div style="margin-top:20px;display:flex;justify-content:flex-end;"><button class="btn-paper" id="cleanFinalCopyBtn" style="font-size:12px;padding:6px 14px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy Clean Text</button></div>';
       const cleanCopy = $("cleanFinalCopyBtn");
       if (cleanCopy) {
-        cleanCopy.onclick = () => {
-          navigator.clipboard.writeText(data.improved);
-          showKaizenToast("Copied to clipboard.", "success");
-        };
+        cleanCopy.onclick = () => copyText(data.improved);
       }
     }
   }
 
   tabs.forEach(tab => {
     tab.onclick = () => {
+      if (isEditing) editBtn.click(); // commit any in-progress edit before switching view
       tabs.forEach(t => t.classList.remove("active"));
       tab.classList.add("active");
       const mode = tab.getAttribute("data-tab");
@@ -1298,13 +1447,21 @@ function renderEvolveOutput(data, original, tone, platform) {
           <textarea class="manuscript-edit-area" id="manuscriptEditArea">${escapeHtml(data.improved)}</textarea>
         `;
         const editArea = $("manuscriptEditArea");
-        if (editArea) editArea.focus();
+        if (editArea) {
+          editArea.style.height = "auto";
+          editArea.style.height = Math.max(160, editArea.scrollHeight + 4) + "px";
+          editArea.addEventListener("input", () => {
+            editArea.style.height = "auto";
+            editArea.style.height = Math.max(160, editArea.scrollHeight + 4) + "px";
+          });
+          editArea.focus();
+        }
       } else {
         const editArea = $("manuscriptEditArea");
         if (editArea && editArea.value.trim()) {
           data.improved = editArea.value.trim();
           if (lastEvolvedData) lastEvolvedData.improved = data.improved;
-          saveToKaizenHistory(original, data.improved, data.score, tone);
+          updateKaizenHistoryEntry(historyId, data.improved);
         }
         editBtn.classList.remove("active");
         editBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Edit';
@@ -1316,13 +1473,10 @@ function renderEvolveOutput(data, original, tone, platform) {
   }
 
   // Action Buttons Listeners
-  $("copyResultBtn").onclick = () => {
-    navigator.clipboard.writeText(data.improved);
-    showKaizenToast("Refined manuscript copied to clipboard!", "success");
-  };
+  $("copyResultBtn").onclick = () => copyText(data.improved, "Refined manuscript copied to clipboard!");
   $("shareResultBtn").onclick = () => {
     if (navigator.share) navigator.share({ text: data.improved }).catch(() => undefined);
-    else { navigator.clipboard.writeText(data.improved); showKaizenToast("Refined manuscript copied to clipboard!", "success"); }
+    else copyText(data.improved, "Refined manuscript copied to clipboard!");
   };
   const cardBtn = $("cardResultBtn");
   if (cardBtn) {
@@ -1333,7 +1487,8 @@ function renderEvolveOutput(data, original, tone, platform) {
     const msgInput = $("messageInput");
     if (msgInput) {
       msgInput.value = data.improved;
-      $("charCount").textContent = data.improved.length;
+      updateDraftMetrics(data.improved);
+      saveDraftToStorageDebounced(data.improved);
       msgInput.scrollIntoView({ behavior: "smooth", block: "center" });
       msgInput.focus();
     }
@@ -1351,37 +1506,48 @@ function renderEvolveOutput(data, original, tone, platform) {
 
   // Update Marginalia Aside Panel & Score Box
   const margPanel = $("marginaliaPanel");
-  if (margPanel && data.notes && data.notes.length) {
-    let notesHtml = data.notes.slice(0, 3).map((n, i) => `
+  const notes = Array.isArray(data.notes) ? data.notes.filter((n) => n && n.reason) : [];
+  if (margPanel) {
+    let notesHtml = notes.slice(0, 3).map((n, i) => {
+      const reason = String(n.reason);
+      const title = reason.split(/(?<=[.!?])\s/)[0].replace(/[.!?]$/, "");
+      return `
       <div class="marginalia-note-item">
         <div class="marginalia-note-num">0${i + 1}</div>
-        <h4 class="marginalia-note-title">${escapeHtml(n.reason.split(".")[0])}</h4>
-        <p class="marginalia-item">${escapeHtml(n.reason)}</p>
-      </div>
-    `).join("");
+        <h4 class="marginalia-note-title">${escapeHtml(title)}</h4>
+        ${title.length < reason.length - 1 ? `<p class="marginalia-item">${escapeHtml(reason)}</p>` : ""}
+        ${n.original && n.replacement ? `<p class="marginalia-change"><del>${escapeHtml(n.original)}</del> → <ins>${escapeHtml(n.replacement)}</ins></p>` : ""}
+      </div>`;
+    }).join("");
+
+    if (!notes.length) {
+      notesHtml = `<div class="marginalia-note-item"><p class="marginalia-item">Only light touches were needed — your draft was already in good shape.</p></div>`;
+    }
 
     if (data.score) {
-      const scoreDiff = data.score.after - data.score.before;
+      const num = (v, fb) => (Number.isFinite(Number(v)) ? Math.max(0, Math.min(30, Math.round(Number(v)))) : fb);
+      const after = Math.round(Number(data.score.after) || 0);
+      const before = Math.round(Number(data.score.before) || 0);
+      const scoreDiff = after - before;
       const diffSign = scoreDiff > 0 ? `+${scoreDiff}` : `${scoreDiff}`;
-      const breakdown = data.score.breakdown || {};
+      const b = data.score.breakdown || {};
+      const metrics = [
+        ["Clarity", num(b.clarity, 0)],
+        ["Tone", num(b.tone, 0)],
+        ["Professionalism", num(b.professionalism, 0)],
+        ["Readability", num(b.readability, 0)],
+      ];
       notesHtml += `
         <div class="score-box">
           <div class="score-main">
-            <span class="score-number">${data.score.after}</span>
+            <span class="score-number">${after}</span>
             <span class="score-label">/ 100 · Kaizen score</span>
           </div>
-          <div class="score-gain">${diffSign} from original draft</div>
-          <div class="score-details">
-            <div><span class="score-metric-name">Clarity</span><span class="score-metric-val">${breakdown.clarity || 28} / 30</span></div>
-            <div><span class="score-metric-name">Tone & Presence</span><span class="score-metric-val">${breakdown.tone || 27} / 30</span></div>
-            <div><span class="score-metric-name">Conciseness</span><span class="score-metric-val">${breakdown.conciseness || 26} / 30</span></div>
-            <div><span class="score-metric-name">Impact</span><span class="score-metric-val">${breakdown.impact || 25} / 30</span></div>
-          </div>
+          <div class="score-gain">${diffSign} from original draft (${before})</div>
           <div class="score-bars" style="margin-top:12px;">
-            <div><span>Clarity</span><div><i style="width:${Math.round(((breakdown.clarity || 28) / 30) * 100)}%;"></i></div></div>
-            <div><span>Tone</span><div><i style="width:${Math.round(((breakdown.tone || 27) / 30) * 100)}%;"></i></div></div>
-            <div><span>Conciseness</span><div><i style="width:${Math.round(((breakdown.conciseness || 26) / 30) * 100)}%;"></i></div></div>
-            <div><span>Impact</span><div><i style="width:${Math.round(((breakdown.impact || 25) / 30) * 100)}%;"></i></div></div>
+            ${metrics.map(([name, val]) => `
+              <div><span>${name} <em>${val}/30</em></span><div><i style="width:${Math.round((val / 30) * 100)}%;"></i></div></div>
+            `).join("")}
           </div>
         </div>
       `;
@@ -1389,24 +1555,39 @@ function renderEvolveOutput(data, original, tone, platform) {
 
     margPanel.innerHTML = notesHtml;
 
-    // Force transition on score bars (Task 6)
-    const scoreBars = document.querySelectorAll('.score-bars i, .score-fill');
-    scoreBars.forEach(bar => {
+    // Animate score bars in
+    margPanel.querySelectorAll('.score-bars i').forEach(bar => {
       const targetWidth = bar.style.width;
       bar.style.width = '0%';
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          bar.style.width = targetWidth;
-        });
-      });
+      requestAnimationFrame(() => requestAnimationFrame(() => { bar.style.width = targetWidth; }));
     });
   }
   const takeEl = $("takeawayPanel");
   if (takeEl) {
-    takeEl.classList.remove("hidden");
-    const takeawayRule = (data.notes && data.notes[0]) ? data.notes[0].reason : "Keep sentences direct and eliminate redundant prepositions.";
-    takeEl.innerHTML = '<div class="marginalia-title" style="color:var(--seal);font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:0.16em;">Sustained takeaway</div><p style="margin-top:8px;font-size:14px;line-height:1.6;">' + escapeHtml(takeawayRule) + '</p>';
+    // Only show a takeaway that isn't already listed above
+    const extra = notes[3];
+    if (extra) {
+      takeEl.classList.remove("hidden");
+      takeEl.innerHTML = '<div class="marginalia-title takeaway-title">Sustained takeaway</div><p class="takeaway-text">' + escapeHtml(extra.reason) + '</p>';
+    } else {
+      takeEl.classList.add("hidden");
+      takeEl.innerHTML = "";
+    }
   }
+}
+
+const MARGINALIA_EMPTY_HTML = `
+  <div class="marginalia-empty-state">
+    <div class="marginalia-empty-item"><span class="marginalia-empty-num">01</span><p>Clarity &amp; precision adjustments</p></div>
+    <div class="marginalia-empty-item"><span class="marginalia-empty-num">02</span><p>Tone &amp; social nuance calibration</p></div>
+    <div class="marginalia-empty-item"><span class="marginalia-empty-num">03</span><p>Strategic takeaways for future drafts</p></div>
+  </div>`;
+
+function resetMarginalia() {
+  const margPanel = $("marginaliaPanel");
+  if (margPanel) margPanel.innerHTML = MARGINALIA_EMPTY_HTML;
+  const takeEl = $("takeawayPanel");
+  if (takeEl) { takeEl.classList.add("hidden"); takeEl.innerHTML = ""; }
 }
 
 // Viral Share Payload Generator with Japanese Kotowaza Wisdom
@@ -1458,15 +1639,15 @@ function renderReplyOutput(data, incomingMsg) {
   outputContainer.innerHTML = `
     <div class="reply-results">
       <div class="result-version">
-        <span>3 Ready-to-Send Replies</span>
+        <span>${suggestions.length} Ready-to-Send ${suggestions.length === 1 ? "Reply" : "Replies"}</span>
       </div>
       ${suggestions.map((s, idx) => `
         <article>
           <span>Reply Option 0${idx + 1}</span>
           <p>${escapeHtml(s)}</p>
           <div>
-            <button class="btn-paper reply-copy-btn" data-index="${idx}">Copy</button>
-            <button class="btn-paper reply-share-btn" data-index="${idx}">Share</button>
+            <button type="button" class="btn-paper reply-copy-btn" data-index="${idx}">Copy</button>
+            <button type="button" class="btn-paper reply-share-btn" data-index="${idx}">Share</button>
           </div>
         </article>
       `).join("")}
@@ -1504,33 +1685,51 @@ function renderReplyOutput(data, incomingMsg) {
 }
 
 window.copyReplyText = (text) => {
-  navigator.clipboard.writeText(text);
-  showKaizenToast("Reply copied to clipboard!", "success");
+  copyText(text, "Reply copied to clipboard!");
 };
 
 window.shareReplyText = (text) => {
   if (navigator.share) navigator.share({ text }).catch(() => undefined);
-  else { navigator.clipboard.writeText(text); showKaizenToast("Reply copied to clipboard!", "success"); }
+  else copyText(text, "Reply copied to clipboard!");
 };
 
 // Recent Kaizen History Management
 function saveToKaizenHistory(original, improved, score, tone) {
   try {
-    const list = JSON.parse(localStorage.getItem("kaizen_history") || "[]");
+    const parsed = JSON.parse(lsGet("kaizen_history") || "[]");
+    const list = Array.isArray(parsed) ? parsed : [];
+    const id = Date.now();
     list.unshift({
-      id: Date.now(),
+      id,
       original,
       improved,
-      scoreAfter: score ? score.after : 88,
+      scoreAfter: score && Number.isFinite(Number(score.after)) ? Math.round(Number(score.after)) : "–",
       tone,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     });
     const trimmed = list.slice(0, 10);
-    localStorage.setItem("kaizen_history", JSON.stringify(trimmed));
+    lsSet("kaizen_history", JSON.stringify(trimmed));
     renderKaizenHistory();
+    return id;
   } catch (err) {
     console.error("Failed to save history:", err);
+    return null;
   }
+}
+
+// Update an existing entry in place (used by the in-result editor) instead of adding duplicates
+function updateKaizenHistoryEntry(id, improved) {
+  if (!id) return;
+  try {
+    const list = JSON.parse(lsGet("kaizen_history") || "[]");
+    if (!Array.isArray(list)) return;
+    const item = list.find((x) => x && x.id === id);
+    if (item) {
+      item.improved = improved;
+      lsSet("kaizen_history", JSON.stringify(list));
+      renderKaizenHistory();
+    }
+  } catch { /* ignore */ }
 }
 
 function renderKaizenHistory() {
@@ -1542,7 +1741,8 @@ function renderKaizenHistory() {
   const badge = $("studioHistoryBadge");
 
   try {
-    const list = JSON.parse(localStorage.getItem("kaizen_history") || "[]");
+    const parsedList = JSON.parse(lsGet("kaizen_history") || "[]");
+    const list = Array.isArray(parsedList) ? parsedList.filter((x) => x && typeof x === "object") : [];
 
     // Update badge count
     if (badge) {
@@ -1561,9 +1761,9 @@ function renderKaizenHistory() {
       } else {
         sidebarSection.classList.remove("hidden");
         sidebarList.innerHTML = list.map((item, idx) => `
-          <div class="history-item" data-index="${idx}">
-            <span>${escapeHtml(item.tone || 'Kaizen')} · Score: <strong style="color:var(--primary);">${item.scoreAfter}</strong></span>
-            <small style="color:var(--muted-foreground);">${item.timestamp}</small>
+          <div class="history-item" data-index="${idx}" role="button" tabindex="0" title="Load into the draft desk">
+            <span>${escapeHtml(item.tone || 'Kaizen')} · Score: <strong style="color:var(--primary);">${escapeHtml(item.scoreAfter)}</strong></span>
+            <small style="color:var(--muted-foreground);">${escapeHtml(item.timestamp)}</small>
           </div>
         `).join("");
 
@@ -1573,6 +1773,7 @@ function renderKaizenHistory() {
             const item = list[idx];
             if (item && item.improved) loadHistoryItem(item.improved);
           };
+          el.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); el.click(); } };
         });
       }
     }
@@ -1592,7 +1793,7 @@ function renderKaizenHistory() {
           <article class="history-card" data-index="${idx}">
             <div class="history-card-header">
               <span>${escapeHtml(item.tone || 'Kaizen')}</span>
-              <span>${item.timestamp} · Score ${item.scoreAfter}</span>
+              <span>${escapeHtml(item.timestamp)} · Score ${escapeHtml(item.scoreAfter)}</span>
             </div>
             <div class="history-card-body">${escapeHtml(item.improved)}</div>
             <div class="history-card-actions">
@@ -1626,10 +1827,7 @@ function renderKaizenHistory() {
           btn.onclick = () => {
             const idx = parseInt(btn.getAttribute("data-index"), 10);
             const item = list[idx];
-            if (item && item.improved) {
-              navigator.clipboard.writeText(item.improved);
-              showKaizenToast("Copied saved message to clipboard!", "success");
-            }
+            if (item && item.improved) copyText(item.improved, "Copied saved message to clipboard!");
           };
         });
       }
@@ -1684,8 +1882,22 @@ async function fetchKotowazaProverbs() {
       }
     }
   } catch (err) {
-    console.error("Kotowaza API fetch error:", err);
-  } finally {
+    console.warn("Kotowaza API fetch error, trying bundled data:", err);
+  }
+  if (!kotowazaList.length) {
+    try {
+      const directRes = await fetch("/static/data/kotowaza.json");
+      if (directRes.ok) {
+        const rawData = await directRes.json();
+        if (Array.isArray(rawData) && rawData.length) {
+          kotowazaList = rawData;
+          currentQuoteIndex = Math.floor(Math.random() * kotowazaList.length);
+        }
+      }
+    } catch { /* fall back to built-in QUOTES */ }
+  }
+  if (!kotowazaList.length) kotowazaList = QUOTES.slice();
+  {
     const elapsed = Date.now() - startTime;
     const minDelay = Math.max(0, 700 - elapsed);
     setTimeout(() => {
@@ -1761,7 +1973,12 @@ function updateQuoteDisplay() {
   if (q.examples && q.examples.length > 0) {
     const ex = q.examples[0];
     if (exJa) exJa.textContent = ex.ja || "";
-    if (exEn) exEn.textContent = ex.en || ex.id || "";
+    // Dataset examples are ja + romaji (+ Indonesian); never show the Indonesian line as "English"
+    const exSub = ex.en || ex.romaji || "";
+    if (exEn) {
+      exEn.textContent = exSub;
+      exEn.style.display = exSub ? "block" : "none";
+    }
     if (exBox) exBox.style.display = "block";
   } else {
     if (exBox) exBox.style.display = "none";
@@ -1815,7 +2032,10 @@ function openLinkedInMemeModal(reality, linkedin) {
       </div>
     `;
   }
+  modalReturnFocus = document.activeElement;
   modal.classList.remove("hidden");
+  lockScroll(true);
+  $("closeModalBtn")?.focus();
 
   setTimeout(async () => {
     if (wrapper) wrapper.innerHTML = `<canvas id="shareCardCanvas" width="2048" height="1364" style="width:100%;max-width:1024px;height:auto;display:block;margin:0 auto;border-radius:var(--radius);"></canvas>`;
@@ -1934,11 +2154,12 @@ async function shareCanvasImage(canvas, filename) {
 }
 
 function escapeHtml(str) {
-  return String(str || "")
+  return String(str ?? "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 // Kaizen Toast Notification System (Replaces Browser Alerts)
@@ -1948,6 +2169,8 @@ function showKaizenToast(message, type = 'success', duration = 2800) {
     toast = document.createElement('div');
     toast.id = 'kaizenToastEl';
     toast.className = 'kaizen-toast';
+    toast.setAttribute('role', 'status');
+    toast.setAttribute('aria-live', 'polite');
     document.body.appendChild(toast);
   }
   toast.textContent = message;
