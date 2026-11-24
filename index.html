@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>KaizenReply — Your message is good. Make it better.</title>
     <meta name="description" content="KaizenReply improves clarity, tone, and impact — without taking your voice away. Japanese precision & continuous improvement for your words." />
     <link rel="icon" type="image/png" href="/static/logo-inkwash.png" />
@@ -21,16 +21,14 @@
     <meta property="og:image" content="https://kaizenreply.us.ci/static/og-image.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="https://kaizenreply.us.ci/static/og-image.png" />
-    <link rel="stylesheet" href="/static/styles.css?v=3.1.0" />
-    <script>
-      (function() {
-        var saved = localStorage.getItem('kaizen-theme');
-        var isDark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
-        if (isDark) document.documentElement.classList.add('dark');
-      })();
-    </script>
+    <script src="/static/theme-init.js?v=2.0.0"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Serif+JP:wght@400;600;700&display=swap" />
+    <link rel="stylesheet" href="/static/styles.css?v=2.0.0" />
   </head>
   <body>
+    <a href="#desk" class="skip-link">Skip to the editor</a>
     <!-- Site Header Navigation -->
     <header class="site-header">
       <nav class="nav-shell" aria-label="Main navigation">
@@ -46,25 +44,26 @@
           <a href="#desk">Studio</a>
           <a href="#how">How It Works</a>
           <a href="#philosophy">Philosophy</a>
+          <a href="#features">Features</a>
           <a href="#quotes">Quotes</a>
         </div>
         <div class="nav-actions">
           <div id="offlinePill" class="offline-pill hidden" title="Working offline with cached data">
             <span class="offline-dot"></span> Offline
           </div>
-          <button id="pwaInstallBtn" class="btn-paper pwa-install-nav-btn hidden" aria-label="Install KaizenReply App" title="Install KaizenReply as an app">
+          <button type="button" id="pwaInstallBtn" class="btn-paper pwa-install-nav-btn hidden" aria-label="Install KaizenReply App" title="Install KaizenReply as an app">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             <span class="pwa-install-label">Install App</span>
           </button>
-          <a href="https://github.com/MKishoreDev/KaizenReply" target="_blank" rel="noreferrer" class="btn-icon nav-gh-btn" aria-label="GitHub Repository">
+          <a href="https://github.com/MKishoreDev/KaizenReply" target="_blank" rel="noopener noreferrer" class="btn-icon nav-gh-btn" aria-label="GitHub Repository">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
           </a>
-          <button id="themeToggle" class="btn-icon" aria-label="Toggle theme" title="Toggle light/dark mode">
+          <button type="button" id="themeToggle" class="btn-icon" aria-label="Toggle theme" title="Toggle light/dark mode">
             <svg id="themeIconSun" class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
             <svg id="themeIconMoon" class="moon-icon hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
           </button>
           <a href="#desk" class="btn-hero nav-start-btn">Refine Draft →</a>
-          <button id="mobileMenuBtn" class="btn-icon mobile-menu-toggle" aria-label="Open navigation">
+          <button id="mobileMenuBtn" class="btn-icon mobile-menu-toggle" aria-label="Open navigation" aria-expanded="false" aria-controls="mobileMenuPanel" type="button">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           </button>
         </div>
@@ -72,11 +71,12 @@
     </header>
     <div id="mobileMenuPanel" class="mobile-nav hidden">
       <a href="#top">Home</a>
-      <a href="#desk">KaizenReply</a>
+      <a href="#desk">Studio</a>
       <a href="#how">How It Works</a>
       <a href="#philosophy">Philosophy</a>
       <a href="#features">Features</a>
       <a href="#quotes">Quotes</a>
+      <a href="https://github.com/MKishoreDev/KaizenReply" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
       <button id="pwaInstallMobileBtn" class="mobile-install-row hidden" type="button">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         <span>Install KaizenReply App</span>
@@ -85,25 +85,31 @@
 
     <!-- Hero Section -->
     <section class="hero" id="top">
-      <img src="/static/assets/kaizen-hero.jpg" class="hero-art" alt="Misty Japanese mountain landscape on Washi paper" />
+      <img src="/static/assets/kaizen-hero.jpg" class="hero-art" alt="" fetchpriority="high" decoding="async" />
       <div class="hero-wash"></div>
       <div class="page-shell hero-grid">
         <div class="hero-copy">
           <div class="vertical-kaizen" aria-hidden="true">改善</div>
-          <p class="eyebrow" style="font-family: var(--font-mono);">Continuous Improvement for Your Words / 改善卓</p>
+          <p class="eyebrow hero-eyebrow">Continuous Improvement for Your Words / 改善卓</p>
           <h1>Your message is good.<br /><em>Make it better.</em></h1>
           <p class="hero-lede">KaizenReply improves clarity, tone, and impact — without taking your voice away.</p>
           <div class="hero-actions">
             <a href="#desk" class="btn-hero">Refine Your Draft →</a>
-            <button id="heroShareBtn" class="btn-paper">
+            <button id="heroShareBtn" class="btn-paper" type="button">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
               Share KaizenReply
             </button>
           </div>
+          <ul class="hero-proof" aria-label="Highlights">
+            <li><b>17</b> tones</li>
+            <li><b>9</b> platforms</li>
+            <li><b>3</b> reply options</li>
+            <li>Free &amp; open source</li>
+          </ul>
         </div>
 
         <!-- Live Mini Preview -->
-        <div class="mini-preview" id="heroMiniPreview">
+        <div class="mini-preview" id="heroMiniPreview" aria-hidden="true">
           <div class="mini-tabs" id="heroMiniTabs">
             <span class="active">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
@@ -148,17 +154,17 @@
         </div>
 
         <div class="desk-frame" id="deskWorkstation">
-          <img src="/static/assets/kaizen-desk.jpg" alt="Ink path artwork" class="desk-art" />
+          <img src="/static/assets/kaizen-desk.jpg" alt="" class="desk-art" loading="lazy" decoding="async" />
           
           <!-- Input Draft Column -->
           <div class="desk-frame-inner">
           <div class="desk-column draft-column">
             <div class="mode-tabs">
-              <button id="modeEvolve" class="active">
+              <button type="button" id="modeEvolve" class="active">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
                 Evolve Draft
               </button>
-              <button id="modeReply">
+              <button type="button" id="modeReply">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                 Reply Mode
               </button>
@@ -170,11 +176,11 @@
                 <h3 id="deskTitleText">Your Draft</h3>
               </div>
               <div class="draft-stats-bar">
-                <button id="clearDraftBtn" class="btn-paper draft-tool-btn" style="padding:4px 8px;font-size:11px;" title="Clear draft text">
+                <button type="button" id="clearDraftBtn" class="btn-paper draft-tool-btn" style="padding:4px 8px;font-size:11px;" title="Clear draft text">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                   Clear
                 </button>
-                <button id="pasteBtn" class="btn-paper draft-tool-btn" style="padding:4px 8px;font-size:11px;" title="Paste from clipboard">
+                <button type="button" id="pasteBtn" class="btn-paper draft-tool-btn" style="padding:4px 8px;font-size:11px;" title="Paste from clipboard">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
                   Paste
                 </button>
@@ -184,15 +190,15 @@
               </div>
             </div>
 
-            <textarea id="messageInput" class="desk-textarea" rows="4" maxlength="3000" placeholder="Paste your message here…  e.g. bro send that report asap"></textarea>
+            <textarea id="messageInput" class="desk-textarea" rows="4" maxlength="3000" aria-label="Your message" placeholder="Paste your message here…  e.g. bro send that report asap"></textarea>
 
             <!-- Primary Action Bar (Directly below textarea for instant one-click refinement) -->
             <div class="draft-actions">
-              <button id="fixGrammarBtn" class="btn-paper">
+              <button type="button" id="fixGrammarBtn" class="btn-paper">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
                 Fix Grammar
               </button>
-              <button id="evolveBtn" class="btn-hero">
+              <button type="button" id="evolveBtn" class="btn-hero">
                 <span id="evolveBtnText">Refine Draft</span>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
                 <kbd class="kbd-hint hidden md-inline" id="evolveKbdHint">Ctrl ↵</kbd>
@@ -200,7 +206,7 @@
             </div>
 
             <!-- Rate Limit & Error Banner -->
-            <div id="errorBanner" class="error-banner hidden" style="padding:10px 14px;background:rgba(201,74,54,0.1);border:1px solid var(--hanko);border-radius:var(--radius);color:var(--hanko);font-size:12px;font-weight:600;"></div>
+            <div id="errorBanner" class="error-banner hidden" role="alert" style="padding:10px 14px;background:rgba(201,74,54,0.1);border:1px solid var(--hanko);border-radius:var(--radius);color:var(--hanko);font-size:12px;font-weight:600;"></div>
 
             <div class="demo-row">
               <span>Try sample:</span>
@@ -265,7 +271,7 @@
             </div>
 
             <!-- Advanced Drawer (Model Engine & Conversation Context) -->
-            <button id="contextToggle" class="context-toggle">
+            <button id="contextToggle" class="context-toggle" type="button" aria-expanded="false" aria-controls="contextDrawer">
               <span>+ Advanced options <small style="opacity:0.7">Model & Context</small></span>
               <span id="ctxSymbol">+</span>
             </button>
@@ -274,7 +280,7 @@
               <!-- Dynamic Model Selector Row inside Advanced -->
               <div id="modelSelectRow" style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;margin-bottom:10px;">
                 <span style="font-weight:700;color:var(--muted-foreground);">AI Model Engine</span>
-                <select id="modelSelect" style="padding:4px 8px;font-size:12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--card);color:var(--foreground);cursor:pointer;">
+                <select id="modelSelect" aria-label="AI model" style="padding:4px 8px;font-size:12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--card);color:var(--foreground);cursor:pointer;">
                   <option value="qwen/qwen3.8-27b">qwen/qwen3.8-27b (Default)</option>
                   <option value="openai/gpt-oss-120b">openai/gpt-oss-120b (Executive)</option>
                   <option value="openai/gpt-oss-20b">openai/gpt-oss-20b (Precision Cut)</option>
@@ -304,7 +310,7 @@
               <small>Understand → Learn → Share</small>
             </div>
 
-            <div id="outputContainer" class="evolved-result">
+            <div id="outputContainer" class="evolved-result" aria-live="polite">
               <div class="result-empty" id="resultEmpty">
                 <div class="empty-zen-card">
                   <div class="empty-zen-icon">
@@ -351,7 +357,7 @@
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h10"/><path d="M7 12h10"/><path d="M7 16h10"/></svg>
                   Recent Kaizen Evolutions
                 </span>
-                <button id="clearHistoryBtn" style="background:none;border:none;color:var(--muted-foreground);font-size:11px;cursor:pointer;">Clear</button>
+                <button id="clearHistoryBtn" type="button" style="background:none;border:none;color:var(--muted-foreground);font-size:11px;cursor:pointer;">Clear</button>
               </div>
               <div id="historyList" style="display:flex;flex-direction:column;gap:8px;max-height:220px;overflow-y:auto;"></div>
             </div>
@@ -487,7 +493,7 @@
             <p>See changes in clarity, tone, professionalism, and readability.</p>
           </article>
           <article class="reveal-on-scroll" data-delay="2">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--primary);"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z"/><path d="M12 7v5l3 3"/></svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--primary);"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
             <h3>Kotowaza Proverbs</h3>
             <p>Traditional Japanese wisdom bundled offline to ground every refinement.</p>
           </article>
@@ -502,7 +508,7 @@
 
     <!-- Japanese Quote Section (Powered by Kotowaza) -->
     <section class="quote-section" id="quotes">
-      <img src="/static/assets/kaizen-quote.jpg" alt="Misty Japanese mountains artwork" class="quote-art" />
+      <img src="/static/assets/kaizen-quote.jpg" alt="" class="quote-art" loading="lazy" decoding="async" />
       <div class="quote-overlay"></div>
       <div class="page-shell quote-layout">
 
@@ -561,7 +567,7 @@
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
                 New quote on refresh
               </span>
-              <button id="shareQuoteBtn" class="btn-hero">
+              <button id="shareQuoteBtn" class="btn-hero" type="button">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
                 Share Proverb
               </button>
@@ -573,10 +579,10 @@
 
     <!-- Social Share Card Modal -->
     <div id="shareModal" class="modal-overlay hidden">
-      <div class="modal-card">
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="shareModalTitle">
         <div class="modal-head">
-          <h3>Reality vs LinkedIn Meme</h3>
-          <button id="closeModalBtn" class="btn-icon" aria-label="Close modal">
+          <h3 id="shareModalTitle">Reality vs LinkedIn Meme</h3>
+          <button id="closeModalBtn" class="btn-icon" aria-label="Close modal" type="button">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
@@ -584,14 +590,14 @@
           <canvas id="shareCardCanvas" width="2048" height="1364" style="width:100%;max-width:1024px;height:auto;display:block;margin:0 auto;border-radius:var(--radius);"></canvas>
         </div>
         <div class="modal-actions">
-          <button id="downloadCardBtn" class="btn-paper">Download Meme (PNG)</button>
-          <button id="shareCardImageBtn" class="btn-hero">Share Meme</button>
+          <button id="downloadCardBtn" class="btn-paper" type="button">Download Meme (PNG)</button>
+          <button id="shareCardImageBtn" class="btn-hero" type="button">Share Meme</button>
         </div>
       </div>
     </div>
 
     <!-- Modern Native-Style PWA Install Popup Card (No Blackout Overlay) -->
-    <aside id="pwaInstallPopup" class="pwa-install-popup" aria-label="Install KaizenReply app">
+    <aside id="pwaInstallPopup" class="pwa-install-popup" aria-label="Install KaizenReply app" aria-hidden="true">
       <div class="pwa-popup-content">
         <img src="/static/icon-192.png" class="pwa-popup-icon" alt="KaizenReply app icon" />
         <div class="pwa-popup-info">
@@ -624,23 +630,29 @@
     <!-- Footer -->
     <footer>
       <div class="page-shell footer-grid">
-        <a href="#top" class="brand-lockup">
-          <img src="/static/logo-icon.png" class="brand-logo-img" alt="KaizenReply logo" />
+        <a href="#top" class="brand-lockup footer-brand">
+          <img src="/static/logo-icon.png" class="brand-logo-img" alt="" />
           <b>KaizenReply</b>
-          <div class="brand-tagline">Continuous improvement for your words</div>
+          <span class="brand-tagline">Continuous improvement for your words</span>
         </a>
+        <nav class="footer-links" aria-label="Footer">
+          <a href="#desk">Studio</a>
+          <a href="#how">How it works</a>
+          <a href="#features">Features</a>
+          <a href="https://github.com/MKishoreDev/KaizenReply" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </nav>
         <p class="footer-made">Made with care · 改善</p>
       </div>
     </footer>
 
     <!-- Page Load Overlay -->
-    <div id="pageLoadOverlay" class="page-load-overlay">
+    <div id="pageLoadOverlay" class="page-load-overlay" aria-hidden="true">
       <div class="page-load-mark">
         <span class="page-load-kanji">改</span>
         <span class="page-load-sub">善</span>
       </div>
     </div>
 
-    <script src="/static/app.js?v=3.1.0"></script>
+    <script src="/static/app.js?v=2.0.0" defer></script>
   </body>
 </html>
