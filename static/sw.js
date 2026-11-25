@@ -1,10 +1,14 @@
-const CACHE_NAME = 'kaizenreply-v4.1';
+const CACHE_NAME = 'kaizenreply-v4.2';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/manifest.json',
   '/static/styles.css',
   '/static/app.js',
+  '/static/theme-init.js',
+  '/static/assets/kaizen-hero.jpg',
+  '/static/assets/kaizen-desk.jpg',
+  '/static/assets/kaizen-quote.jpg',
   '/static/logo.png',
   '/static/logo-icon.png',
   '/static/logo-inkwash.png',
@@ -51,6 +55,9 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
 
+  // Only handle our own origin; let fonts/CDNs use normal browser caching
+  if (url.origin !== self.location.origin) return;
+
   // Never cache backend API routes
   if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/health')) {
     return;
@@ -85,7 +92,7 @@ self.addEventListener('fetch', (event) => {
           }
           return networkResponse;
         })
-        .catch(() => null);
+        .catch(() => cachedResponse || Response.error());
 
       return cachedResponse || fetchPromise;
     })
