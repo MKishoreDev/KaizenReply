@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /api/improve
+Disallow: /api/reply
+Disallow: /api/analyze
+Disallow: /api/meme/generate
+
+Sitemap: https://kaizenreply.us.ci/sitemap.xml

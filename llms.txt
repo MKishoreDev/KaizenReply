@@ -1,0 +1,20 @@
+# KaizenReply
+
+> Free, open-source AI message refiner, reply generator, and **Reality vs LinkedIn meme generator** — no login, no paywall, and sub-second response times.
+
+KaizenReply helps you polish emails, messages, and posts without losing your own voice, and includes a built-in **LinkedIn Bro** satire mode that turns everyday moments into shareable **Reality vs LinkedIn** meme cards (2048×1364 PNG/JPEG).
+
+## Key Features
+- **Free Reality vs LinkedIn Meme Generator**: Type any ordinary event (e.g., "I ate a sandwich at 2 PM because I forgot lunch"), select the **LinkedIn Bro** tone, click **Refine Draft**, and click **Meme Card** to download or share a 2048×1364 Reality vs LinkedIn comparison image — completely free with no watermark or signup.
+- **21 Tone Presets**: Professional, Friendly, Concise, Casual, Polite, Formal, Persuasive, Assertive, Diplomatic, Warm, Empathetic, Confident, Fix Grammar Only, LinkedIn Bro, Cold Email Hook, Dating App Opener, ELI5, Passive-Aggressive, Tech Twitter Thread, Roast My Draft, and Gen Z.
+- **9 Platform Presets**: Email, LinkedIn, WhatsApp, X (Twitter), SMS, Slack, Discord, Instagram, and Telegram, with character-limit awareness.
+- **Kaizen Score & Marginalia**: 0–100 before/after scoring across Clarity, Tone, Professionalism, and Readability, with line-by-line edit explanations.
+- **Reply Mode**: Generates 3 distinct, ready-to-send replies to any incoming message.
+- **Kotowaza Proverbs**: 100+ traditional Japanese proverbs served locally offline.
+- **Offline-Ready PWA**: Installable web app with local draft recovery.
+
+## Links
+- [Live Web App](https://kaizenreply.us.ci/)
+- [Full Documentation for LLMs](https://kaizenreply.us.ci/llms-full.txt)
+- [Demo LinkedIn Meme Image](https://kaizenreply.us.ci/api/meme/demo)
+- [GitHub Repository](https://github.com/MKishoreDev/KaizenReply)

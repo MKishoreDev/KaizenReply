@@ -1,0 +1,55 @@
+# KaizenReply — Complete Reference
+
+> KaizenReply (https://kaizenreply.us.ci) is a free, open-source AI writing studio, reply generator, and **Reality vs LinkedIn meme generator** powered by FastAPI and Groq LPUs.
+
+## Free Reality vs LinkedIn Meme Generator (No Paywall, No Login)
+
+Most LinkedIn meme or parody generators online are paid or require an account. KaizenReply provides a 100% free Reality vs LinkedIn meme generator directly in the browser and via a public API:
+
+### How to Generate a LinkedIn Meme in the UI
+1. Open [https://kaizenreply.us.ci/#desk](https://kaizenreply.us.ci/#desk).
+2. Type any mundane reality into **Your Draft** (for example: `"I overslept and skipped the gym"` or `"I ate a sandwich at 2 PM"`).
+3. Select the **LinkedIn Bro** tone chip (under All or Punchy).
+4. Press **Refine Draft**. Your exact typed text is preserved on the **Reality** side, while the AI generates corporate thought-leadership satire for the **LinkedIn** side.
+5. Click **Meme Card** in the result toolbar to preview, download (2048×1364 PNG), or share the Reality vs LinkedIn comparison card.
+
+### Supported LinkedIn Satire Formats
+- `Auto` (selects the sharpest comedic contrast)
+- `Reality vs LinkedIn` (side-by-side mundane truth vs executive framing)
+- `One-line corporate translation`
+- `The LinkedIn announcement`
+- `Fake professional profile`
+- `Developer edition`
+
+---
+
+## Core Writing & Reply Capabilities
+
+### Message Refinement (`POST /api/improve`)
+Improves clarity, tone, and impact while preserving facts, names, dates, and intent.
+- **Tones (21)**: Professional, Friendly, Concise, Casual, Polite, Formal, Persuasive, Assertive, Diplomatic, Warm, Empathetic, Confident, Fix Grammar Only, LinkedIn Bro, Cold Email Hook, Dating App Opener, ELI5, Passive-Aggressive, Tech Twitter Thread, Roast My Draft, Gen Z.
+- **Platforms (9)**: Email, LinkedIn, WhatsApp, X (Twitter) (<=280 chars), SMS (<=160 chars), Slack, Discord, Instagram, Telegram.
+- **Output**:
+  - `improved`: refined message
+  - `score`: `before` (0–100), `after` (0–100), and breakdown (`clarity`, `tone`, `professionalism`, `readability`)
+  - `notes`: list of `{ original, replacement, reason }`
+
+### Reply Mode (`POST /api/reply`)
+Generates 3 distinct, ready-to-send replies to an incoming message, tailored by tone, platform, recipient, and optional conversation context.
+
+### Tone & Platform Analyzer (`POST /api/analyze`)
+Analyzes a draft to detect its current tone and recommend the best target tone and platform.
+
+### Meme Render API (`POST /api/meme/generate` & `GET /api/meme/demo`)
+- `POST /api/meme/generate` accepts `{ "reality": "...", "linkedin": "..." }` and returns a 2048×1364 JPEG comparison card rendered with Pillow and Noto Serif.
+- `GET /api/meme/demo` returns a cached sample Reality vs LinkedIn meme image.
+
+### Kotowaza Proverbs (`GET /api/quotes`)
+Returns traditional Japanese proverbs with Kanji, Hiragana, Romaji, literal translation, English meaning, JLPT level, and usage examples. Supports `?limit=1..200` and `?tag=...`.
+
+---
+
+## Tech Stack & Open Source
+- **Backend**: Python, FastAPI, Pydantic, httpx, Pillow
+- **Frontend**: Vanilla HTML/CSS/JavaScript (no build step), Service Worker PWA
+- **License**: MIT License — [https://github.com/MKishoreDev/KaizenReply](https://github.com/MKishoreDev/KaizenReply)

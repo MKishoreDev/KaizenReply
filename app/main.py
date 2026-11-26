@@ -266,6 +266,27 @@ async def service_worker():
     )
 
 
+@app.get("/robots.txt")
+async def robots_txt():
+    return FileResponse("robots.txt", media_type="text/plain")
+
+
+@app.get("/sitemap.xml")
+async def sitemap_xml():
+    return FileResponse("sitemap.xml", media_type="application/xml")
+
+
+@app.get("/llms.txt")
+@app.get("/llm.txt")
+async def llms_txt():
+    return FileResponse("llms.txt", media_type="text/plain; charset=utf-8")
+
+
+@app.get("/llms-full.txt")
+async def llms_full_txt():
+    return FileResponse("llms-full.txt", media_type="text/plain; charset=utf-8")
+
+
 @app.get("/")
 @app.get("/index.html")
 @app.get("/share-target")
