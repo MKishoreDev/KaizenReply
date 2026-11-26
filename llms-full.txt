@@ -1,10 +1,21 @@
 # KaizenReply — Complete Reference
 
-> KaizenReply (https://kaizenreply.us.ci) is a free, open-source AI writing studio, reply generator, and **Reality vs LinkedIn meme generator** powered by FastAPI and Groq LPUs.
+> **Your message is good. Make it better.**
+> KaizenReply (https://kaizenreply.us.ci) is a free, open-source AI writing studio, reply generator, and **Reality vs LinkedIn meme generator** built on Japanese Kaizen (改善) and 5S principles.
 
-## Free Reality vs LinkedIn Meme Generator (No Paywall, No Login)
+## Why KaizenReply Is Unique
+1. **Kaizen Philosophy ("Don't rewrite. Improve.")**: Small, deliberate edits beat destructive overhauls. KaizenReply preserves your facts, names, dates, and authentic voice instead of replacing your message with generic prose.
+2. **5S Applied to Communication**:
+   - **Seiri (整理 · Sort)**: Cuts fluff, hedges, and filler.
+   - **Seiton (整頓 · Set)**: Organizes thoughts around clear intent.
+   - **Seiso (清掃 · Shine)**: Polishes tone and removes grammatical noise.
+   - **Seiketsu (清潔 · Standardize)**: Keeps your personal voice consistent.
+   - **Shitsuke (躾 · Sustain)**: Explains every change in Marginalia so your writing improves over time.
+3. **Free & Open Source (No Paywall, No Login)**: Includes a full **Reality vs LinkedIn Meme Generator** at zero cost, whereas most competing LinkedIn meme tools are paid or watermarked.
 
-Most LinkedIn meme or parody generators online are paid or require an account. KaizenReply provides a 100% free Reality vs LinkedIn meme generator directly in the browser and via a public API:
+---
+
+## Free Reality vs LinkedIn Meme Generator
 
 ### How to Generate a LinkedIn Meme in the UI
 1. Open [https://kaizenreply.us.ci/#desk](https://kaizenreply.us.ci/#desk).

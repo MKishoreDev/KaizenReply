@@ -1,17 +1,18 @@
 # KaizenReply
 
-> Free, open-source AI message refiner, reply generator, and **Reality vs LinkedIn meme generator** — no login, no paywall, and sub-second response times.
+> **Your message is good. Make it better.** — Free, open-source AI message refiner, reply generator, and **Reality vs LinkedIn meme generator** built on Japanese Kaizen (改善) principles, with no login or paywall.
 
-KaizenReply helps you polish emails, messages, and posts without losing your own voice, and includes a built-in **LinkedIn Bro** satire mode that turns everyday moments into shareable **Reality vs LinkedIn** meme cards (2048×1364 PNG/JPEG).
+## Why KaizenReply Is Unique
+Most writing tools either fix only punctuation or rewrite your message until it sounds robotic. KaizenReply applies the Japanese philosophy of **Kaizen (改善 — continuous improvement)** and the **5S framework** (*Seiri* sort/cut fluff, *Seiton* structure, *Seiso* polish tone, *Seiketsu* keep your voice consistent, *Shitsuke* learn from edits):
+- **Don't rewrite. Improve.** — Preserves your facts, intent, and personal voice.
+- **Transparent Marginalia & Score** — Shows a 0–100 before/after score across Clarity, Tone, Professionalism, and Readability, plus line-by-line reasons for every change.
+- **100% Free Reality vs LinkedIn Meme Generator** — No watermark, no account, and no paywall (unlike paid LinkedIn meme tools).
 
 ## Key Features
-- **Free Reality vs LinkedIn Meme Generator**: Type any ordinary event (e.g., "I ate a sandwich at 2 PM because I forgot lunch"), select the **LinkedIn Bro** tone, click **Refine Draft**, and click **Meme Card** to download or share a 2048×1364 Reality vs LinkedIn comparison image — completely free with no watermark or signup.
-- **21 Tone Presets**: Professional, Friendly, Concise, Casual, Polite, Formal, Persuasive, Assertive, Diplomatic, Warm, Empathetic, Confident, Fix Grammar Only, LinkedIn Bro, Cold Email Hook, Dating App Opener, ELI5, Passive-Aggressive, Tech Twitter Thread, Roast My Draft, and Gen Z.
-- **9 Platform Presets**: Email, LinkedIn, WhatsApp, X (Twitter), SMS, Slack, Discord, Instagram, and Telegram, with character-limit awareness.
-- **Kaizen Score & Marginalia**: 0–100 before/after scoring across Clarity, Tone, Professionalism, and Readability, with line-by-line edit explanations.
+- **Free Reality vs LinkedIn Meme Generator**: Type any ordinary event (e.g., "I ate a sandwich at 2 PM because I forgot lunch"), select **LinkedIn Bro**, click **Refine Draft**, and click **Meme Card** to download or share a 2048×1364 comparison image.
+- **21 Tone Presets & 9 Platforms**: From Professional, Diplomatic, and Formal to LinkedIn Bro, Cold Email Hook, and Roast My Draft — tailored to Email, LinkedIn, WhatsApp, X (Twitter), SMS, Slack, Discord, Instagram, and Telegram.
 - **Reply Mode**: Generates 3 distinct, ready-to-send replies to any incoming message.
-- **Kotowaza Proverbs**: 100+ traditional Japanese proverbs served locally offline.
-- **Offline-Ready PWA**: Installable web app with local draft recovery.
+- **100+ Kotowaza Proverbs**: Traditional Japanese wisdom bundled offline.
 
 ## Links
 - [Live Web App](https://kaizenreply.us.ci/)

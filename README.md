@@ -5,8 +5,8 @@
 <h1 align="center">KaizenReply · 改善</h1>
 
 <p align="center">
-  <strong>Fast message refinement that keeps your own voice.</strong><br/>
-  A minimal editorial desk for polishing emails, replies, and drafts before you hit Send.
+  <strong>Your message is good. Make it better.</strong><br/>
+  Built on Japanese Kaizen (改善) principles — refine clarity, tone, and impact without taking your voice away.
 </p>
 
 <p align="center">
@@ -20,9 +20,25 @@
 
 ---
 
-## Why KaizenReply?
+## Why KaizenReply Is Unique
 
-Most writing tools either fix only punctuation or rewrite your message until it no longer sounds like you. KaizenReply sits in between: it refines clarity, tone, and structure in sub-second latency while showing you the exact before/after edits and why each change helps.
+Most writing tools fall into two traps: grammar checkers fix commas while ignoring tone and social nuance, and general chatbots rewrite your message until it no longer sounds like you.
+
+**KaizenReply takes a different approach — *"Don't rewrite. Improve."***
+- **Preserves Your Voice:** Keeps your facts, intent, and personal style intact while making targeted improvements.
+- **Kaizen (改善) & 5S Discipline:** Applies continuous improvement through small, deliberate edits rather than destructive overhauls.
+- **Transparent Marginalia & Scoring:** Explains *why* every edit was made and scores your draft across Clarity, Tone, Professionalism, and Readability.
+- **Free Reality vs LinkedIn Meme Generator:** Turn any everyday moment into a 2048×1364 Reality vs LinkedIn comparison card with zero login, watermark, or paywall.
+
+### The 5S Framework Applied to Writing
+
+| Principle | Kanji | Editorial Role |
+|---|---|---|
+| **Seiri** | 整理 (Sort) | Cuts fluff, hedges, and filler words |
+| **Seiton** | 整頓 (Set) | Organizes thoughts around clear intent |
+| **Seiso** | 清掃 (Shine) | Polishes tone and removes grammatical noise |
+| **Seiketsu** | 清潔 (Standardize) | Keeps your authentic voice consistent |
+| **Shitsuke** | 躾 (Sustain) | Builds lasting writing habits through Marginalia notes |
 
 ## Features
 
