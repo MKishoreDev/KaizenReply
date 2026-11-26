@@ -1,11 +1,11 @@
 /* ==========================================================================
    KaizenReply — Japanese Precision & Washi Paper Aesthetic Design System
-   v3.0 — Glassmorphism · Dark Mode Elegance · Kaizen Animations
+   Stylesheet — Layout, Themes, Typography & Components
    ========================================================================== */
 
 /* Fonts are loaded via <link> in index.html (non-blocking, CSP-friendly) */
 
-/* ── Design Tokens — Apple × Japan (Washi Paper & Sumi Obsidian) ────────── */
+/* ── Design Tokens (Light & Dark Themes) ────────────────────────────────── */
 :root {
   --radius: 10px;
   --background: #FBFBFA;
@@ -130,7 +130,7 @@ button, input, select, textarea { font-family: var(--font-sans); }
 
 .hidden { display: none !important; }
 
-/* ── Apple × Japan Fixed Header ────────────────────────────────────────── */
+/* ── Fixed Header ───────────────────────────────────────────────────────── */
 .site-header {
   position: fixed;
   top: 0;
@@ -1071,7 +1071,7 @@ textarea.desk-textarea:focus {
   align-items: center;
 }
 
-/* Enhanced Quote Card — Apple × Japan Obsidian Kotowaza */
+/* Kotowaza Quote Card */
 .quote-card {
   background: var(--card);
   backdrop-filter: blur(20px) saturate(160%);
@@ -1289,7 +1289,7 @@ footer { padding: 40px 0; border-top: 1px solid var(--border); text-align: cente
 /* ── Brand Mark & Logo ────────────────────────────────────────────────── */
 
 
-/* ── Apple × Japan Dark Mode Excellence ────────────────────────────────── */
+/* ── Dark Mode Overrides ────────────────────────────────────────────────── */
 .dark body {
   background: var(--background);
   color: var(--foreground);
@@ -2314,7 +2314,7 @@ del.manuscript-del { color: var(--seal); opacity: 0.7; text-decoration: line-thr
 }
 
 /* ==========================================================================
-   v2.0 — Responsiveness, landing page & accessibility fixes
+   Responsive Layout & Accessibility Overrides
    (kept together at the end so they override earlier duplicated rules)
    ========================================================================== */
 

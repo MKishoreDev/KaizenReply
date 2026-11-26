@@ -9,7 +9,6 @@ const ASSETS_TO_CACHE = [
   '/static/assets/kaizen-hero.jpg',
   '/static/assets/kaizen-desk.jpg',
   '/static/assets/kaizen-quote.jpg',
-  '/static/logo.png',
   '/static/logo-icon.png',
   '/static/logo-inkwash.png',
   '/static/icon-192.png',
